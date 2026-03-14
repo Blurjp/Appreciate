@@ -1,18 +1,25 @@
-# 🙏 Appreciate - Design Document v1.0
+# 🙏 Appreciate - Design Document v1.1
 
 ---
 
 ## 1. Executive Summary
 
-**Appreciate** is a social platform that enables people to recognize and appreciate acts of kindness, helpfulness, and excellence in their daily lives. Users can send appreciation notes to others, post them on personal or public walls, and even attach monetary gifts or cards.
+**Appreciate** is a gratitude and appreciation platform that supports positive mental health through gratitude logging, sharing, and acknowledgment. Users can maintain personal gratitude journals, share appreciation notes publicly, send them directly to others, and even attach tokens of appreciation (gifts).
 
 ### Vision
 > "Making the world a more appreciative place, one note at a time."
 
+### Why This App?
+- 🧠 **Gratitude drives positive mental health** - Scientific research shows gratitude practices improve well-being
+- 💭 **Promotes individual habit for positive thinking** - Daily logging builds lasting habits
+- 🤝 **Drives positive social interactions** - Sharing appreciation creates connection
+- 💼 **Future: Professional excellence recognition** - Easy platform to recognize professionals (doctors, nurses, teachers, etc.)
+
 ### Core Value Proposition
-- ✨ **Recognition** - Acknowledge good deeds publicly or privately
-- 🎁 **Gratitude** - Send real gifts/money to show appreciation
-- 🏢 **Enterprise** - Build positive workplace culture
+- ✨ **Mental Wellness** - Build gratitude habit with streaks and private reflection
+- 🎁 **Gratitude Expression** - Send appreciation to others with optional gifts
+- 🔒 **Privacy First** - Control what's private vs public
+- 🏢 **Enterprise Ready** - Build positive workplace culture
 
 ---
 
@@ -22,8 +29,11 @@
 
 | Problem | Current State | Appreciate Solution |
 |---------|--------------|---------------------|
+| **Mental Health** | Anxiety, stress, negative thinking | Gratitude logging habit |
 | **Lack of Recognition** | Good deeds go unnoticed | Public appreciation wall |
 | **No Easy Way to Thank** | Awkward to express gratitude | Simple appreciation posts |
+| **Privacy Concerns** | Fear of sharing publicly | Private/public toggle |
+| **Direct Communication** | No way to send thanks directly | Email/text delivery |
 | **Workplace Morale** | Low employee engagement | Enterprise appreciation system |
 | **Tangible Gratitude** | Words only | Gift cards, payments |
 
@@ -43,7 +53,146 @@
 
 ## 3. Core Features
 
-### 3.1 Personal Appreciation Wall
+### 3.1 Home / Feed (Public Gratitude Wall)
+
+```
+┌───────────────────────────────────────────────┐
+│  🌟 Today's Appreciation Feed                  │
+│  March 14, 2026 - 1,234 appreciations today   │
+├───────────────────────────────────────────────┤
+│  🏷️ Filter by: [Family] [Work] [Small Joys]   │
+│              [Nature] [Health] [All]          │
+├───────────────────────────────────────────────┤
+│                                                │
+│  🏆 Trending Appreciations                      │
+│                                                │
+│  ┌───────────────────────────────────────────┐│
+│  │ ❤️ Anonymous → @sarah_chen                 ││
+│  │ "Stayed late to help me debug my code.     ││
+│  │  Life saver! 🙏"                           ││
+│  │ 🏷️ Work | ❤️ 234  💬 45  🎁 3              ││
+│  └───────────────────────────────────────────┘│
+│                                                │
+│  ┌───────────────────────────────────────────┐│
+│  │ ❤️ @mike_j → @emma_wilson                  ││
+│  │ "Bought coffee for the entire team this    ││
+│  │  morning! Best manager ever! ☕"            ││
+│  │ 🏷️ Work | ❤️ 189  💬 32  🎁 1              ││
+│  └───────────────────────────────────────────┘│
+│                                                │
+│  📊 Top Appreciated Today                      │
+│  1. @sarah_chen     (47 appreciations)        │
+│  2. @emma_wilson    (38 appreciations)        │
+│  3. @john_doe       (31 appreciations)        │
+└───────────────────────────────────────────────┘
+```
+
+**Features:**
+- Filter by categories: Family, Work, Small Joys, Nature, Health, etc.
+- Each post shows author (real/pseudo name/anonymous), date, reactions
+- AI-powered content moderation (no complaints/scams)
+- Post confirmation with positive message ("Beautiful! You just shared light 💫")
+
+### 3.2 Create a Gratitude Post
+
+```
+Step 1: What are you grateful for today?
+┌─────────────────────────────────────────┐
+│ [Text box - What happened?]             │
+│                                         │
+│ [How did it make you feel?]             │
+│                                         │
+│ 📎 Optional: Add photo                  │
+└─────────────────────────────────────────┘
+         ↓
+Step 2: Categorize & Tag
+┌─────────────────────────────────────────┐
+| 🏷️ Category:                            │
+│ ○ Family  ○ Work   ○ Small Joys         │
+│ ○ Nature  ○ Health ○ Other              │
+│                                         │
+│ 👤 Tag someone? (optional)              │
+│ [Search by name/email/phone]            │
+└─────────────────────────────────────────┘
+         ↓
+Step 3: Privacy Settings
+┌─────────────────────────────────────────┐
+│ 🔒 Who can see this?                    │
+│                                         │
+│ ○ Private (visible only to me)          │
+│   → Goes to My Wall only                │
+│                                         │
+│ ○ Public (show in feed)                 │
+│   → Visible to everyone                 │
+│                                         │
+│ ○ Anonymous public                      │
+│   → Public but hide my name             │
+└─────────────────────────────────────────┘
+         ↓
+Step 4: Send to Recipient (Optional)
+┌─────────────────────────────────────────┐
+│ 📧 Send directly to them?               │
+│                                         │
+│ Email: [recipient@email.com]            │
+│ Phone: [+1-xxx-xxx-xxxx]                │
+│                                         │
+│ □ Include my contact info               │
+└─────────────────────────────────────────┘
+         ↓
+Step 5: Add Gift (Optional)
+┌─────────────────────────────────────────┐
+│ 🎁 Add a token of appreciation?         │
+│                                         │
+│ 💵 Venmo    $5-$50                      │
+│ ☕ Starbucks $5-$25                      │
+│ 🎁 Amazon   $10-$100                    │
+│ ❤️ No gift, thanks                      │
+└─────────────────────────────────────────┘
+         ↓
+Step 6: Send! ✨
+│ "Beautiful! You just shared light 💫"  │
+└─────────────────────────────────────────┘
+```
+
+### 3.3 My Wall (Private Reflection Page)
+
+```
+┌─────────────────────────────────────────┐
+│  🔒 My Gratitude Wall                   │
+│  Private reflection space               │
+├─────────────────────────────────────────┤
+│  📊 My Stats:                           │
+│  🔥 Current Streak: 5 days              │
+│  📅 Longest Streak: 12 days             │
+│  📝 Total Posts: 47                     │
+│  🎁 Gifts Received: 3                   │
+├─────────────────────────────────────────┤
+│  📝 My Gratitude Posts:                 │
+│                                          │
+│  ┌─────────────────────────────────────┐│
+│  │ 🔒 Private                          ││
+│  │ "Grateful for my morning coffee"    ││
+│  │ 🏷️ Small Joys | Yesterday 8:30am    ││
+│  │ [Edit] [Delete] [Make Public]       ││
+│  └─────────────────────────────────────┘│
+│                                          │
+│  ┌─────────────────────────────────────┐│
+│  │ 🌐 Public                           ││
+│  │ "Thank you @sarah for helping me!"  ││
+│  │ ❤️ 23 | 🏷️ Work | 2 days ago        ││
+│  │ [Edit] [Delete] [Make Private]      ││
+│  └─────────────────────────────────────┘│
+└─────────────────────────────────────────┘
+```
+
+**Features:**
+- Only logged-in user can view
+- Shows ALL posts (including private ones)
+- Edit, delete, or change visibility
+- Streak tracking ("You've posted 5 days in a row! 🔥")
+- Option to send appreciation to real person via email/text
+
+### 3.4 Personal Appreciation Wall (Public View)
 
 ```
 ┌─────────────────────────────────────────┐
@@ -68,76 +217,6 @@
 │  │ 5 hours ago                          ││
 │  └─────────────────────────────────────┘│
 └─────────────────────────────────────────┘
-```
-
-### 3.2 Send Appreciation Flow
-
-```
-Step 1: Choose Recipient
-┌─────────────────────────┐
-│ Search by name/email    │
-│ or select from contacts │
-└─────────────────────────┘
-         ↓
-Step 2: Write Appreciation
-┌─────────────────────────┐
-│ What did they do?       │
-│ [__________________]    │
-│                         │
-│ How did it make you     │
-│ feel?                   │
-│ [__________________]    │
-└─────────────────────────┘
-         ↓
-Step 3: Privacy Settings
-┌─────────────────────────┐
-│ ○ Public (shown on wall)│
-│ ● Anonymous public      │
-│ ○ Private (DM only)     │
-└─────────────────────────┘
-         ↓
-Step 4: Optional Gift
-┌─────────────────────────┐
-│ Add a gift? (optional)  │
-│                         │
-│ 💵 Venmo    $5-$50      │
-│ ☕ Starbucks $5-$25      │
-│ 🎁 Amazon   $10-$100    │
-│ ❤️ No gift, thanks      │
-└─────────────────────────┘
-         ↓
-Step 5: Send!
-```
-
-### 3.3 Public Appreciation Wall (Daily)
-
-```
-┌───────────────────────────────────────────────┐
-│  🌟 Today's Appreciation Feed                  │
-│  March 13, 2026 - 1,234 appreciations today   │
-├───────────────────────────────────────────────┤
-│                                                │
-│  🏆 Trending Appreciations                      │
-│                                                │
-│  ┌───────────────────────────────────────────┐│
-│  │ ❤️ Anonymous → @sarah_chen                 ││
-│  │ "Stayed late to help me debug my code.     ││
-│  │  Life saver! 🙏"                           ││
-│  │ ❤️ 234  💬 45  🎁 3                        ││
-│  └───────────────────────────────────────────┘│
-│                                                │
-│  ┌───────────────────────────────────────────┐│
-│  │ ❤️ @mike_j → @emma_wilson                  ││
-│  │ "Bought coffee for the entire team this    ││
-│  │  morning! Best manager ever! ☕"            ││
-│  │ ❤️ 189  💬 32  🎁 1                        ││
-│  └───────────────────────────────────────────┘│
-│                                                │
-│  📊 Top Appreciated Today                      │
-│  1. @sarah_chen     (47 appreciations)        │
-│  2. @emma_wilson    (38 appreciations)        │
-│  3. @john_doe       (31 appreciations)        │
-└───────────────────────────────────────────────┘
 ```
 
 ### 3.4 Enterprise Features
@@ -174,14 +253,18 @@ Step 5: Send!
 
 | ID | User Story | Priority |
 |----|-----------|----------|
-| C1 | As a user, I want to send appreciation to anyone via email/phone | P0 |
-| C2 | As a user, I want to post appreciation anonymously | P0 |
-| C3 | As a user, I want to see my appreciation wall | P0 |
-| C4 | As a user, I want to browse today's public appreciation feed | P0 |
-| C5 | As a user, I want to attach a gift card to my appreciation | P1 |
-| C6 | As a user, I want to send money via Venmo integration | P1 |
-| C7 | As a user, I want to see who appreciated me most | P2 |
-| C8 | As a user, I want to share my appreciation on social media | P2 |
+| C1 | As a user, I want to log my daily gratitude privately | P0 |
+| C2 | As a user, I want to see my gratitude streaks (consecutive days) | P0 |
+| C3 | As a user, I want to toggle posts between private and public | P0 |
+| C4 | As a user, I want to browse the public gratitude feed with category filters | P0 |
+| C5 | As a user, I want to send appreciation directly via email/text | P0 |
+| C6 | As a user, I want to post appreciation anonymously | P0 |
+| C7 | As a user, I want to attach a gift card to my appreciation | P1 |
+| C8 | As a user, I want to send money via Venmo integration | P1 |
+| C9 | As a user, I want to edit/delete my posts | P1 |
+| C10 | As a user, I want to categorize my posts (Family/Work/Small Joys/etc) | P1 |
+| C11 | As a user, I want to see who appreciated me most | P2 |
+| C12 | As a user, I want to share my appreciation on social media | P2 |
 
 ### B2B (Enterprise)
 
@@ -193,6 +276,14 @@ Step 5: Send!
 | E4 | As an admin, I want to set company gift budget | P1 |
 | E5 | As HR, I want to export appreciation reports | P2 |
 | E6 | As an admin, I want to integrate with Slack/Teams | P2 |
+
+### System
+
+| ID | Requirement | Priority |
+|----|------------|----------|
+| S1 | AI content moderation to prevent complaints/scams | P0 |
+| S2 | Positive confirmation messages after posting | P0 |
+| S3 | Email/text notification delivery | P1 |
 
 ---
 
@@ -364,30 +455,46 @@ Step 5: Send!
 
 ## 11. Roadmap
 
-### Q2 2026 (MVP)
-- [ ] Core appreciation functionality
-- [ ] Personal wall
-- [ ] Public feed
-- [ ] Anonymous mode
+### Q2 2026 (MVP - Core Gratitude Features)
+**Focus: Individual gratitude logging + privacy control**
+- [ ] Gratitude post creation (text + photo)
+- [ ] Private/Public toggle
+- [ ] My Wall (private reflection page)
+- [ ] Streak tracking ("You've posted 5 days in a row!")
+- [ ] Category system (Family/Work/Small Joys/Nature/Health)
+- [ ] Public daily feed with filters
+- [ ] Anonymous posting mode
+- [ ] AI content moderation (prevent complaints/scams)
+- [ ] Direct send via email/text
+- [ ] Positive confirmation messages
 - [ ] iOS app launch
 
-### Q3 2026 (Monetization)
+### Q3 2026 (Monetization & Engagement)
+**Focus: Gift system + premium features**
 - [ ] Apple Pay integration
-- [ ] Gift cards (IAP)
-- [ ] Premium subscriptions
+- [ ] Gift cards (Starbucks, Amazon, etc.)
+- [ ] Venmo integration
+- [ ] Premium subscriptions (StoreKit 2)
+- [ ] Edit/delete posts
 - [ ] Basic analytics
+- [ ] Social sharing
 
 ### Q4 2026 (Enterprise)
+**Focus: B2B features**
 - [ ] Workspace creation
 - [ ] Team management
-- [ ] Slack integration
 - [ ] Admin dashboard
+- [ ] Slack/Teams integration
+- [ ] Advanced analytics
+- [ ] Export reports
 
 ### Q1 2027 (Scale)
+**Focus: Growth & expansion**
 - [ ] Android app
 - [ ] International payments
 - [ ] API for developers
 - [ ] Partnership program
+- [ ] Advanced gamification
 
 ---
 
@@ -410,18 +517,30 @@ Step 5: Send!
 
 ---
 
-## 13. Contact
+## 13. Contact & Version
 
-**Project Lead:** blurjp  
+**Product Owner:** Yuji Li  
+**Technical Lead:** Jianping Huang (blurjp)  
 **Email:** blurjp@gmail.com  
-**Date:** March 13, 2026  
-**Version:** 1.0
+**Date:** March 14, 2026  
+**Version:** 1.1
+
+### Version History
+- **v1.1** (March 14, 2026) - Added mental health focus, privacy controls, streaks, direct send, categories
+- **v1.0** (March 13, 2026) - Initial design document
 
 ---
 
-**Next Steps:**
-1. Review and refine this design doc
-2. Create wireframes/mockups
-3. Build iOS MVP
-4. User testing
-5. Iterate and launch App Store
+## 14. Next Steps
+
+1. ✅ Review and update design doc to align with original vision
+2. [ ] Create wireframes/mockups for gratitude wall
+3. [ ] Build iOS MVP with core features:
+   - [ ] Gratitude post creation
+   - [ ] Private/Public toggle
+   - [ ] My Wall with streaks
+   - [ ] Category filters
+   - [ ] Direct email/text send
+4. [ ] Implement AI content moderation
+5. [ ] User testing
+6. [ ] Iterate and launch App Store
