@@ -24,16 +24,16 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user])), [users])
 
   return (
-    <section className="feed-stage">
+    <section className="feed-stage" aria-labelledby="feed-heading">
       <div className="feed-stage-header">
         <div>
           <p className="eyebrow">Feed</p>
-          <h2>{title}</h2>
+          <h2 id="feed-heading">{title}</h2>
         </div>
-        <span className="muted">{subtitle}</span>
+        <span className="muted" aria-live="polite">{subtitle}</span>
       </div>
 
-      <div className="polaroid-grid">
+      <div className="polaroid-grid" role="feed" aria-label="Appreciation posts">
         {posts.map((post, index) => {
           const author = userMap.get(post.authorId)
           const displayAuthor = post.visibility === 'anonymous' ? 'Someone' : (author?.name ?? 'Someone')
@@ -47,6 +47,8 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
             <article
               key={post.id}
               className="polaroid-card"
+              role="article"
+              aria-labelledby={`post-title-${post.id}`}
               style={{
                 transform: `rotate(${index % 3 === 0 ? -2 : index % 3 === 1 ? 1.5 : -0.5}deg)`,
                 animationDelay: `${index * 60}ms`,
@@ -56,7 +58,7 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
                 <span className="mini-title">{post.category}</span>
                 <span className="muted">{formatDate(post.createdAt)}</span>
               </div>
-              <Link className="text-link polaroid-title" to={`/posts/${post.id}`}>
+              <Link className="text-link polaroid-title" id={`post-title-${post.id}`} to={`/posts/${post.id}`}>
                 {displayAuthor} appreciated {post.recipient}
               </Link>
               <p className="polaroid-message">{post.message}</p>
@@ -68,25 +70,41 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
               {(onReact || onReport || onComment) && (
                 <div className="polaroid-actions">
                   {onReact && (
-                    <div className="action-row compact-row">
-                      <button type="button" className="button secondary small" onClick={() => void onReact(post.id, 'support')}>
+                    <div className="action-row compact-row" role="group" aria-label="Reactions">
+                      <button 
+                        type="button" 
+                        className="button secondary small" 
+                        aria-label={`Support this post, ${supportCount} supporters`}
+                        aria-pressed={postReactions.some(r => r.userId === currentUser?.id && r.type === 'support')}
+                        onClick={() => void onReact(post.id, 'support')}
+                      >
                         Support {supportCount}
                       </button>
-                      <button type="button" className="button secondary small" onClick={() => void onReact(post.id, 'inspiring')}>
+                      <button 
+                        type="button" 
+                        className="button secondary small"
+                        aria-label={`Mark as inspiring, ${inspiringCount} people inspired`}
+                        aria-pressed={postReactions.some(r => r.userId === currentUser?.id && r.type === 'inspiring')}
+                        onClick={() => void onReact(post.id, 'inspiring')}
+                      >
                         Inspiring {inspiringCount}
                       </button>
                     </div>
                   )}
                   {onComment && (
                     <div className="comment-box compact-column">
+                      <label htmlFor={`comment-${post.id}`} className="visually-hidden">Add a comment</label>
                       <input
+                        id={`comment-${post.id}`}
                         value={commentDrafts[post.id] ?? ''}
                         onChange={(event) => setCommentDrafts({ ...commentDrafts, [post.id]: event.target.value })}
                         placeholder="Add a note"
+                        aria-label="Add a comment"
                       />
                       <button
                         type="button"
                         className="button secondary small"
+                        aria-label="Submit comment"
                         onClick={async () => {
                           const body = commentDrafts[post.id]?.trim()
                           if (!body) return
@@ -100,14 +118,18 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
                   )}
                   {onReport && currentUser && currentUser.id !== (author?.id ?? '') && (
                     <div className="comment-box compact-column">
+                      <label htmlFor={`report-${post.id}`} className="visually-hidden">Report reason</label>
                       <input
+                        id={`report-${post.id}`}
                         value={reportDrafts[post.id] ?? ''}
                         onChange={(event) => setReportDrafts({ ...reportDrafts, [post.id]: event.target.value })}
                         placeholder="Report reason"
+                        aria-label="Enter report reason"
                       />
                       <button
                         type="button"
                         className="button secondary small"
+                        aria-label="Submit report"
                         onClick={async () => {
                           const reason = reportDrafts[post.id]?.trim()
                           if (!reason) return
@@ -123,9 +145,9 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
               )}
 
               {postComments.length > 0 && (
-                <div className="comment-list paper-comments">
+                <div className="comment-list paper-comments" role="list" aria-label="Comments">
                   {postComments.map((comment) => (
-                    <div key={comment.id} className="comment-item">
+                    <div key={comment.id} className="comment-item" role="listitem">
                       <div className="meta-row muted">
                         <span>{userMap.get(comment.authorId)?.name ?? 'Member'}</span>
                         <span>{formatDate(comment.createdAt)}</span>
@@ -135,7 +157,7 @@ export function PostList({ posts, users, reactions, comments, reports = [], titl
                   ))}
                 </div>
               )}
-              {existingReport && <p className="report-status">Report status: {existingReport.status}</p>}
+              {existingReport && <p className="report-status" role="status">Report status: {existingReport.status}</p>}
             </article>
           )
         })}
