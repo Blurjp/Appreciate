@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String?
+  avatarUrl String?
+  provider  String   @default("email") // email, apple
+
+  // Apple Sign In
+  appleId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts  GratitudePost[]
+  streak StreakData?
+
+  @@index([email])
+  @@index([appleId])
+}
+
+model GratitudePost {
+  id         String  @id @default(cuid())
+  content    String  @db.Text
+  feeling    String? @db.Text
+  category   String // FAMILY, WORK, SMALL_JOYS, NATURE, HEALTH, OTHER
+  visibility String // PRIVATE, PUBLIC, ANONYMOUS
+  photoUrl   String?
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  heartCount   Int     @default(0)
+  isBookmarked Boolean @default(false)
+
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([visibility, createdAt(sort: Desc)])
+  @@index([category])
+}
+
+model StreakData {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastPostDate  DateTime? @db.Date
+  totalPosts    Int       @default(0)
+
+  updatedAt DateTime @updatedAt
+}
