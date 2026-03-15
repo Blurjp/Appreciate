@@ -22,6 +22,7 @@ final class CreatePostViewModel {
     var isSubmitting = false
     var showConfirmation = false
     var confirmationMessage = ""
+    var errorMessage: String?
 
     private let postService: PostService
     private let streakService: StreakService
@@ -57,20 +58,32 @@ final class CreatePostViewModel {
     func submitPost(authorId: String, authorName: String) {
         guard canProceedFromStep1 else { return }
         isSubmitting = true
+        errorMessage = nil
 
-        let _ = postService.createPost(
-            content: content.trimmingCharacters(in: .whitespacesAndNewlines),
-            feeling: feeling.trimmingCharacters(in: .whitespacesAndNewlines),
-            category: selectedCategory,
-            visibility: visibility,
-            photoData: photoData,
-            authorId: authorId,
-            authorName: authorName
-        )
+        Task {
+            do {
+                let _ = try await postService.createPost(
+                    content: content.trimmingCharacters(in: .whitespacesAndNewlines),
+                    feeling: feeling.trimmingCharacters(in: .whitespacesAndNewlines),
+                    category: selectedCategory,
+                    visibility: visibility,
+                    photoData: photoData,
+                    authorId: authorId,
+                    authorName: authorName
+                )
 
-        confirmationMessage = randomConfirmation
-        isSubmitting = false
-        showConfirmation = true
+                await MainActor.run {
+                    self.confirmationMessage = self.randomConfirmation
+                    self.isSubmitting = false
+                    self.showConfirmation = true
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.isSubmitting = false
+                }
+            }
+        }
     }
 
     func reset() {
@@ -84,6 +97,7 @@ final class CreatePostViewModel {
         isSubmitting = false
         showConfirmation = false
         confirmationMessage = ""
+        errorMessage = nil
     }
 
     @MainActor

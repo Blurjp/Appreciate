@@ -1,4 +1,4 @@
-// Matches iOS GratitudeCategory enum
+// Matches Supabase gratitude_category enum
 export type GratitudeCategory =
   | 'FAMILY'
   | 'WORK'
@@ -7,7 +7,7 @@ export type GratitudeCategory =
   | 'HEALTH'
   | 'OTHER'
 
-// Matches iOS PostVisibility enum
+// Matches Supabase post_visibility enum
 export type PostVisibility = 'PRIVATE' | 'PUBLIC' | 'ANONYMOUS'
 
 export interface GratitudePost {

@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { fetchMyPosts } from '@/lib/db/posts'
 
-// GET /api/my-wall — Get all posts for the authenticated user
+// GET /api/my-wall — Fetch all posts for the authenticated user
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
   const { searchParams } = new URL(req.url)
-  const visibility = searchParams.get('visibility')
+  const visibility = searchParams.get('visibility') || undefined
 
-  const where: Record<string, unknown> = { authorId: userId }
-  if (visibility) {
-    where.visibility = visibility
+  try {
+    const posts = await fetchMyPosts(supabase, user.id, { visibility })
+    return NextResponse.json(posts)
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
   }
-
-  const posts = await prisma.gratitudePost.findMany({
-    where,
-    include: {
-      author: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  return NextResponse.json(posts)
 }

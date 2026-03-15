@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// Local SwiftData model for caching user profile. Mirrors Supabase public.profiles table.
 @Model
 final class UserProfile {
     var id: String
@@ -33,5 +34,34 @@ final class UserProfile {
         self.currentStreak = currentStreak
         self.longestStreak = longestStreak
         self.lastPostDate = lastPostDate
+    }
+}
+
+// MARK: - Supabase DTO
+
+/// Matches Supabase public.profiles table
+struct SupabaseProfile: Codable {
+    let id: UUID
+    let email: String
+    let name: String
+    let avatarUrl: String?
+    let createdAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, email, name
+        case avatarUrl = "avatar_url"
+        case createdAt = "created_at"
+    }
+
+    func toLocal() -> UserProfile {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return UserProfile(
+            id: id.uuidString,
+            displayName: name,
+            email: email,
+            avatarURL: avatarUrl,
+            joinedAt: isoFormatter.date(from: createdAt) ?? Date()
+        )
     }
 }

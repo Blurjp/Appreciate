@@ -3,6 +3,9 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from './db'
 import bcrypt from 'bcryptjs'
 
+// NextAuth configuration — kept for backwards compatibility.
+// New auth flow uses Supabase Auth directly (see lib/supabase/).
+// Supabase Auth handles Sign in with Apple, session management, and token refresh.
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',

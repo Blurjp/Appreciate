@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { calculateStreak } from '@/lib/streak'
+import { createClient } from '@/lib/supabase/server'
+import { fetchStreak } from '@/lib/db/streak'
 
-// GET /api/streak — Get streak data for authenticated user
+// GET /api/streak — Fetch streak data for the authenticated user
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
-  const streak = await calculateStreak(userId)
-
-  return NextResponse.json(streak)
+  try {
+    const streak = await fetchStreak(supabase, user.id)
+    return NextResponse.json(streak)
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
+  }
 }

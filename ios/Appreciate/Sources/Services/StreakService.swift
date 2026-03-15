@@ -1,113 +1,72 @@
 import Foundation
-import SwiftData
 
-/// Tracks and calculates gratitude posting streaks
+/// Fetches streak data from Supabase.
+/// The streak_data table is updated automatically by a database trigger (on_post_created)
+/// whenever a new gratitude_posts row is inserted — no manual calculation needed.
 @Observable
 final class StreakService {
-    private let modelContext: ModelContext
+    private let supabase = SupabaseService.shared.client
 
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-
-    func calculateStreak(for userId: String) -> StreakData {
-        let descriptor = FetchDescriptor<GratitudePost>(
-            predicate: #Predicate { $0.authorId == userId },
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
-
-        guard let posts = try? modelContext.fetch(descriptor), !posts.isEmpty else {
+    /// Fetches streak data for the given user from the Supabase streak_data table.
+    func fetchStreak(for userId: String) async throws -> StreakData {
+        guard let uuid = UUID(uuidString: userId) else {
             return .empty
         }
 
+        let results: [SupabaseStreakData] = try await supabase
+            .from("streak_data")
+            .select()
+            .eq("user_id", value: uuid)
+            .execute()
+            .value
+
+        guard let streak = results.first else {
+            return .empty
+        }
+
+        var data = streak.toLocal()
+
+        // Calculate week activity from recent posts
+        data.weekActivity = try await fetchWeekActivity(userId: uuid)
+
+        return data
+    }
+
+    /// Fetches which of the last 7 days had posts, for the streak card visualization.
+    private func fetchWeekActivity(userId: UUID) async throws -> [Bool] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
+        guard let weekAgo = calendar.date(byAdding: .day, value: -6, to: today) else {
+            return Array(repeating: false, count: 7)
+        }
 
-        // Get unique posting days
-        var postingDays = Set<Date>()
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        struct PostDate: Codable {
+            let createdAt: String
+            enum CodingKeys: String, CodingKey {
+                case createdAt = "created_at"
+            }
+        }
+
+        let posts: [PostDate] = try await supabase
+            .from("gratitude_posts")
+            .select("created_at")
+            .eq("author_id", value: userId)
+            .gte("created_at", value: isoFormatter.string(from: weekAgo))
+            .execute()
+            .value
+
+        var postingDays = Set<Int>() // days offset from weekAgo
         for post in posts {
-            let day = calendar.startOfDay(for: post.createdAt)
-            postingDays.insert(day)
-        }
-
-        let sortedDays = postingDays.sorted(by: >)
-
-        // Calculate current streak
-        var currentStreak = 0
-        var checkDate = today
-
-        // Allow today or yesterday as the start
-        if postingDays.contains(today) {
-            checkDate = today
-        } else if let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
-                  postingDays.contains(yesterday) {
-            checkDate = yesterday
-        } else {
-            // No recent post, streak is 0
-            return StreakData(
-                currentStreak: 0,
-                longestStreak: calculateLongestStreak(sortedDays: sortedDays),
-                totalPosts: posts.count,
-                lastPostDate: posts.first?.createdAt,
-                weekActivity: calculateWeekActivity(postingDays: postingDays)
-            )
-        }
-
-        while postingDays.contains(checkDate) {
-            currentStreak += 1
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: checkDate) else {
-                break
-            }
-            checkDate = previousDay
-        }
-
-        let longestStreak = max(currentStreak, calculateLongestStreak(sortedDays: sortedDays))
-
-        return StreakData(
-            currentStreak: currentStreak,
-            longestStreak: longestStreak,
-            totalPosts: posts.count,
-            lastPostDate: posts.first?.createdAt,
-            weekActivity: calculateWeekActivity(postingDays: postingDays)
-        )
-    }
-
-    func updateUserStreak(user: UserProfile, streak: StreakData) {
-        user.currentStreak = streak.currentStreak
-        user.longestStreak = streak.longestStreak
-        user.totalPosts = streak.totalPosts
-        user.lastPostDate = streak.lastPostDate
-        try? modelContext.save()
-    }
-
-    // MARK: - Private
-
-    private func calculateLongestStreak(sortedDays: [Date]) -> Int {
-        guard !sortedDays.isEmpty else { return 0 }
-        let calendar = Calendar.current
-        var longest = 1
-        var current = 1
-
-        for i in 1..<sortedDays.count {
-            let daysBetween = calendar.dateComponents([.day], from: sortedDays[i], to: sortedDays[i - 1]).day ?? 0
-            if daysBetween == 1 {
-                current += 1
-                longest = max(longest, current)
-            } else {
-                current = 1
+            if let date = isoFormatter.date(from: post.createdAt) {
+                let day = calendar.startOfDay(for: date)
+                let offset = calendar.dateComponents([.day], from: today, to: day).day ?? 0
+                postingDays.insert(offset + 6) // 0 = 6 days ago, 6 = today
             }
         }
-        return longest
-    }
 
-    private func calculateWeekActivity(postingDays: Set<Date>) -> [Bool] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return (0..<7).reversed().map { daysAgo in
-            guard let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) else {
-                return false
-            }
-            return postingDays.contains(date)
-        }
+        return (0..<7).map { postingDays.contains($0) }
     }
 }

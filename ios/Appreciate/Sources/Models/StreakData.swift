@@ -52,3 +52,37 @@ struct StreakData: Equatable {
         }
     }
 }
+
+// MARK: - Supabase DTO
+
+/// Matches Supabase public.streak_data table
+struct SupabaseStreakData: Codable {
+    let id: UUID
+    let userId: UUID
+    let currentStreak: Int
+    let longestStreak: Int
+    let lastPostDate: String?
+    let totalPosts: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case currentStreak = "current_streak"
+        case longestStreak = "longest_streak"
+        case lastPostDate = "last_post_date"
+        case totalPosts = "total_posts"
+    }
+
+    func toLocal() -> StreakData {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let lastDate = lastPostDate.flatMap { dateFormatter.date(from: $0) }
+        return StreakData(
+            currentStreak: currentStreak,
+            longestStreak: longestStreak,
+            totalPosts: totalPosts,
+            lastPostDate: lastDate,
+            weekActivity: Array(repeating: false, count: 7) // Populated separately if needed
+        )
+    }
+}

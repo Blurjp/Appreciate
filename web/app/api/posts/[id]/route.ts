@@ -1,103 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
+import { updatePost, deletePost, toggleHeart } from '@/lib/db/posts'
 
-// GET /api/posts/:id
+// GET /api/posts/:id — Fetch a single post
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const post = await prisma.gratitudePost.findUnique({
-    where: { id: params.id },
-    include: {
-      author: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
-    },
-  })
+  const supabase = createClient()
 
-  if (!post) {
+  const { data: post, error } = await supabase
+    .from('gratitude_posts')
+    .select('*, profiles(id, name, avatar_url)')
+    .eq('id', params.id)
+    .single()
+
+  if (error || !post) {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 })
   }
 
   return NextResponse.json(post)
 }
 
-// PATCH /api/posts/:id — Update post (content, category, visibility, heartCount)
+// PATCH /api/posts/:id — Update post or toggle heart
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions)
+  const supabase = createClient()
   const body = await req.json()
 
-  // Allow heart increments without auth
-  if (body.heartIncrement) {
-    const post = await prisma.gratitudePost.update({
-      where: { id: params.id },
-      data: { heartCount: { increment: 1 } },
-      include: {
-        author: {
-          select: { id: true, name: true, avatarUrl: true },
-        },
-      },
-    })
-    return NextResponse.json(post)
+  // Heart toggle
+  if (body.heartToggle) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    try {
+      const hearted = await toggleHeart(supabase, params.id, user.id)
+      return NextResponse.json({ hearted })
+    } catch (error) {
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      )
+    }
   }
 
-  // All other updates require auth
-  if (!session?.user) {
+  // Content update — requires auth and ownership (RLS enforces this)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
-  const existing = await prisma.gratitudePost.findUnique({
-    where: { id: params.id },
-  })
-
-  if (!existing || existing.authorId !== userId) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  try {
+    const post = await updatePost(supabase, params.id, {
+      content: body.content,
+      category: body.category,
+      visibility: body.visibility,
+    })
+    return NextResponse.json(post)
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
   }
-
-  const data: Record<string, unknown> = {}
-  if (body.content !== undefined) data.content = body.content
-  if (body.category !== undefined) data.category = body.category
-  if (body.visibility !== undefined) data.visibility = body.visibility
-
-  const post = await prisma.gratitudePost.update({
-    where: { id: params.id },
-    data,
-    include: {
-      author: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
-    },
-  })
-
-  return NextResponse.json(post)
 }
 
-// DELETE /api/posts/:id
+// DELETE /api/posts/:id — Delete a post (RLS ensures only owner can delete)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
-  const existing = await prisma.gratitudePost.findUnique({
-    where: { id: params.id },
-  })
-
-  if (!existing || existing.authorId !== userId) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  try {
+    await deletePost(supabase, params.id)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
   }
-
-  await prisma.gratitudePost.delete({ where: { id: params.id } })
-
-  return NextResponse.json({ success: true })
 }

@@ -6,6 +6,7 @@ final class MyWallViewModel {
     var streakData: StreakData = .empty
     var selectedFilter: PostVisibility?
     var isLoading = false
+    var errorMessage: String?
 
     private let postService: PostService
     private let streakService: StreakService
@@ -30,18 +31,57 @@ final class MyWallViewModel {
 
     func loadData(userId: String) {
         isLoading = true
-        posts = postService.fetchAllPosts(for: userId)
-        streakData = streakService.calculateStreak(for: userId)
-        isLoading = false
+        errorMessage = nil
+
+        Task {
+            do {
+                async let fetchedPosts = postService.fetchMyPosts()
+                async let fetchedStreak = streakService.fetchStreak(for: userId)
+
+                let (p, s) = try await (fetchedPosts, fetchedStreak)
+
+                await MainActor.run {
+                    self.posts = p
+                    self.streakData = s
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
+                }
+            }
+        }
     }
 
     func deletePost(_ post: GratitudePost) {
-        postService.deletePost(post)
-        posts.removeAll { $0.id == post.id }
+        Task {
+            do {
+                try await postService.deletePost(post.id)
+                await MainActor.run {
+                    self.posts.removeAll { $0.id == post.id }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
     }
 
     func toggleVisibility(_ post: GratitudePost) {
         let newVisibility: PostVisibility = post.visibility == .privatePost ? .publicPost : .privatePost
-        postService.updatePost(post, visibility: newVisibility)
+        Task {
+            do {
+                try await postService.updatePost(post.id, visibility: newVisibility)
+                await MainActor.run {
+                    post.visibility = newVisibility
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
     }
 }

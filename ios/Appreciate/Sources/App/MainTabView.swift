@@ -8,7 +8,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var showCreatePost = false
 
-    // Services
+    // Services (no longer need modelContext — they use Supabase)
     @State private var postService: PostService?
     @State private var streakService: StreakService?
 
@@ -102,8 +102,8 @@ struct MainTabView: View {
     }
 
     private func setupServices() {
-        let ps = PostService(modelContext: modelContext)
-        let ss = StreakService(modelContext: modelContext)
+        let ps = PostService()
+        let ss = StreakService()
         postService = ps
         streakService = ss
 

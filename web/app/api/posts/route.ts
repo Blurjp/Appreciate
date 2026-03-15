@@ -1,17 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
-import { updateStreakData } from '@/lib/streak'
+import { createClient } from '@/lib/supabase/server'
+import { fetchPosts, createPost } from '@/lib/db/posts'
+
+// GET /api/posts — Fetch public feed (with optional category filter)
+export async function GET(req: NextRequest) {
+  const supabase = createClient()
+  const { searchParams } = new URL(req.url)
+
+  try {
+    const posts = await fetchPosts(supabase, {
+      category: searchParams.get('category') || undefined,
+      limit: parseInt(searchParams.get('limit') || '50'),
+      offset: parseInt(searchParams.get('offset') || '0'),
+    })
+    return NextResponse.json(posts)
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
+  }
+}
 
 // POST /api/posts — Create a new gratitude post
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
   const body = await req.json()
   const { content, feeling, category, visibility, photoUrl } = body
 
@@ -22,54 +41,20 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const post = await prisma.gratitudePost.create({
-    data: {
+  try {
+    const post = await createPost(supabase, {
       content: content.trim(),
-      feeling: feeling || null,
+      feeling: feeling || undefined,
       category: category || 'OTHER',
       visibility: visibility || 'PRIVATE',
-      photoUrl: photoUrl || null,
-      authorId: userId,
-    },
-    include: {
-      author: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
-    },
-  })
-
-  // Update streak after creating a post
-  await updateStreakData(userId)
-
-  return NextResponse.json(post, { status: 201 })
-}
-
-// GET /api/posts — Get public feed (with optional category filter)
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const category = searchParams.get('category')
-  const limit = parseInt(searchParams.get('limit') || '50')
-  const offset = parseInt(searchParams.get('offset') || '0')
-
-  const where: Record<string, unknown> = {
-    visibility: { in: ['PUBLIC', 'ANONYMOUS'] },
+      photoUrl: photoUrl || undefined,
+      authorId: user.id,
+    })
+    return NextResponse.json(post, { status: 201 })
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    )
   }
-
-  if (category) {
-    where.category = category
-  }
-
-  const posts = await prisma.gratitudePost.findMany({
-    where,
-    include: {
-      author: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-    skip: offset,
-  })
-
-  return NextResponse.json(posts)
 }

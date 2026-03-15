@@ -1,11 +1,56 @@
 import Foundation
 import SwiftData
 
-/// The visibility setting for a gratitude post
+/// Maps to Supabase gratitude_category enum: FAMILY, WORK, SMALL_JOYS, NATURE, HEALTH, OTHER
+enum GratitudeCategory: String, Codable, CaseIterable, Identifiable {
+    case family = "FAMILY"
+    case work = "WORK"
+    case smallJoys = "SMALL_JOYS"
+    case nature = "NATURE"
+    case health = "HEALTH"
+    case other = "OTHER"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .family: "Family"
+        case .work: "Work"
+        case .smallJoys: "Small Joys"
+        case .nature: "Nature"
+        case .health: "Health"
+        case .other: "Other"
+        }
+    }
+
+    var emoji: String {
+        switch self {
+        case .family: "👨‍👩‍👧‍👦"
+        case .work: "💼"
+        case .smallJoys: "✨"
+        case .nature: "🌿"
+        case .health: "💪"
+        case .other: "💭"
+        }
+    }
+
+    var color: String {
+        switch self {
+        case .family: "CategoryFamily"
+        case .work: "CategoryWork"
+        case .smallJoys: "CategorySmallJoys"
+        case .nature: "CategoryNature"
+        case .health: "CategoryHealth"
+        case .other: "CategoryOther"
+        }
+    }
+}
+
+/// Maps to Supabase post_visibility enum: PRIVATE, PUBLIC, ANONYMOUS
 enum PostVisibility: String, Codable, CaseIterable {
-    case privatePost = "private"
-    case publicPost = "public"
-    case anonymousPublic = "anonymous"
+    case privatePost = "PRIVATE"
+    case publicPost = "PUBLIC"
+    case anonymousPublic = "ANONYMOUS"
 
     var label: String {
         switch self {
@@ -32,40 +77,7 @@ enum PostVisibility: String, Codable, CaseIterable {
     }
 }
 
-/// Categories for gratitude posts
-enum GratitudeCategory: String, Codable, CaseIterable, Identifiable {
-    case family = "Family"
-    case work = "Work"
-    case smallJoys = "Small Joys"
-    case nature = "Nature"
-    case health = "Health"
-    case other = "Other"
-
-    var id: String { rawValue }
-
-    var emoji: String {
-        switch self {
-        case .family: "👨‍👩‍👧‍👦"
-        case .work: "💼"
-        case .smallJoys: "✨"
-        case .nature: "🌿"
-        case .health: "💪"
-        case .other: "💭"
-        }
-    }
-
-    var color: String {
-        switch self {
-        case .family: "CategoryFamily"
-        case .work: "CategoryWork"
-        case .smallJoys: "CategorySmallJoys"
-        case .nature: "CategoryNature"
-        case .health: "CategoryHealth"
-        case .other: "CategoryOther"
-        }
-    }
-}
-
+/// Local SwiftData model for offline caching. Mirrors the Supabase gratitude_posts table.
 @Model
 final class GratitudePost {
     var id: UUID
@@ -74,6 +86,7 @@ final class GratitudePost {
     var category: GratitudeCategory
     var visibility: PostVisibility
     var photoData: Data?
+    var photoUrl: String?
     var authorId: String
     var authorName: String
     var createdAt: Date
@@ -88,6 +101,7 @@ final class GratitudePost {
         category: GratitudeCategory = .smallJoys,
         visibility: PostVisibility = .privatePost,
         photoData: Data? = nil,
+        photoUrl: String? = nil,
         authorId: String = "",
         authorName: String = "",
         createdAt: Date = Date(),
@@ -101,6 +115,7 @@ final class GratitudePost {
         self.category = category
         self.visibility = visibility
         self.photoData = photoData
+        self.photoUrl = photoUrl
         self.authorId = authorId
         self.authorName = authorName
         self.createdAt = createdAt
@@ -121,5 +136,91 @@ final class GratitudePost {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: createdAt, relativeTo: Date())
+    }
+}
+
+// MARK: - Supabase DTOs (Codable structs for Supabase communication)
+
+/// Matches the Supabase gratitude_posts table for reading (includes joined author profile)
+struct SupabasePost: Codable {
+    let id: UUID
+    let content: String
+    let feeling: String?
+    let category: GratitudeCategory
+    let visibility: PostVisibility
+    let photoUrl: String?
+    let authorId: UUID
+    let createdAt: String
+    let updatedAt: String
+    let heartCount: Int
+    let isBookmarked: Bool
+    let author: SupabaseAuthor?
+
+    enum CodingKeys: String, CodingKey {
+        case id, content, feeling, category, visibility
+        case photoUrl = "photo_url"
+        case authorId = "author_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case heartCount = "heart_count"
+        case isBookmarked = "is_bookmarked"
+        case author = "profiles"
+    }
+
+    func toLocal() -> GratitudePost {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return GratitudePost(
+            id: id,
+            content: content,
+            feeling: feeling ?? "",
+            category: category,
+            visibility: visibility,
+            photoUrl: photoUrl,
+            authorId: authorId.uuidString,
+            authorName: author?.name ?? "Unknown",
+            createdAt: isoFormatter.date(from: createdAt) ?? Date(),
+            updatedAt: isoFormatter.date(from: updatedAt) ?? Date(),
+            heartCount: heartCount,
+            isBookmarked: isBookmarked
+        )
+    }
+}
+
+struct SupabaseAuthor: Codable {
+    let id: UUID
+    let name: String
+    let avatarUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case avatarUrl = "avatar_url"
+    }
+}
+
+/// For creating a new post via Supabase insert
+struct CreatePostDTO: Codable {
+    let content: String
+    let feeling: String?
+    let category: GratitudeCategory
+    let visibility: PostVisibility
+    let photoUrl: String?
+    let authorId: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case content, feeling, category, visibility
+        case photoUrl = "photo_url"
+        case authorId = "author_id"
+    }
+}
+
+/// For updating an existing post
+struct UpdatePostDTO: Codable {
+    let content: String?
+    let category: GratitudeCategory?
+    let visibility: PostVisibility?
+
+    enum CodingKeys: String, CodingKey {
+        case content, category, visibility
     }
 }

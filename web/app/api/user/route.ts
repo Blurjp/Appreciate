@@ -1,54 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
 
-// GET /api/user — Get current user profile
+// GET /api/user — Get current user profile from Supabase
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      createdAt: true,
-    },
-  })
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, avatar_url, created_at')
+    .eq('id', user.id)
+    .single()
 
-  return NextResponse.json(user)
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    avatarUrl: profile.avatar_url,
+    createdAt: profile.created_at,
+  })
 }
 
 // PATCH /api/user — Update user profile
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userId = (session.user as { id: string }).id
   const body = await req.json()
+  const updateData: Record<string, unknown> = {}
+  if (body.name) updateData.name = body.name
 
-  const data: Record<string, unknown> = {}
-  if (body.name) data.name = body.name
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .update(updateData)
+    .eq('id', user.id)
+    .select('id, name, email, avatar_url, created_at')
+    .single()
 
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      createdAt: true,
-    },
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    avatarUrl: profile.avatar_url,
+    createdAt: profile.created_at,
   })
-
-  return NextResponse.json(user)
 }

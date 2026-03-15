@@ -6,6 +6,7 @@ final class FeedViewModel {
     var selectedCategory: GratitudeCategory?
     var isLoading = false
     var todayCount: Int = 0
+    var errorMessage: String?
 
     private let postService: PostService
 
@@ -15,9 +16,23 @@ final class FeedViewModel {
 
     func loadPosts() {
         isLoading = true
-        posts = postService.fetchPublicPosts(category: selectedCategory)
-        todayCount = posts.filter { Calendar.current.isDateInToday($0.createdAt) }.count
-        isLoading = false
+        errorMessage = nil
+
+        Task {
+            do {
+                let fetched = try await postService.fetchPublicFeed(category: selectedCategory)
+                await MainActor.run {
+                    self.posts = fetched
+                    self.todayCount = fetched.filter { Calendar.current.isDateInToday($0.createdAt) }.count
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
+                }
+            }
+        }
     }
 
     func selectCategory(_ category: GratitudeCategory?) {
@@ -26,7 +41,17 @@ final class FeedViewModel {
     }
 
     func heartPost(_ post: GratitudePost) {
-        postService.toggleHeart(post)
+        Task {
+            do {
+                try await postService.toggleHeart(post.id)
+                // Reload to get updated heart count
+                loadPosts()
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
     }
 
     var dateHeader: String {
