@@ -1,9 +1,20 @@
 import Foundation
 
 /// Configuration for connecting to Supabase backend.
-/// Replace placeholder values with your actual Supabase project credentials.
-/// Find these in: Supabase Dashboard > Settings > API
+/// Values are loaded from Config.xcconfig (not committed to git)
 enum SupabaseConfig {
-    static let supabaseURL = URL(string: "https://jkzqokejtraczcbgnjoh.supabase.co")!
-    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprenFva2VqdHJhY3pjYmduam9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NDE1NTMsImV4cCI6MjA4OTExNzU1M30.nSFSSFJcFF3OAwt25_bmCVlPoGeYMQKLE22rfWPIDe4"
+    static let supabaseURL: URL = {
+        guard let urlString = Bundle.main.infoDictionary?["SUPABASE_URL"] as? String,
+              let url = URL(string: urlString) else {
+            fatalError("SUPABASE_URL not found in Info.plist. Check Config.xcconfig")
+        }
+        return url
+    }()
+
+    static let supabaseAnonKey: String = {
+        guard let key = Bundle.main.infoDictionary?["SUPABASE_ANON_KEY"] as? String else {
+            fatalError("SUPABASE_ANON_KEY not found in Info.plist. Check Config.xcconfig")
+        }
+        return key
+    }()
 }

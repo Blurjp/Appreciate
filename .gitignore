@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# iOS - Sensitive config
+ios/Appreciate/Config.xcconfig
+
+# Web - Sensitive config
+web/.env.local
+web/.env.*.local
