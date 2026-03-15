@@ -6,6 +6,17 @@ import { config } from './config.mjs'
 import { pool, withTransaction } from './db/connection.mjs'
 import { seedDatabase } from './db/seedData.mjs'
 import { rateLimit } from './rateLimit.mjs'
+import {
+  validate,
+  loginSchema,
+  createPostSchema,
+  createReactionSchema,
+  createCommentSchema,
+  createReportSchema,
+  updateReportSchema,
+  markNotificationSchema,
+  categories,
+} from './validation.mjs'
 
 const app = express()
 const port = config.port
@@ -208,21 +219,27 @@ async function getSessionFromRequest(request) {
   }
 }
 
+const POST_LIMIT = 100
+const REACTION_LIMIT = 500
+const COMMENT_LIMIT = 500
+const NOTIFICATION_LIMIT = 50
+
 async function loadStateForUser(user) {
   const [users, posts, reactions, reports, comments, notifications, claimRequests, claimCandidates, claimableStats, postReceivedStats, auditLogs] = await Promise.all([
     pool.query('select id, name, email, avatar, role, company, bio from app_user order by created_at asc'),
-    pool.query('select * from appreciation_post order by created_at desc'),
-    pool.query('select * from appreciation_reaction order by created_at desc'),
+    pool.query(`select * from appreciation_post order by created_at desc limit ${POST_LIMIT}`),
+    pool.query(`select * from appreciation_reaction order by created_at desc limit ${REACTION_LIMIT}`),
     pool.query('select * from moderation_report order by created_at desc'),
-    pool.query('select * from appreciation_comment order by created_at desc'),
-    pool.query('select * from notification where user_id = $1 order by created_at desc', [user.id]),
+    pool.query(`select * from appreciation_comment order by created_at desc limit ${COMMENT_LIMIT}`),
+    pool.query('select * from notification where user_id = $1 order by created_at desc limit $2', [user.id, NOTIFICATION_LIMIT]),
     pool.query('select * from recipient_claim_request where requester_user_id = $1 order by created_at desc', [user.id]),
     pool.query(
       `select p.id as post_id, p.recipient, p.message, p.created_at, coalesce(u.name, 'Someone') as author_name
        from appreciation_post p
        left join app_user u on u.id = p.author_id
        where p.recipient_user_id is null and lower(p.recipient) = lower((select name from app_user where id = $1))
-       order by p.created_at desc`,
+       order by p.created_at desc
+       limit 20`,
       [user.id],
     ),
     pool.query(
@@ -421,17 +438,35 @@ app.post('/api/auth/login', async (request, response, next) => {
       return
     }
 
-    const { email, password } = request.body ?? {}
+    const parsed = validate(loginSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
+      return
+    }
+    const { email, password } = parsed.data
+
     const result = await pool.query('select * from app_user where email = $1', [email])
     const row = result.rows[0]
 
-    if (!row || !verifyPassword(password, row.password_hash)) {
+    if (!row) {
       await createAuditLog(pool, {
-        actorUserId: row?.id ?? null,
+        actorUserId: null,
         action: 'auth.login_failed',
         targetType: 'session',
         targetId: null,
-        metadata: { email, identifier: getRequestIdentifier(request) },
+        metadata: { email, identifier: getRequestIdentifier(request), reason: 'user_not_found' },
+      })
+      response.status(401).send('Invalid email or password')
+      return
+    }
+
+    if (!verifyPassword(password, row.password_hash)) {
+      await createAuditLog(pool, {
+        actorUserId: row.id,
+        action: 'auth.login_failed',
+        targetType: 'session',
+        targetId: null,
+        metadata: { email, identifier: getRequestIdentifier(request), reason: 'wrong_password' },
       })
       response.status(401).send('Invalid email or password')
       return
@@ -441,6 +476,7 @@ app.post('/api/auth/login', async (request, response, next) => {
     const csrfToken = crypto.randomUUID()
     const expiresAt = new Date(Date.now() + sessionMaxAgeMs).toISOString()
 
+    await pool.query('delete from session_token where user_id = $1', [row.id])
     await pool.query(
       `insert into session_token (id, user_id, csrf_token, expires_at)
        values ($1, $2, $3, $4)`,
@@ -496,8 +532,8 @@ app.get('/api/posts/:postId', requireAuth, async (request, response, next) => {
     }
 
     const [comments, reactions] = await Promise.all([
-      pool.query('select * from appreciation_comment where post_id = $1 order by created_at desc', [postId]),
-      pool.query('select * from appreciation_reaction where post_id = $1 order by created_at desc', [postId]),
+      pool.query('select * from appreciation_comment where post_id = $1 order by created_at desc limit 100', [postId]),
+      pool.query('select * from appreciation_reaction where post_id = $1 order by created_at desc limit 100', [postId]),
     ])
 
     response.json({
@@ -558,11 +594,12 @@ app.post('/api/posts', requireAuth, requireCsrf, async (request, response, next)
       return
     }
 
-    const { recipient, recipientUserId, message, category, location, visibility, giftAmount, giftProvider } = request.body ?? {}
-    if (!recipient || !message) {
-      response.status(400).send('Recipient and message are required')
+    const parsed = validate(createPostSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
       return
     }
+    const { recipient, recipientUserId, message, category, location, visibility, giftAmount, giftProvider } = parsed.data
 
     await withTransaction(async (client) => {
       const inserted = await client.query(
@@ -572,14 +609,14 @@ app.post('/api/posts', requireAuth, requireCsrf, async (request, response, next)
          returning id`,
         [
           request.currentUser.id,
-          String(recipient).trim(),
+          recipient,
           recipientUserId || null,
-          String(message).trim(),
-          category || 'Community',
-          location || '',
-          visibility || 'public',
-          Number(giftAmount) || 0,
-          Number(giftAmount) > 0 ? giftProvider || 'Gift Card' : 'None',
+          message,
+          category,
+          location,
+          visibility,
+          giftAmount,
+          giftAmount > 0 ? giftProvider : 'None',
           request.currentUser.company ?? null,
         ],
       )
@@ -601,7 +638,7 @@ app.post('/api/posts', requireAuth, requireCsrf, async (request, response, next)
         action: 'appreciation.created',
         targetType: 'post',
         targetId: String(newPostId),
-        metadata: { visibility: visibility || 'public', recipientUserId: recipientUserId || null },
+        metadata: { visibility, recipientUserId: recipientUserId || null },
       })
     })
 
@@ -614,7 +651,13 @@ app.post('/api/posts', requireAuth, requireCsrf, async (request, response, next)
 app.post('/api/posts/:postId/reactions', requireAuth, requireCsrf, async (request, response, next) => {
   try {
     const postId = Number(request.params.postId)
-    const { type } = request.body ?? {}
+
+    const parsed = validate(createReactionSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
+      return
+    }
+    const { type } = parsed.data
 
     await withTransaction(async (client) => {
       await client.query(
@@ -647,17 +690,19 @@ app.post('/api/posts/:postId/reactions', requireAuth, requireCsrf, async (reques
 app.post('/api/posts/:postId/comments', requireAuth, requireCsrf, async (request, response, next) => {
   try {
     const postId = Number(request.params.postId)
-    const { body } = request.body ?? {}
-    if (!body || !String(body).trim()) {
-      response.status(400).send('Comment body is required')
+
+    const parsed = validate(createCommentSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
       return
     }
+    const { body } = parsed.data
 
     await withTransaction(async (client) => {
       await client.query(
         `insert into appreciation_comment (post_id, author_id, body)
          values ($1, $2, $3)`,
-        [postId, request.currentUser.id, String(body).trim()],
+        [postId, request.currentUser.id, body],
       )
 
       const postQuery = await client.query('select author_id from appreciation_post where id = $1', [postId])
@@ -777,24 +822,26 @@ app.post('/api/posts/:postId/reports', requireAuth, requireCsrf, async (request,
     }
 
     const postId = Number(request.params.postId)
-    const { reason } = request.body ?? {}
-    if (!reason || !String(reason).trim()) {
-      response.status(400).send('Report reason is required')
+
+    const parsed = validate(createReportSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
       return
     }
+    const { reason } = parsed.data
 
     await withTransaction(async (client) => {
       await client.query(
         `insert into moderation_report (post_id, reporter_id, reason, status)
          values ($1, $2, $3, 'open')`,
-        [postId, request.currentUser.id, String(reason).trim()],
+        [postId, request.currentUser.id, reason],
       )
       await createAuditLog(client, {
         actorUserId: request.currentUser.id,
         action: 'moderation.report_created',
         targetType: 'post',
         targetId: String(postId),
-        metadata: { reason: String(reason).trim() },
+        metadata: { reason },
       })
 
       const moderators = await client.query("select id from app_user where role = 'moderator'")
@@ -818,12 +865,20 @@ app.post('/api/posts/:postId/reports', requireAuth, requireCsrf, async (request,
 app.patch('/api/reports/:reportId', requireAuth, requireCsrf, requireModerator, async (request, response, next) => {
   try {
     const reportId = Number(request.params.reportId)
+
+    const parsed = validate(updateReportSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
+      return
+    }
+    const { status } = parsed.data
+
     const result = await pool.query(
       `update moderation_report
        set status = $2
        where id = $1
        returning id`,
-      [reportId, request.body?.status],
+      [reportId, status],
     )
 
     if (!result.rows[0]) {
@@ -836,7 +891,7 @@ app.patch('/api/reports/:reportId', requireAuth, requireCsrf, requireModerator, 
       action: 'moderation.report_updated',
       targetType: 'report',
       targetId: String(reportId),
-      metadata: { status: request.body?.status },
+      metadata: { status },
     })
 
     response.json(await buildBootstrapPayload(request.currentUser, request.session))
@@ -848,12 +903,20 @@ app.patch('/api/reports/:reportId', requireAuth, requireCsrf, requireModerator, 
 app.patch('/api/notifications/:notificationId', requireAuth, requireCsrf, async (request, response, next) => {
   try {
     const notificationId = Number(request.params.notificationId)
+
+    const parsed = validate(markNotificationSchema, request.body)
+    if (!parsed.success) {
+      response.status(400).send(parsed.error)
+      return
+    }
+    const { read } = parsed.data
+
     const result = await pool.query(
       `update notification
        set read_at = case when $3 then now() else null end
        where id = $1 and user_id = $2
        returning id`,
-      [notificationId, request.currentUser.id, Boolean(request.body?.read)],
+      [notificationId, request.currentUser.id, read],
     )
 
     if (!result.rows[0]) {

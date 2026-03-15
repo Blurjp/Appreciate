@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { apiBaseEnv } from '../env'
 
-const demoAccounts = [
-  { email: 'maya@appreciation.dev', password: 'maya1234', role: 'member' },
-  { email: 'alina@appreciation.dev', password: 'alina1234', role: 'moderator' },
-]
+const isDevelopment = apiBaseEnv !== 'production'
+
+const demoAccounts = isDevelopment
+  ? [
+      { email: 'maya@appreciation.dev', password: 'maya1234', role: 'member' },
+      { email: 'alina@appreciation.dev', password: 'alina1234', role: 'moderator' },
+    ]
+  : []
 
 export function LoginPage() {
   const { currentUser, signIn, error, isLoading } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState(demoAccounts[0].email)
-  const [password, setPassword] = useState(demoAccounts[0].password)
+  const [email, setEmail] = useState(demoAccounts[0]?.email ?? '')
+  const [password, setPassword] = useState(demoAccounts[0]?.password ?? '')
 
   if (currentUser) {
     return <Navigate to="/" replace />
@@ -51,15 +56,17 @@ export function LoginPage() {
           </button>
         </form>
         {error && <p className="report-status">{error}</p>}
-        <div className="login-hint-list postcard-grid compact-login-grid">
-          {demoAccounts.map((account) => (
-            <div key={account.email} className="postcard-item login-postcard">
-              <p className="mini-title">{account.role}</p>
-              <p>{account.email}</p>
-              <p>{account.password}</p>
-            </div>
-          ))}
-        </div>
+        {demoAccounts.length > 0 && (
+          <div className="login-hint-list postcard-grid compact-login-grid">
+            {demoAccounts.map((account) => (
+              <div key={account.email} className="postcard-item login-postcard">
+                <p className="mini-title">{account.role}</p>
+                <p>{account.email}</p>
+                <p>{account.password}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   )

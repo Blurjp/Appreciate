@@ -29,23 +29,48 @@ function getStorageKey(base: string, userId?: string): string {
 }
 
 function loadOrder(userId?: string): number[] {
-  const key = getStorageKey('appreciation-wall-order', userId)
-  const saved = localStorage.getItem(key)
-  return saved ? (JSON.parse(saved) as number[]) : []
+  try {
+    const key = getStorageKey('appreciation-wall-order', userId)
+    const saved = localStorage.getItem(key)
+    if (!saved) return []
+    const parsed = JSON.parse(saved)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
 
 function saveOrderToStorage(userId: string | undefined, order: number[]): void {
-  const key = getStorageKey('appreciation-wall-order', userId)
-  localStorage.setItem(key, JSON.stringify(order))
+  try {
+    const key = getStorageKey('appreciation-wall-order', userId)
+    localStorage.setItem(key, JSON.stringify(order))
+  } catch {
+    console.warn('Failed to save wall order to localStorage')
+  }
+}
+
+function loadTheme(userId?: string): (typeof wallThemes)[number]['id'] {
+  try {
+    const saved = localStorage.getItem(getStorageKey('appreciation-wall-theme', userId))
+    return (wallThemes.find((theme) => theme.id === saved)?.id ?? 'fridge') as (typeof wallThemes)[number]['id']
+  } catch {
+    return 'fridge'
+  }
+}
+
+function saveThemeToStorage(userId: string | undefined, theme: string): void {
+  try {
+    const key = getStorageKey('appreciation-wall-theme', userId)
+    localStorage.setItem(key, theme)
+  } catch {
+    console.warn('Failed to save wall theme to localStorage')
+  }
 }
 
 export function ProfilePage() {
   const { state, claimPost, createClaimInvite } = useAppData()
   const { currentUser } = useAuth()
-  const [wallTheme, setWallTheme] = useState<(typeof wallThemes)[number]['id']>(() => {
-    const saved = localStorage.getItem(getStorageKey('appreciation-wall-theme', undefined))
-    return (wallThemes.find((theme) => theme.id === saved)?.id ?? 'fridge') as (typeof wallThemes)[number]['id']
-  })
+  const [wallTheme, setWallTheme] = useState<(typeof wallThemes)[number]['id']>(() => loadTheme(undefined))
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [savedOrder, setSavedOrder] = useState<number[]>(() => loadOrder(currentUser?.id))
 
@@ -68,8 +93,7 @@ export function ProfilePage() {
   }, [createdPosts, savedOrder])
 
   useEffect(() => {
-    const key = getStorageKey('appreciation-wall-theme', currentUser?.id)
-    localStorage.setItem(key, wallTheme)
+    saveThemeToStorage(currentUser?.id, wallTheme)
   }, [wallTheme, currentUser?.id])
 
   const activeTheme = useMemo(
