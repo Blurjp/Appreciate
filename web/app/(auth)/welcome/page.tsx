@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 const ONBOARDING_PAGES = [
   {
@@ -37,6 +38,7 @@ export default function WelcomePage() {
   const [name, setName] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = createClient()
 
   const isLastPage = currentPage === ONBOARDING_PAGES.length - 1
 
@@ -53,33 +55,72 @@ export default function WelcomePage() {
     setIsLoading(true)
     setError('')
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      name: isSignUp ? name : undefined,
-      action: isSignUp ? 'signup' : 'signin',
-      redirect: false,
-    })
+    try {
+      if (isSignUp) {
+        // Sign up with email and password
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name,
+            },
+          },
+        })
 
-    if (result?.error) {
-      setError(
-        isSignUp
-          ? 'Email already in use. Try signing in.'
-          : 'Invalid email or password.'
-      )
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            setError('Email already in use. Try signing in.')
+          } else {
+            setError(signUpError.message)
+          }
+          setIsLoading(false)
+          return
+        }
+
+        // If email confirmation is disabled, user is logged in automatically
+        if (data.session) {
+          router.push('/feed')
+        } else {
+          setError('Check your email to confirm your account!')
+          setIsLoading(false)
+        }
+      } else {
+        // Sign in with email and password
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError) {
+          setError('Invalid email or password.')
+          setIsLoading(false)
+          return
+        }
+
+        router.push('/feed')
+      }
+    } catch (err) {
+      console.error('Auth error:', err)
+      setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
-    } else {
-      router.push('/feed')
     }
   }
 
   const handleGuestSignIn = async () => {
     setIsLoading(true)
-    const result = await signIn('guest', { redirect: false })
-    if (result?.ok) {
+    // For guest mode, we can create an anonymous session
+    // or redirect to feed with limited functionality
+    const { error } = await supabase.auth.signInAnonymously()
+
+    if (error) {
+      console.error('Guest sign in error:', error)
+      setIsLoading(false)
+      // If anonymous sign-in is disabled, just redirect to feed
+      router.push('/feed')
+    } else {
       router.push('/feed')
     }
-    setIsLoading(false)
   }
 
   if (showAuth) {
@@ -94,6 +135,16 @@ export default function WelcomePage() {
             </p>
           </div>
 
+          {/* Google Sign-in Button */}
+          <GoogleSignInButton />
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-brand-light-gray" />
+            <span className="text-caption text-brand-medium-gray">or</span>
+            <div className="flex-1 h-px bg-brand-light-gray" />
+          </div>
+
+          {/* Email/Password Form */}
           <form onSubmit={handleCredentialAuth} className="space-y-4">
             {isSignUp && (
               <input
@@ -117,7 +168,7 @@ export default function WelcomePage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder="Password (min 6 characters)"
               className="w-full px-4 py-3 bg-white rounded-ios-md text-body text-brand-charcoal placeholder:text-brand-medium-gray shadow-card focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
               required
               minLength={6}
@@ -137,7 +188,7 @@ export default function WelcomePage() {
               {isLoading
                 ? 'Loading...'
                 : isSignUp
-                ? 'Sign Up'
+                ? 'Sign Up with Email'
                 : 'Sign In'}
             </button>
           </form>
