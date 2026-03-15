@@ -1,3 +1,6 @@
+// Prisma Schema for Appreciate
+// Connects to Supabase PostgreSQL
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,58 +10,94 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
+// User profile with auth credentials
+model Profile {
+  id        String   @id @default(uuid()) @db.Uuid
   email     String   @unique
+  password  String?  @db.VarChar(255)
   name      String
-  password  String?
-  avatarUrl String?
-  provider  String   @default("email") // email, apple
+  avatarUrl String?  @map("avatar_url") @db.VarChar(500)
+  provider  String   @default("email") @db.VarChar(20) // email | google | apple
+  googleId  String?  @unique @map("google_id")
+  appleId   String?  @unique @map("apple_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  // Apple Sign In
-  appleId String? @unique
+  posts     GratitudePost[]
+  streak    StreakData?
+  hearts    Heart[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  posts  GratitudePost[]
-  streak StreakData?
-
-  @@index([email])
-  @@index([appleId])
+  @@map("profiles")
 }
 
+// Gratitude posts
 model GratitudePost {
-  id         String  @id @default(cuid())
-  content    String  @db.Text
-  feeling    String? @db.Text
-  category   String // FAMILY, WORK, SMALL_JOYS, NATURE, HEALTH, OTHER
-  visibility String // PRIVATE, PUBLIC, ANONYMOUS
-  photoUrl   String?
+  id         String         @id @default(uuid()) @db.Uuid
+  content    String         @db.Text
+  feeling    String?        @db.VarChar(200)
+  category   Category       @default(OTHER)
+  visibility PostVisibility @default(PUBLIC)
+  photoUrl   String?        @map("photo_url") @db.VarChar(500)
+  authorId   String         @map("author_id") @db.Uuid
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  heartCount Int            @default(0) @map("heart_count")
 
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author Profile @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  hearts Heart[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  heartCount   Int     @default(0)
-  isBookmarked Boolean @default(false)
-
-  @@index([authorId, createdAt(sort: Desc)])
-  @@index([visibility, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@index([createdAt(sort: Desc)])
   @@index([category])
+  @@map("gratitude_posts")
 }
 
+// Streak tracking
 model StreakData {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @map("user_id") @db.Uuid
+  currentStreak Int      @default(0) @map("current_streak")
+  longestStreak Int      @default(0) @map("longest_streak")
+  lastPostDate DateTime? @map("last_post_date") @db.Date
+  totalPosts    Int      @default(0) @map("total_posts")
 
-  currentStreak Int       @default(0)
-  longestStreak Int       @default(0)
-  lastPostDate  DateTime? @db.Date
-  totalPosts    Int       @default(0)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  updatedAt DateTime @updatedAt
+  @@map("streak_data")
+}
+
+// Hearts (likes)
+model Heart {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post  GratitudePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user  Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId]) // Prevent duplicate hearts
+  @@index([postId])
+  @@index([userId])
+  @@map("hearts")
+}
+
+// Enums
+enum Category {
+  FAMILY
+  WORK
+  SMALL_JOYS
+  NATURE
+  HEALTH
+  OTHER
+
+  @@map("gratitude_category")
+}
+
+enum PostVisibility {
+  PRIVATE
+  PUBLIC
+  ANONYMOUS
+
+  @@map("post_visibility")
 }

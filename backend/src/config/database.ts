@@ -1,7 +1,2 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-});
-
-export default prisma;
+// Re-export the singleton Prisma client for backward compatibility
+export { default } from '../lib/prisma';
