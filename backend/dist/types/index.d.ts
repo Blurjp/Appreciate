@@ -19,6 +19,12 @@ export interface AuthData {
     user: UserPublic;
     tokens: AuthTokens;
 }
+export interface GoogleAuthPayload {
+    email: string;
+    name: string;
+    picture?: string;
+    sub: string;
+}
 export interface UserPublic {
     id: string;
     email: string;

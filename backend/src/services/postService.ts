@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { Category, PostVisibility } from '@prisma/client';
 import { PaginatedResponse } from '../types';
 import { updateStreak } from './streakService';
 
@@ -140,8 +141,8 @@ export async function createPost(
     data: {
       content: data.content,
       feeling: data.feeling ?? null,
-      category: data.category,
-      visibility: data.visibility,
+      category: data.category as Category,
+      visibility: data.visibility as PostVisibility,
       photoUrl: data.photoUrl ?? null,
       authorId: userId,
     },
@@ -185,7 +186,13 @@ export async function updatePost(
 
   const post = await prisma.gratitudePost.update({
     where: { id: postId },
-    data,
+    data: {
+      ...(data.content && { content: data.content }),
+      ...(data.feeling !== undefined && { feeling: data.feeling }),
+      ...(data.category && { category: data.category as Category }),
+      ...(data.visibility && { visibility: data.visibility as PostVisibility }),
+      ...(data.photoUrl !== undefined && { photoUrl: data.photoUrl }),
+    },
     include: { author: { select: authorSelect } },
   });
 
@@ -244,7 +251,7 @@ export async function getUserPublicWall(
 ): Promise<PaginatedResponse<PostWithAuthor>> {
   const where = {
     authorId: userId,
-    visibility: { in: ['PUBLIC', 'ANONYMOUS'] },
+    visibility: { in: [PostVisibility.PUBLIC, PostVisibility.ANONYMOUS] },
   };
 
   const [items, total] = await Promise.all([

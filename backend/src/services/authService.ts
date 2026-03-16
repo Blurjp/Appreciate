@@ -156,3 +156,27 @@ export async function getMe(userId: string): Promise<UserPublic> {
   }
   return toPublicUser(user);
 }
+
+export async function anonymousAuth(): Promise<AuthData> {
+  // Generate a unique anonymous ID
+  const anonymousId = crypto.randomUUID();
+  const email = `anon_${anonymousId}@anonymous.local`;
+  const name = `Guest`;
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name,
+      provider: 'anonymous',
+      isAnonymous: true,
+    },
+  });
+
+  // Initialize streak data
+  await prisma.streakData.create({
+    data: { userId: user.id },
+  });
+
+  const tokens = generateTokens(user.id);
+  return { user: toPublicUser(user), tokens };
+}

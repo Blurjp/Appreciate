@@ -29,6 +29,8 @@ export const appleAuthSchema = z.object({
     .nullable(),
 });
 
+export const anonymousAuthSchema = z.object({});
+
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });

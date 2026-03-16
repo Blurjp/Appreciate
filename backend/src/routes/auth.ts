@@ -5,6 +5,7 @@ import {
   registerSchema,
   loginSchema,
   appleAuthSchema,
+  anonymousAuthSchema,
   refreshTokenSchema,
 } from '../utils/validation';
 import * as authService from '../services/authService';
@@ -43,6 +44,16 @@ router.post('/apple', validate(appleAuthSchema), async (req, res: Response) => {
     success(res, data);
   } catch (err: any) {
     error(res, err.message, 'APPLE_AUTH_ERROR', err.status || 500);
+  }
+});
+
+// POST /api/v1/auth/anonymous
+router.post('/anonymous', validate(anonymousAuthSchema), async (_req, res: Response) => {
+  try {
+    const data = await authService.anonymousAuth();
+    success(res, data, 201);
+  } catch (err: any) {
+    error(res, err.message, 'ANONYMOUS_AUTH_ERROR', err.status || 500);
   }
 });
 

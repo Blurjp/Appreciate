@@ -12,6 +12,7 @@ exports.deletePost = deletePost;
 exports.heartPost = heartPost;
 exports.getUserPublicWall = getUserPublicWall;
 const database_1 = __importDefault(require("../config/database"));
+const client_1 = require("@prisma/client");
 const streakService_1 = require("./streakService");
 function formatPost(post) {
     // For anonymous posts, hide author info
@@ -130,7 +131,13 @@ async function updatePost(postId, userId, data) {
     }
     const post = await database_1.default.gratitudePost.update({
         where: { id: postId },
-        data,
+        data: {
+            ...(data.content && { content: data.content }),
+            ...(data.feeling !== undefined && { feeling: data.feeling }),
+            ...(data.category && { category: data.category }),
+            ...(data.visibility && { visibility: data.visibility }),
+            ...(data.photoUrl !== undefined && { photoUrl: data.photoUrl }),
+        },
         include: { author: { select: authorSelect } },
     });
     return formatPost(post);
@@ -169,7 +176,7 @@ async function heartPost(postId, _userId) {
 async function getUserPublicWall(userId, page, limit) {
     const where = {
         authorId: userId,
-        visibility: { in: ['PUBLIC', 'ANONYMOUS'] },
+        visibility: { in: [client_1.PostVisibility.PUBLIC, client_1.PostVisibility.ANONYMOUS] },
     };
     const [items, total] = await Promise.all([
         database_1.default.gratitudePost.findMany({

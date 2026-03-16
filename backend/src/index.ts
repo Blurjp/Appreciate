@@ -5,7 +5,7 @@ import { config } from 'dotenv';
 import authRoutes from './routes/auth';
 import postsRoutes from './routes/posts';
 import streakRoutes from './routes/streak';
-import userRoutes from './routes/user';
+import userRoutes from './routes/users';
 import { errorHandler } from './middleware/errorHandler';
 
 // Load environment variables
