@@ -36,19 +36,19 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-t-ios-xl sm:rounded-ios-xl w-full sm:max-w-lg max-h-[80vh] overflow-y-auto animate-slide-up">
+      <div className="bg-brand-card rounded-t-xl sm:rounded-xl w-full sm:max-w-lg max-h-[80vh] overflow-y-auto animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-brand-light-gray">
-          <button onClick={onClose} className="text-brand-medium-gray text-headline">
+        <div className="flex items-center justify-between p-4 border-b border-brand-border">
+          <button onClick={onClose} className="text-brand-text-secondary text-headline">
             Cancel
           </button>
-          <span className="text-headline text-brand-charcoal">Edit Post</span>
+          <span className="text-headline text-brand-text-primary">Edit Post</span>
           <button
             onClick={handleSave}
             disabled={!content.trim()}
             className={cn(
               'text-headline font-semibold',
-              content.trim() ? 'text-brand-gold' : 'text-gray-300'
+              content.trim() ? 'text-brand-accent' : 'text-gray-300'
             )}
           >
             Save
@@ -58,19 +58,19 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
         <div className="p-4 space-y-5">
           {/* Content */}
           <div>
-            <label className="text-headline text-brand-charcoal block mb-2">
+            <label className="text-headline text-brand-text-primary block mb-2">
               Content
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full h-28 px-4 py-3 bg-brand-light-gray rounded-ios-md text-body text-brand-charcoal resize-none focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full h-28 px-4 py-3 bg-brand-surface rounded-md text-body text-brand-text-primary resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label className="text-headline text-brand-charcoal block mb-2">
+            <label className="text-headline text-brand-text-primary block mb-2">
               Category
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -79,10 +79,10 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
                   className={cn(
-                    'flex flex-col items-center gap-1 p-3 rounded-ios-md border-2 transition-all',
+                    'flex flex-col items-center gap-1 p-3 rounded-md border-2 transition-all',
                     category === cat.value
                       ? 'border-current'
-                      : 'border-transparent bg-brand-light-gray'
+                      : 'border-brand-border bg-brand-surface'
                   )}
                   style={
                     category === cat.value
@@ -101,7 +101,7 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
 
           {/* Visibility */}
           <div>
-            <label className="text-headline text-brand-charcoal block mb-2">
+            <label className="text-headline text-brand-text-primary block mb-2">
               Visibility
             </label>
             <div className="space-y-2">
@@ -110,16 +110,16 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
                   key={opt.value}
                   onClick={() => setVisibility(opt.value)}
                   className={cn(
-                    'w-full flex items-center gap-3 p-3 rounded-ios-md border-2 text-left transition-all',
+                    'w-full flex items-center gap-3 p-3 rounded-md border-2 text-left transition-all',
                     visibility === opt.value
-                      ? 'border-brand-gold bg-brand-gold/5'
-                      : 'border-transparent bg-brand-light-gray'
+                      ? 'border-brand-accent bg-brand-accent/5'
+                      : 'border-brand-border bg-brand-surface'
                   )}
                 >
                   <span>{opt.icon}</span>
-                  <span className="text-subheadline text-brand-charcoal">{opt.label}</span>
+                  <span className="text-subheadline text-brand-text-primary">{opt.label}</span>
                   {visibility === opt.value && (
-                    <span className="ml-auto text-brand-gold">✓</span>
+                    <span className="ml-auto text-brand-accent">✓</span>
                   )}
                 </button>
               ))}

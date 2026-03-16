@@ -17,8 +17,8 @@ export default function CategoryFilterBar({ selected, onSelect }: Props) {
         className={cn(
           'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-subheadline font-medium transition-all whitespace-nowrap',
           selected === null
-            ? 'bg-brand-gold text-white shadow-sm'
-            : 'bg-brand-light-gray text-brand-medium-gray hover:bg-gray-200'
+            ? 'bg-brand-accent text-white shadow-sm'
+            : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-border'
         )}
       >
         ⭐ All
@@ -33,7 +33,7 @@ export default function CategoryFilterBar({ selected, onSelect }: Props) {
             'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-subheadline font-medium transition-all whitespace-nowrap',
             selected === cat.value
               ? 'text-white shadow-sm'
-              : 'bg-brand-light-gray text-brand-medium-gray hover:bg-gray-200'
+              : 'bg-brand-card text-brand-text-secondary hover:bg-brand-border border border-brand-border'
           )}
           style={
             selected === cat.value

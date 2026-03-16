@@ -38,7 +38,7 @@ export default function GratitudePostCard({
   }
 
   return (
-    <div className="bg-white rounded-ios-lg shadow-card p-ios-md transition-shadow hover:shadow-card-hover">
+    <div className="bg-brand-card rounded-lg shadow-card p-md transition-shadow hover:shadow-elevated border border-brand-border">
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
         <div
@@ -48,10 +48,10 @@ export default function GratitudePostCard({
           {initial}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-headline text-brand-charcoal truncate">
+          <p className="text-headline text-brand-text-primary truncate">
             {authorName}
           </p>
-          <p className="text-caption text-brand-medium-gray">
+          <p className="text-caption text-brand-text-secondary">
             {timeAgo(post.createdAt)}
           </p>
         </div>
@@ -59,20 +59,20 @@ export default function GratitudePostCard({
       </div>
 
       {/* Content */}
-      <p className="text-body text-brand-charcoal mb-2 whitespace-pre-wrap">
+      <p className="text-body text-brand-text-primary mb-2 whitespace-pre-wrap">
         {post.content}
       </p>
 
       {/* Feeling */}
       {post.feeling && (
-        <p className="text-subheadline text-brand-medium-gray italic mb-2">
+        <p className="text-subheadline text-brand-text-secondary italic mb-2">
           Feeling: {post.feeling}
         </p>
       )}
 
       {/* Photo */}
       {post.photoUrl && (
-        <div className="mb-3 rounded-ios-md overflow-hidden">
+        <div className="mb-3 rounded-md overflow-hidden">
           <img
             src={post.photoUrl}
             alt="Post photo"
@@ -86,7 +86,7 @@ export default function GratitudePostCard({
         <span
           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium"
           style={{
-            backgroundColor: `${category.color}15`,
+            backgroundColor: `${category.color}20`,
             color: category.color,
           }}
         >
@@ -95,14 +95,14 @@ export default function GratitudePostCard({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 pt-2 border-t border-brand-light-gray">
+      <div className="flex items-center gap-1 pt-2 border-t border-brand-border">
         <button
           onClick={handleHeart}
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-subheadline transition-all',
             post.heartCount > 0
-              ? 'text-brand-coral'
-              : 'text-brand-medium-gray hover:text-brand-coral'
+              ? 'text-brand-accent'
+              : 'text-brand-text-secondary hover:text-brand-accent'
           )}
         >
           <span className={cn(isHeartAnimating && 'animate-heart-bounce')}>
@@ -118,7 +118,7 @@ export default function GratitudePostCard({
             {onEdit && (
               <button
                 onClick={() => onEdit(post)}
-                className="px-3 py-1.5 rounded-full text-subheadline text-brand-medium-gray hover:text-brand-charcoal transition-colors"
+                className="px-3 py-1.5 rounded-full text-subheadline text-brand-text-secondary hover:text-brand-text-primary transition-colors"
               >
                 ✏️ Edit
               </button>
@@ -126,7 +126,7 @@ export default function GratitudePostCard({
             {onToggleVisibility && (
               <button
                 onClick={() => onToggleVisibility(post)}
-                className="px-3 py-1.5 rounded-full text-subheadline text-brand-medium-gray hover:text-brand-charcoal transition-colors"
+                className="px-3 py-1.5 rounded-full text-subheadline text-brand-text-secondary hover:text-brand-text-primary transition-colors"
               >
                 {post.visibility === 'PRIVATE' ? '🌐 Make Public' : '🔒 Make Private'}
               </button>
@@ -134,7 +134,7 @@ export default function GratitudePostCard({
             {onDelete && (
               <button
                 onClick={() => onDelete(post.id)}
-                className="px-3 py-1.5 rounded-full text-subheadline text-red-500 hover:text-red-700 transition-colors ml-auto"
+                className="px-3 py-1.5 rounded-full text-subheadline text-red-500 hover:text-red-400 transition-colors ml-auto"
               >
                 🗑️ Delete
               </button>

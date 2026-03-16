@@ -1,11 +1,9 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from './db'
-import bcrypt from 'bcryptjs'
 
-// NextAuth configuration — kept for backwards compatibility.
-// New auth flow uses Supabase Auth directly (see lib/supabase/).
-// Supabase Auth handles Sign in with Apple, session management, and token refresh.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
+
+// NextAuth configuration using Railway backend
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
@@ -26,37 +24,35 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email) return null
 
-        // Sign up
-        if (credentials.action === 'signup') {
-          const existing = await prisma.user.findUnique({
-            where: { email: credentials.email },
-          })
-          if (existing) throw new Error('Email already in use')
+        try {
+          const endpoint = credentials.action === 'signup' ? '/auth/register' : '/auth/login'
+          const body = credentials.action === 'signup'
+            ? { email: credentials.email, password: credentials.password, name: credentials.name }
+            : { email: credentials.email, password: credentials.password }
 
-          const hashedPassword = await bcrypt.hash(credentials.password, 10)
-          const user = await prisma.user.create({
-            data: {
-              email: credentials.email,
-              name: credentials.name || credentials.email.split('@')[0],
-              password: hashedPassword,
-            },
+          const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
           })
-          await prisma.streakData.create({
-            data: { userId: user.id },
-          })
-          return { id: user.id, email: user.email, name: user.name }
+
+          if (!res.ok) {
+            const error = await res.json()
+            throw new Error(error.message || 'Authentication failed')
+          }
+
+          const data = await res.json()
+          return {
+            id: data.data.user.id,
+            email: data.data.user.email,
+            name: data.data.user.name,
+            accessToken: data.data.tokens.accessToken,
+            refreshToken: data.data.tokens.refreshToken,
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
+          return null
         }
-
-        // Sign in
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        })
-        if (!user || !user.password) return null
-
-        const valid = await bcrypt.compare(credentials.password, user.password)
-        if (!valid) return null
-
-        return { id: user.id, email: user.email, name: user.name }
       },
     }),
     CredentialsProvider({
@@ -64,18 +60,30 @@ export const authOptions: NextAuthOptions = {
       name: 'Guest',
       credentials: {},
       async authorize() {
-        const guestId = `guest_${Date.now()}`
-        const user = await prisma.user.create({
-          data: {
-            email: `${guestId}@guest.appreciate.app`,
-            name: 'Guest User',
-            isGuest: true,
-          },
-        })
-        await prisma.streakData.create({
-          data: { userId: user.id },
-        })
-        return { id: user.id, email: user.email, name: user.name }
+        try {
+          const res = await fetch(`${API_URL}/auth/anonymous`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+
+          if (!res.ok) {
+            const errorText = await res.text()
+            console.error('Anonymous auth failed:', res.status, errorText)
+            throw new Error('Backend not available - please deploy Railway backend first')
+          }
+
+          const data = await res.json()
+          return {
+            id: data.data.user.id,
+            email: data.data.user.email,
+            name: data.data.user.name,
+            accessToken: data.data.tokens.accessToken,
+            refreshToken: data.data.tokens.refreshToken,
+          }
+        } catch (error) {
+          console.error('Guest auth error:', error)
+          throw error
+        }
       },
     }),
   ],
@@ -83,12 +91,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.accessToken = (user as any).accessToken
+        token.refreshToken = (user as any).refreshToken
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { id: string }).id = token.id as string
+        (session.user as any).id = token.id as string
+        (session.user as any).accessToken = token.accessToken as string
+        (session.user as any).refreshToken = token.refreshToken as string
       }
       return session
     },

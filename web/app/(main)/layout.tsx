@@ -31,21 +31,21 @@ export default function MainLayout({
 
   if (status === 'loading' || !session) {
     return (
-      <div className="min-h-screen bg-brand-warm-white flex items-center justify-center">
+      <div className="min-h-screen bg-brand-background flex items-center justify-center">
         <span className="text-[48px] animate-pulse">🙏</span>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-brand-warm-white flex flex-col">
+    <div className="min-h-screen bg-brand-background flex flex-col">
       {/* Main content */}
       <main className="flex-1 pb-20 max-w-2xl mx-auto w-full">
         {children}
       </main>
 
       {/* Bottom Tab Bar (mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-brand-light-gray safe-bottom z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-brand-card border-t border-brand-border safe-bottom z-40 shadow-elevated">
         <div className="max-w-2xl mx-auto flex">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href
@@ -55,7 +55,7 @@ export default function MainLayout({
                 href={tab.href}
                 className={cn(
                   'flex-1 flex flex-col items-center py-2 pt-3 transition-colors',
-                  isActive ? 'text-brand-gold' : 'text-brand-medium-gray'
+                  isActive ? 'text-brand-accent' : 'text-brand-text-secondary'
                 )}
               >
                 <span className="text-[20px]">

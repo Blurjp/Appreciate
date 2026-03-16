@@ -29,7 +29,7 @@ export default function ConfirmationOverlay({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div
-        className={`bg-white rounded-ios-xl p-8 mx-6 max-w-sm w-full text-center shadow-2xl transition-all duration-500 ${
+        className={`bg-brand-card rounded-xl p-8 mx-6 max-w-sm w-full text-center shadow-2xl transition-all duration-500 ${
           show ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         }`}
         style={{
@@ -38,7 +38,7 @@ export default function ConfirmationOverlay({
       >
         {/* Animated heart circle */}
         <div
-          className={`w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-primary flex items-center justify-center transition-all duration-700 ${
+          className={`w-20 h-20 mx-auto mb-5 rounded-full bg-brand-accent flex items-center justify-center transition-all duration-700 ${
             show ? 'scale-100 rotate-0' : 'scale-0 rotate-180'
           }`}
           style={{
@@ -49,12 +49,12 @@ export default function ConfirmationOverlay({
         </div>
 
         {/* Message */}
-        <p className="text-title-2 text-brand-charcoal mb-6">{message}</p>
+        <p className="text-title-2 text-brand-text-primary mb-6">{message}</p>
 
         {/* Continue button */}
         <button
           onClick={onDismiss}
-          className="w-full py-3 rounded-ios-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95"
+          className="w-full py-3 rounded-md bg-brand-accent text-white font-semibold text-headline transition-transform active:scale-95"
         >
           Continue
         </button>

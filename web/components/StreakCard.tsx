@@ -14,15 +14,15 @@ export default function StreakCard({ streak }: Props) {
   const postedToday = streak.weekActivity[streak.weekActivity.length - 1]
 
   return (
-    <div className="bg-gradient-card rounded-ios-lg shadow-card p-ios-md">
+    <div className="bg-brand-card rounded-lg shadow-card p-md border border-brand-border">
       {/* Streak Header */}
       <div className="text-center mb-4">
         <span className="text-[48px] leading-none">{emoji}</span>
-        <p className="text-title text-brand-charcoal mt-1">
+        <p className="text-title text-brand-text-primary mt-1">
           {streak.currentStreak} Day{streak.currentStreak !== 1 ? 's' : ''}{' '}
           {streak.currentStreak > 0 ? '🔥' : ''}
         </p>
-        <p className="text-subheadline text-brand-medium-gray mt-1">
+        <p className="text-subheadline text-brand-text-secondary mt-1">
           {message}
         </p>
       </div>
@@ -34,13 +34,13 @@ export default function StreakCard({ streak }: Props) {
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-caption font-medium transition-colors ${
                 active
-                  ? 'bg-brand-gold text-white'
-                  : 'bg-brand-light-gray text-brand-medium-gray'
+                  ? 'bg-brand-accent text-white'
+                  : 'bg-brand-surface text-brand-text-secondary'
               }`}
             >
               {active ? '✓' : DAY_LABELS[i]}
             </div>
-            <span className="text-[10px] text-brand-medium-gray">
+            <span className="text-[10px] text-brand-text-secondary">
               {DAY_LABELS[i]}
             </span>
           </div>
@@ -48,7 +48,7 @@ export default function StreakCard({ streak }: Props) {
       </div>
 
       {/* Stats Row */}
-      <div className="flex justify-around pt-3 border-t border-brand-light-gray">
+      <div className="flex justify-around pt-3 border-t border-brand-border">
         <StatItem label="Total Posts" value={streak.totalPosts.toString()} />
         <StatItem label="Best Streak" value={`${streak.longestStreak} days`} />
         <StatItem
@@ -63,8 +63,8 @@ export default function StreakCard({ streak }: Props) {
 function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center">
-      <p className="text-headline text-brand-charcoal">{value}</p>
-      <p className="text-caption text-brand-medium-gray">{label}</p>
+      <p className="text-headline text-brand-text-primary">{value}</p>
+      <p className="text-caption text-brand-text-secondary">{label}</p>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 const ONBOARDING_PAGES = [
@@ -109,28 +110,42 @@ export default function WelcomePage() {
 
   const handleGuestSignIn = async () => {
     setIsLoading(true)
-    // For guest mode, we can create an anonymous session
-    // or redirect to feed with limited functionality
-    const { error } = await supabase.auth.signInAnonymously()
+    setError('')
 
-    if (error) {
-      console.error('Guest sign in error:', error)
+    console.log('Starting guest sign in...')
+
+    try {
+      const result = await signIn('guest', { redirect: false })
+
+      console.log('Sign in result:', result)
+
+      if (result?.error) {
+        console.error('Guest sign in error:', result.error)
+        setIsLoading(false)
+        setError(`Failed: ${result.error}`)
+      } else if (result?.ok) {
+        console.log('Guest sign in successful, redirecting...')
+        router.push('/feed')
+      } else {
+        console.log('Sign in result:', result)
+        setIsLoading(false)
+        setError('Unexpected response. Please try again.')
+      }
+    } catch (err) {
+      console.error('Guest sign in error:', err)
       setIsLoading(false)
-      // If anonymous sign-in is disabled, just redirect to feed
-      router.push('/feed')
-    } else {
-      router.push('/feed')
+      setError(`Error: ${(err as Error).message}`)
     }
   }
 
   if (showAuth) {
     return (
-      <div className="min-h-screen bg-gradient-warm flex items-center justify-center px-6">
+      <div className="min-h-screen bg-brand-background flex items-center justify-center px-6">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <span className="text-[48px]">🙏</span>
-            <h1 className="text-title text-brand-charcoal mt-2">Appreciate</h1>
-            <p className="text-subheadline text-brand-medium-gray mt-1">
+            <h1 className="text-title text-brand-text-primary mt-2">Appreciate</h1>
+            <p className="text-subheadline text-brand-text-secondary mt-1">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </p>
           </div>
@@ -139,9 +154,9 @@ export default function WelcomePage() {
           <GoogleSignInButton />
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-brand-light-gray" />
-            <span className="text-caption text-brand-medium-gray">or</span>
-            <div className="flex-1 h-px bg-brand-light-gray" />
+            <div className="flex-1 h-px bg-brand-border" />
+            <span className="text-caption text-brand-text-muted">or</span>
+            <div className="flex-1 h-px bg-brand-border" />
           </div>
 
           {/* Email/Password Form */}
@@ -152,7 +167,7 @@ export default function WelcomePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Display Name"
-                className="w-full px-4 py-3 bg-white rounded-ios-md text-body text-brand-charcoal placeholder:text-brand-medium-gray shadow-card focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
                 required
               />
             )}
@@ -161,7 +176,7 @@ export default function WelcomePage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full px-4 py-3 bg-white rounded-ios-md text-body text-brand-charcoal placeholder:text-brand-medium-gray shadow-card focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
               required
             />
             <input
@@ -169,7 +184,7 @@ export default function WelcomePage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password (min 6 characters)"
-              className="w-full px-4 py-3 bg-white rounded-ios-md text-body text-brand-charcoal placeholder:text-brand-medium-gray shadow-card focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
               required
               minLength={6}
             />
@@ -183,7 +198,7 @@ export default function WelcomePage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-ios-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95 disabled:opacity-50"
+              className="w-full py-3.5 rounded-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95 disabled:opacity-50"
             >
               {isLoading
                 ? 'Loading...'
@@ -198,7 +213,7 @@ export default function WelcomePage() {
               setIsSignUp(!isSignUp)
               setError('')
             }}
-            className="w-full text-center mt-3 text-subheadline text-brand-gold"
+            className="w-full text-center mt-3 text-subheadline text-brand-accent"
           >
             {isSignUp
               ? 'Already have an account? Sign In'
@@ -206,20 +221,20 @@ export default function WelcomePage() {
           </button>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-brand-light-gray" />
-            <span className="text-caption text-brand-medium-gray">or</span>
-            <div className="flex-1 h-px bg-brand-light-gray" />
+            <div className="flex-1 h-px bg-brand-border" />
+            <span className="text-caption text-brand-text-muted">or</span>
+            <div className="flex-1 h-px bg-brand-border" />
           </div>
 
           <button
             onClick={handleGuestSignIn}
             disabled={isLoading}
-            className="w-full py-3.5 rounded-ios-md border border-brand-light-gray text-headline text-brand-charcoal transition-transform active:scale-95 disabled:opacity-50"
+            className="w-full py-3.5 rounded-md border border-brand-border text-headline text-brand-text-primary transition-transform active:scale-95 disabled:opacity-50"
           >
             Continue as Guest
           </button>
 
-          <p className="text-center text-caption text-brand-medium-gray mt-6">
+          <p className="text-center text-caption text-brand-text-secondary mt-6">
             Your privacy matters. Your private posts are never shared.
           </p>
         </div>
@@ -231,7 +246,7 @@ export default function WelcomePage() {
   const page = ONBOARDING_PAGES[currentPage]
 
   return (
-    <div className="min-h-screen bg-gradient-warm flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-brand-background flex flex-col items-center justify-center px-6">
       <div className="flex-1 flex flex-col items-center justify-center max-w-sm">
         {/* Animated emoji */}
         <span
@@ -241,10 +256,10 @@ export default function WelcomePage() {
           {page.emoji}
         </span>
 
-        <h1 className="text-title text-brand-charcoal mt-6 text-center">
+        <h1 className="text-title text-brand-text-primary mt-6 text-center">
           {page.title}
         </h1>
-        <p className="text-body text-brand-medium-gray mt-3 text-center">
+        <p className="text-body text-brand-text-secondary mt-3 text-center">
           {page.subtitle}
         </p>
       </div>
@@ -256,8 +271,8 @@ export default function WelcomePage() {
             key={i}
             className={`w-2 h-2 rounded-full transition-all ${
               i === currentPage
-                ? 'w-6 bg-brand-gold'
-                : 'bg-brand-light-gray'
+                ? 'w-6 bg-brand-accent'
+                : 'bg-brand-border'
             }`}
           />
         ))}
@@ -268,14 +283,14 @@ export default function WelcomePage() {
         {!isLastPage && currentPage > 0 && (
           <button
             onClick={() => setShowAuth(true)}
-            className="w-full text-center text-subheadline text-brand-medium-gray mb-2"
+            className="w-full text-center text-subheadline text-brand-text-secondary mb-2"
           >
             Skip
           </button>
         )}
         <button
           onClick={handleNext}
-          className="w-full py-3.5 rounded-ios-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95"
+          className="w-full py-3.5 rounded-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95"
         >
           {isLastPage ? 'Get Started' : 'Next'}
         </button>

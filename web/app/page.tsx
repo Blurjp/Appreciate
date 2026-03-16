@@ -19,10 +19,10 @@ export default function Home() {
 
   // Loading state
   return (
-    <div className="min-h-screen bg-brand-warm-white flex items-center justify-center">
+    <div className="min-h-screen bg-brand-background flex items-center justify-center">
       <div className="text-center">
         <span className="text-[64px] animate-pulse">🙏</span>
-        <p className="text-title-2 text-brand-charcoal mt-4">Appreciate</p>
+        <p className="text-title-2 text-brand-text-primary mt-4">Appreciate</p>
       </div>
     </div>
   )

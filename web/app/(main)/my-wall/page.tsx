@@ -110,7 +110,7 @@ export default function MyWallPage() {
   return (
     <div className="px-4 pt-6">
       {/* Header */}
-      <h1 className="text-title text-brand-charcoal flex items-center gap-2 mb-4">
+      <h1 className="text-title text-brand-text-primary flex items-center gap-2 mb-4">
         🔒 My Gratitude Wall
       </h1>
 
@@ -130,8 +130,8 @@ export default function MyWallPage() {
             className={cn(
               'px-4 py-2 rounded-full text-subheadline font-medium transition-all',
               filter === opt.value
-                ? 'bg-brand-gold text-white'
-                : 'bg-brand-light-gray text-brand-medium-gray hover:bg-gray-200'
+                ? 'bg-brand-accent text-white'
+                : 'bg-brand-surface text-brand-text-secondary hover:bg-gray-200'
             )}
           >
             {opt.label}
@@ -147,10 +147,10 @@ export default function MyWallPage() {
       ) : posts.length === 0 ? (
         <div className="text-center py-12">
           <span className="text-[48px]">📝</span>
-          <p className="text-headline text-brand-charcoal mt-3">
+          <p className="text-headline text-brand-text-primary mt-3">
             No posts yet
           </p>
-          <p className="text-subheadline text-brand-medium-gray mt-1">
+          <p className="text-subheadline text-brand-text-secondary mt-1">
             Start your gratitude journey by creating your first post!
           </p>
         </div>
@@ -185,23 +185,23 @@ export default function MyWallPage() {
       {/* Delete Confirmation */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-ios-xl p-6 mx-6 max-w-sm w-full shadow-2xl animate-fade-in">
-            <h3 className="text-title-3 text-brand-charcoal text-center mb-2">
+          <div className="bg-brand-card rounded-xl p-6 mx-6 max-w-sm w-full shadow-2xl animate-fade-in">
+            <h3 className="text-title-3 text-brand-text-primary text-center mb-2">
               Delete Post?
             </h3>
-            <p className="text-subheadline text-brand-medium-gray text-center mb-5">
+            <p className="text-subheadline text-brand-text-secondary text-center mb-5">
               This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-3 rounded-ios-md border border-brand-light-gray text-headline text-brand-charcoal"
+                className="flex-1 py-3 rounded-md border border-brand-border text-headline text-brand-text-primary"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-3 rounded-ios-md bg-red-500 text-white text-headline"
+                className="flex-1 py-3 rounded-md bg-red-500 text-white text-headline"
               >
                 Delete
               </button>

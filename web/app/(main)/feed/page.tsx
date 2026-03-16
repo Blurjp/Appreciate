@@ -46,10 +46,10 @@ export default function FeedPage() {
     <div className="px-4 pt-6">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-title text-brand-charcoal flex items-center gap-2">
+        <h1 className="text-title text-brand-text-primary flex items-center gap-2">
           🌟 Today&apos;s Appreciation Feed
         </h1>
-        <p className="text-subheadline text-brand-medium-gray mt-1">
+        <p className="text-subheadline text-brand-text-secondary mt-1">
           {formatDate(new Date())} — {todayCount} appreciation
           {todayCount !== 1 ? 's' : ''} today
         </p>
@@ -64,7 +64,7 @@ export default function FeedPage() {
       </div>
 
       {/* Section header */}
-      <h2 className="text-title-3 text-brand-charcoal mb-3">
+      <h2 className="text-title-3 text-brand-text-primary mb-3">
         🏆 Trending Appreciations
       </h2>
 
@@ -72,17 +72,17 @@ export default function FeedPage() {
       {isLoading ? (
         <div className="text-center py-12">
           <span className="text-[32px] animate-pulse">🙏</span>
-          <p className="text-subheadline text-brand-medium-gray mt-2">
+          <p className="text-subheadline text-brand-text-secondary mt-2">
             Loading...
           </p>
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-12">
           <span className="text-[48px]">🌱</span>
-          <p className="text-headline text-brand-charcoal mt-3">
+          <p className="text-headline text-brand-text-primary mt-3">
             No appreciations yet
           </p>
-          <p className="text-subheadline text-brand-medium-gray mt-1">
+          <p className="text-subheadline text-brand-text-secondary mt-1">
             {selectedCategory
               ? 'Try clearing the filter or be the first to post!'
               : 'Be the first to share your gratitude!'}
@@ -90,7 +90,7 @@ export default function FeedPage() {
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-3 text-subheadline text-brand-gold"
+              className="mt-3 text-subheadline text-brand-accent"
             >
               Clear filter
             </button>

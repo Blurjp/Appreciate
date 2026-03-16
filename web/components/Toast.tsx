@@ -29,8 +29,8 @@ export default function Toast({
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-toast-in">
       <div
-        className={`flex items-center gap-2 px-4 py-3 rounded-ios-md shadow-lg text-white text-headline ${
-          isError ? 'bg-red-500' : 'bg-brand-charcoal'
+        className={`flex items-center gap-2 px-4 py-3 rounded-md shadow-lg text-white text-headline ${
+          isError ? 'bg-red-500' : 'bg-brand-accent'
         }`}
       >
         <span>{icon}</span>
