@@ -151,12 +151,6 @@ export async function toggleHeart(
       .eq('post_id', postId)
       .eq('user_id', userId)
 
-    // Decrement count
-    await supabase
-      .from('gratitude_posts')
-      .update({ heart_count: supabase.rpc ? undefined : 0 })
-      .eq('id', postId)
-
     // Use RPC for atomic decrement
     await supabase.rpc('decrement_heart_count', { post_id_param: postId })
 

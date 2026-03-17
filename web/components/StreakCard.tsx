@@ -9,9 +9,13 @@ interface Props {
 }
 
 export default function StreakCard({ streak }: Props) {
-  const emoji = getStreakEmoji(streak.currentStreak)
-  const message = getStreakMessage(streak.currentStreak)
-  const postedToday = streak.weekActivity[streak.weekActivity.length - 1]
+  const currentStreak = streak?.currentStreak ?? 0
+  const totalPosts = streak?.totalPosts ?? 0
+  const longestStreak = streak?.longestStreak ?? 0
+  const weekActivity = streak?.weekActivity ?? []
+  const emoji = getStreakEmoji(currentStreak)
+  const message = getStreakMessage(currentStreak)
+  const postedToday = weekActivity[weekActivity.length - 1] ?? false
 
   return (
     <div className="bg-brand-card rounded-lg shadow-card p-md border border-brand-border">
@@ -19,8 +23,8 @@ export default function StreakCard({ streak }: Props) {
       <div className="text-center mb-4">
         <span className="text-[48px] leading-none">{emoji}</span>
         <p className="text-title text-brand-text-primary mt-1">
-          {streak.currentStreak} Day{streak.currentStreak !== 1 ? 's' : ''}{' '}
-          {streak.currentStreak > 0 ? '🔥' : ''}
+          {currentStreak} Day{currentStreak !== 1 ? 's' : ''}{' '}
+          {currentStreak > 0 ? '🔥' : ''}
         </p>
         <p className="text-subheadline text-brand-text-secondary mt-1">
           {message}
@@ -29,7 +33,7 @@ export default function StreakCard({ streak }: Props) {
 
       {/* Week Activity */}
       <div className="flex justify-center gap-2 mb-4">
-        {streak.weekActivity.map((active, i) => (
+        {weekActivity.map((active, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-caption font-medium transition-colors ${
@@ -49,8 +53,8 @@ export default function StreakCard({ streak }: Props) {
 
       {/* Stats Row */}
       <div className="flex justify-around pt-3 border-t border-brand-border">
-        <StatItem label="Total Posts" value={streak.totalPosts.toString()} />
-        <StatItem label="Best Streak" value={`${streak.longestStreak} days`} />
+        <StatItem label="Total Posts" value={totalPosts.toString()} />
+        <StatItem label="Best Streak" value={`${longestStreak} days`} />
         <StatItem
           label="Today"
           value={postedToday ? '✅ Done' : '⏳ Pending'}

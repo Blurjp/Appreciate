@@ -29,7 +29,8 @@ export default function MyWallPage() {
       const params = new URLSearchParams()
       if (filter) params.set('visibility', filter)
       const res = await fetch(`/api/my-wall?${params}`)
-      return res.json()
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
   })
 
