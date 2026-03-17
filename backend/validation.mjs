@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-export const categories = ['Teamwork', 'Leadership', 'Community', 'Education', 'Support', 'Everyday Kindness'] as const
-export const visibilities = ['public', 'anonymous', 'private'] as const
-export const giftProviders = ['None', 'Venmo', 'Cash App', 'PayPal', 'Gift Card'] as const
-export const reactionTypes = ['support', 'inspiring'] as const
-export const reportStatuses = ['open', 'reviewing', 'resolved'] as const
+export const categories = ['Teamwork', 'Leadership', 'Community', 'Education', 'Support', 'Everyday Kindness']
+export const visibilities = ['public', 'anonymous', 'private']
+export const giftProviders = ['None', 'Venmo', 'Cash App', 'PayPal', 'Gift Card']
+export const reactionTypes = ['support', 'inspiring']
+export const reportStatuses = ['open', 'reviewing', 'resolved']
 
 export const categorySchema = z.enum(categories)
 export const visibilitySchema = z.enum(visibilities)
