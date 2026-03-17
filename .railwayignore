@@ -1,0 +1,9 @@
+# Ignore frontend build - Railway should only run backend
+node_modules
+dist
+*.log
+.env
+.DS_Store
+.git
+web
+ios
