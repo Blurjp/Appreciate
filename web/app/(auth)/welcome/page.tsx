@@ -114,12 +114,30 @@ export default function WelcomePage() {
     setError('')
 
     try {
-      const result = await signIn('guest', { redirect: false })
+      // Use Supabase anonymous auth
+      const { data, error: signInError } = await supabase.auth.signInAnonymously()
 
-      if (result?.error) {
+      if (signInError) {
         setIsLoading(false)
-        setError(`Failed: ${result.error}`)
-      } else if (result?.ok) {
+        setError(`Failed: ${signInError.message}`)
+        return
+      }
+
+      if (data?.user) {
+        // Create user record in database
+        const { error: dbError } = await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            email: data.user.email || `guest_${data.user.id.slice(0, 8)}@appreciate.app`,
+            name: `Guest_${data.user.id.slice(0, 4)}`,
+            created_at: new Date().toISOString(),
+          })
+
+        if (dbError && dbError.code !== '23505') { // Ignore duplicate key errors
+          console.error('Failed to create user record:', dbError)
+        }
+
         router.push('/feed')
       } else {
         setIsLoading(false)
