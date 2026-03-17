@@ -69,16 +69,16 @@ export const authOptions: NextAuthOptions = {
           if (!res.ok) {
             const errorText = await res.text()
             console.error('Anonymous auth failed:', res.status, errorText)
-            throw new Error('Backend not available - please deploy Railway backend first')
+            throw new Error('Backend not available')
           }
 
           const data = await res.json()
           return {
-            id: data.data.user.id,
-            email: data.data.user.email,
-            name: data.data.user.name,
-            accessToken: data.data.tokens.accessToken,
-            refreshToken: data.data.tokens.refreshToken,
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
           }
         } catch (error) {
           console.error('Guest auth error:', error)

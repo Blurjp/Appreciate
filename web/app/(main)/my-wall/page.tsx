@@ -12,8 +12,8 @@ import { GratitudeCategory } from '@/types'
 
 const FILTER_OPTIONS: { value: PostVisibility | null; label: string }[] = [
   { value: null, label: 'All' },
-  { value: 'PRIVATE', label: '🔒 Private' },
-  { value: 'PUBLIC', label: '🌐 Public' },
+  { value: 'PRIVATE', label: 'Private' },
+  { value: 'PUBLIC', label: 'Public' },
 ]
 
 export default function MyWallPage() {
@@ -111,8 +111,8 @@ export default function MyWallPage() {
   return (
     <div className="px-4 pt-6">
       {/* Header */}
-      <h1 className="text-title text-brand-text-primary flex items-center gap-2 mb-4">
-        🔒 My Gratitude Wall
+      <h1 className="text-title text-brand-text-primary mb-5">
+        My Gratitude Wall
       </h1>
 
       {/* Streak Card */}
@@ -123,16 +123,16 @@ export default function MyWallPage() {
       )}
 
       {/* Filter pills */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-5">
         {FILTER_OPTIONS.map((opt) => (
           <button
             key={opt.label}
             onClick={() => setFilter(opt.value)}
             className={cn(
-              'px-4 py-2 rounded-full text-subheadline font-medium transition-all',
+              'px-4 py-2 rounded-xl text-subheadline font-medium transition-all',
               filter === opt.value
-                ? 'bg-brand-accent text-white'
-                : 'bg-brand-surface text-brand-text-secondary hover:bg-gray-200'
+                ? 'bg-brand-primary text-white'
+                : 'bg-brand-surface text-brand-text-secondary border border-brand-border'
             )}
           >
             {opt.label}
@@ -142,16 +142,20 @@ export default function MyWallPage() {
 
       {/* Posts */}
       {postsLoading ? (
-        <div className="text-center py-12">
-          <span className="text-[32px] animate-pulse">🙏</span>
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center animate-pulse">
+            <span className="text-[28px]">🙏</span>
+          </div>
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-12">
-          <span className="text-[48px]">📝</span>
-          <p className="text-headline text-brand-text-primary mt-3">
+        <div className="text-center py-16">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center">
+            <span className="text-[36px]">📝</span>
+          </div>
+          <p className="text-headline text-brand-text-primary mt-4">
             No posts yet
           </p>
-          <p className="text-subheadline text-brand-text-secondary mt-1">
+          <p className="text-subheadline text-brand-text-secondary mt-2 max-w-xs mx-auto">
             Start your gratitude journey by creating your first post!
           </p>
         </div>
@@ -186,7 +190,7 @@ export default function MyWallPage() {
       {/* Delete Confirmation */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-brand-card rounded-xl p-6 mx-6 max-w-sm w-full shadow-2xl animate-fade-in">
+          <div className="bg-brand-card rounded-2xl p-6 mx-6 max-w-sm w-full shadow-2xl animate-fade-in border border-brand-border">
             <h3 className="text-title-3 text-brand-text-primary text-center mb-2">
               Delete Post?
             </h3>
@@ -196,13 +200,13 @@ export default function MyWallPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-3 rounded-md border border-brand-border text-headline text-brand-text-primary"
+                className="flex-1 py-3 rounded-xl border border-brand-border text-headline text-brand-text-primary transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-3 rounded-md bg-red-500 text-white text-headline"
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-headline transition-all active:scale-[0.98]"
               >
                 Delete
               </button>

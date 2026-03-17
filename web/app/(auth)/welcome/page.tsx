@@ -8,24 +8,28 @@ import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 const ONBOARDING_PAGES = [
   {
-    emoji: '🙏',
+    icon: '✨',
     title: 'Welcome to Appreciate',
-    subtitle: 'A place to practice gratitude and spread positivity',
+    subtitle: 'Practice daily gratitude and spread positivity',
+    bgColor: 'bg-brand-accent-light',
   },
   {
-    emoji: '📝',
+    icon: '📝',
     title: 'Write Daily Gratitude',
-    subtitle: 'Take a moment each day to reflect on what you\'re thankful for',
+    subtitle: 'Reflect on what you\'re thankful for each day',
+    bgColor: 'bg-brand-accent',
   },
   {
-    emoji: '🔥',
+    icon: '🔥',
     title: 'Build Your Streak',
-    subtitle: 'Stay consistent and watch your gratitude habit grow',
+    subtitle: 'Stay consistent and grow your gratitude habit',
+    bgColor: 'bg-brand-primary',
   },
   {
-    emoji: '🔒',
+    icon: '🌍',
     title: 'Share or Stay Private',
-    subtitle: 'Keep your reflections private, or inspire others by sharing',
+    subtitle: 'Keep reflections private or inspire others',
+    bgColor: 'bg-brand-accent-dark',
   },
 ]
 
@@ -58,7 +62,6 @@ export default function WelcomePage() {
 
     try {
       if (isSignUp) {
-        // Sign up with email and password
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -79,7 +82,6 @@ export default function WelcomePage() {
           return
         }
 
-        // If email confirmation is disabled, user is logged in automatically
         if (data.session) {
           router.push('/feed')
         } else {
@@ -87,7 +89,6 @@ export default function WelcomePage() {
           setIsLoading(false)
         }
       } else {
-        // Sign in with email and password
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -112,27 +113,19 @@ export default function WelcomePage() {
     setIsLoading(true)
     setError('')
 
-    console.log('Starting guest sign in...')
-
     try {
       const result = await signIn('guest', { redirect: false })
 
-      console.log('Sign in result:', result)
-
       if (result?.error) {
-        console.error('Guest sign in error:', result.error)
         setIsLoading(false)
         setError(`Failed: ${result.error}`)
       } else if (result?.ok) {
-        console.log('Guest sign in successful, redirecting...')
         router.push('/feed')
       } else {
-        console.log('Sign in result:', result)
         setIsLoading(false)
         setError('Unexpected response. Please try again.')
       }
     } catch (err) {
-      console.error('Guest sign in error:', err)
       setIsLoading(false)
       setError(`Error: ${(err as Error).message}`)
     }
@@ -142,100 +135,103 @@ export default function WelcomePage() {
     return (
       <div className="min-h-screen bg-brand-background flex items-center justify-center px-6">
         <div className="w-full max-w-sm">
+          {/* Logo Header */}
           <div className="text-center mb-8">
-            <span className="text-[48px]">🙏</span>
-            <h1 className="text-title text-brand-text-primary mt-2">Appreciate</h1>
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-primary flex items-center justify-center mb-4 shadow-lg">
+              <span className="text-[40px]">🙏</span>
+            </div>
+            <h1 className="text-title text-brand-text-primary">Appreciate</h1>
             <p className="text-subheadline text-brand-text-secondary mt-1">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </p>
           </div>
 
-          {/* Google Sign-in Button */}
-          <GoogleSignInButton />
+          {/* Auth Card */}
+          <div className="bg-brand-card rounded-2xl shadow-card p-6 border border-brand-border">
+            {/* Google Sign-in */}
+            <GoogleSignInButton />
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-brand-border" />
-            <span className="text-caption text-brand-text-muted">or</span>
-            <div className="flex-1 h-px bg-brand-border" />
-          </div>
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-brand-border" />
+              <span className="text-caption text-brand-text-muted">or</span>
+              <div className="flex-1 h-px bg-brand-border" />
+            </div>
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleCredentialAuth} className="space-y-4">
-            {isSignUp && (
+            {/* Email/Password Form */}
+            <form onSubmit={handleCredentialAuth} className="space-y-3">
+              {isSignUp && (
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Display Name"
+                  className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+                  required
+                />
+              )}
               <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Display Name"
-                className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
                 required
               />
-            )}
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
-              required
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min 6 characters)"
-              className="w-full px-4 py-3 bg-white rounded-md text-body text-brand-text-primary placeholder:text-brand-text-muted shadow-card focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
-              required
-              minLength={6}
-            />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password (min 6 characters)"
+                className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+                required
+                minLength={6}
+              />
 
-            {error && (
-              <p className="text-subheadline text-red-500 text-center">
-                {error}
-              </p>
-            )}
+              {error && (
+                <p className="text-caption text-red-500 text-center py-1">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3.5 rounded-xl bg-brand-primary text-white font-semibold text-headline transition-all active:scale-[0.98] disabled:opacity-50 shadow-button"
+              >
+                {isLoading
+                  ? 'Loading...'
+                  : isSignUp
+                  ? 'Sign Up with Email'
+                  : 'Sign In'}
+              </button>
+            </form>
 
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 rounded-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95 disabled:opacity-50"
+              onClick={() => {
+                setIsSignUp(!isSignUp)
+                setError('')
+              }}
+              className="w-full text-center mt-4 text-subheadline text-brand-primary font-medium"
             >
-              {isLoading
-                ? 'Loading...'
-                : isSignUp
-                ? 'Sign Up with Email'
-                : 'Sign In'}
+              {isSignUp
+                ? 'Already have an account? Sign In'
+                : 'New here? Create Account'}
             </button>
-          </form>
-
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError('')
-            }}
-            className="w-full text-center mt-3 text-subheadline text-brand-accent"
-          >
-            {isSignUp
-              ? 'Already have an account? Sign In'
-              : 'New here? Create Account'}
-          </button>
-
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-brand-border" />
-            <span className="text-caption text-brand-text-muted">or</span>
-            <div className="flex-1 h-px bg-brand-border" />
           </div>
 
-          <button
-            onClick={handleGuestSignIn}
-            disabled={isLoading}
-            className="w-full py-3.5 rounded-md border border-brand-border text-headline text-brand-text-primary transition-transform active:scale-95 disabled:opacity-50"
-          >
-            Continue as Guest
-          </button>
+          {/* Guest Option */}
+          <div className="mt-6">
+            <button
+              onClick={handleGuestSignIn}
+              disabled={isLoading}
+              className="w-full py-3.5 rounded-xl border-2 border-brand-border text-headline text-brand-text-primary transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              Continue as Guest
+            </button>
+          </div>
 
           <p className="text-center text-caption text-brand-text-secondary mt-6">
-            Your privacy matters. Your private posts are never shared.
+            Your privacy matters. Private posts are never shared.
           </p>
         </div>
       </div>
@@ -246,53 +242,60 @@ export default function WelcomePage() {
   const page = ONBOARDING_PAGES[currentPage]
 
   return (
-    <div className="min-h-screen bg-brand-background flex flex-col items-center justify-center px-6">
-      <div className="flex-1 flex flex-col items-center justify-center max-w-sm">
-        {/* Animated emoji */}
-        <span
-          key={currentPage}
-          className="text-[80px] animate-confetti"
-        >
-          {page.emoji}
-        </span>
+    <div className="min-h-screen bg-brand-background flex flex-col">
+      {/* Skip Button */}
+      {currentPage > 0 && (
+        <div className="absolute top-6 right-6">
+          <button
+            onClick={() => setShowAuth(true)}
+            className="text-subheadline text-brand-text-secondary font-medium"
+          >
+            Skip
+          </button>
+        </div>
+      )}
 
-        <h1 className="text-title text-brand-text-primary mt-6 text-center">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8">
+        {/* Icon Container */}
+        <div
+          key={currentPage}
+          className={`w-32 h-32 rounded-3xl ${page.bgColor} flex items-center justify-center mb-8 shadow-lg animate-fade-in`}
+        >
+          <span className="text-[56px]">{page.icon}</span>
+        </div>
+
+        {/* Text Content */}
+        <h1 className="text-title text-brand-text-primary text-center mb-3">
           {page.title}
         </h1>
-        <p className="text-body text-brand-text-secondary mt-3 text-center">
+        <p className="text-body text-brand-text-secondary text-center max-w-xs">
           {page.subtitle}
         </p>
       </div>
 
-      {/* Page dots */}
-      <div className="flex gap-2 mb-6">
-        {ONBOARDING_PAGES.map((_, i) => (
-          <div
-            key={i}
-            className={`w-2 h-2 rounded-full transition-all ${
-              i === currentPage
-                ? 'w-6 bg-brand-accent'
-                : 'bg-brand-border'
-            }`}
-          />
-        ))}
-      </div>
+      {/* Bottom Section */}
+      <div className="px-8 pb-12">
+        {/* Page Dots */}
+        <div className="flex justify-center gap-2 mb-8">
+          {ONBOARDING_PAGES.map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full transition-all ${
+                i === currentPage
+                  ? 'w-8 bg-brand-primary'
+                  : 'w-2 bg-brand-border'
+              }`}
+            />
+          ))}
+        </div>
 
-      {/* Buttons */}
-      <div className="w-full max-w-sm pb-12 space-y-3">
-        {!isLastPage && currentPage > 0 && (
-          <button
-            onClick={() => setShowAuth(true)}
-            className="w-full text-center text-subheadline text-brand-text-secondary mb-2"
-          >
-            Skip
-          </button>
-        )}
+        {/* Next Button */}
         <button
           onClick={handleNext}
-          className="w-full py-3.5 rounded-md bg-gradient-primary text-white font-semibold text-headline transition-transform active:scale-95"
+          className="w-full py-4 rounded-2xl bg-brand-primary text-white font-semibold text-headline transition-all active:scale-[0.98] shadow-button"
         >
-          {isLastPage ? 'Get Started' : 'Next'}
+          {isLastPage ? 'Get Started' : 'Continue'}
         </button>
       </div>
     </div>

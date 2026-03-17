@@ -10,26 +10,27 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          // Figma Design - Light Theme with Green Accents
-          'background': '#F5F5F5',
-          'surface': '#FFFFFF',
+          // Figma Design - Olive/Lime Green Theme
+          'background': '#FFFFFF',
+          'surface': '#F5F7F0',
           'card': '#FFFFFF',
-          'accent': '#7ED957',
-          'accent-light': '#4ADE80',
-          'accent-dark': '#22C55E',
-          'text-primary': '#333333',
-          'text-secondary': '#666666',
-          'text-muted': '#A0A0A0',
-          'border': '#E0E0E0',
-          'divider': '#E0E0E0',
+          'primary': '#4A5D23',
+          'accent': '#A3D977',
+          'accent-light': '#C5E8A8',
+          'accent-dark': '#3A4B13',
+          'text-primary': '#3A4B13',
+          'text-secondary': '#5A6B3A',
+          'text-muted': '#8A9B6A',
+          'border': '#D4D9C8',
+          'divider': '#E8EBE0',
         },
         category: {
-          family: '#22c55e',
-          work: '#3b82f6',
-          'small-joys': '#eab308',
-          nature: '#22c55e',
-          health: '#ec4899',
-          other: '#8b5cf6',
+          family: '#4A5D23',
+          work: '#5A6D33',
+          'small-joys': '#A3D977',
+          nature: '#6B7D43',
+          health: '#8BC95E',
+          other: '#3A4B13',
         },
       },
       fontFamily: {
@@ -77,8 +78,8 @@ const config: Config = {
         'button': '0 2px 4px rgba(0, 0, 0, 0.1)',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #7ED957, #4ADE80)',
-        'gradient-accent': 'linear-gradient(180deg, #7ED957, #22C55E)',
+        'gradient-primary': 'linear-gradient(135deg, #4A5D23, #5A6D33)',
+        'gradient-accent': 'linear-gradient(180deg, #A3D977, #8BC95E)',
       },
       keyframes: {
         'heart-bounce': {

@@ -15,10 +15,10 @@ export default function CategoryFilterBar({ selected, onSelect }: Props) {
       <button
         onClick={() => onSelect(null)}
         className={cn(
-          'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-subheadline font-medium transition-all whitespace-nowrap',
+          'flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-subheadline font-medium transition-all whitespace-nowrap',
           selected === null
-            ? 'bg-brand-accent text-white shadow-sm'
-            : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-border'
+            ? 'bg-brand-primary text-white shadow-sm'
+            : 'bg-brand-surface text-brand-text-secondary border border-brand-border hover:border-brand-text-muted'
         )}
       >
         ⭐ All
@@ -30,10 +30,10 @@ export default function CategoryFilterBar({ selected, onSelect }: Props) {
           key={cat.value}
           onClick={() => onSelect(cat.value)}
           className={cn(
-            'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-subheadline font-medium transition-all whitespace-nowrap',
+            'flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-subheadline font-medium transition-all whitespace-nowrap',
             selected === cat.value
               ? 'text-white shadow-sm'
-              : 'bg-brand-card text-brand-text-secondary hover:bg-brand-border border border-brand-border'
+              : 'bg-brand-card text-brand-text-secondary border border-brand-border hover:border-brand-text-muted'
           )}
           style={
             selected === cat.value

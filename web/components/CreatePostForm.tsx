@@ -63,7 +63,6 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 
   const handleConfirmationDismiss = () => {
     setShowConfirmation(false)
-    // Reset form
     setContent('')
     setFeeling('')
     setCategory('SMALL_JOYS')
@@ -78,30 +77,30 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Progress Bar */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-subheadline text-brand-text-secondary">
+      <div className="px-5 pt-5 pb-3">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-subheadline text-brand-text-secondary font-medium">
             Step {step} of 3
           </span>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-brand-text-secondary text-headline"
+              className="w-8 h-8 rounded-lg bg-brand-surface flex items-center justify-center text-brand-text-secondary hover:bg-brand-border transition-all"
             >
               ✕
             </button>
           )}
         </div>
-        <div className="h-1 bg-brand-border rounded-full overflow-hidden">
+        <div className="h-1.5 bg-brand-surface rounded-full overflow-hidden">
           <div
-            className="h-full bg-brand-accent rounded-full transition-all duration-300"
+            className="h-full bg-brand-primary rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-5 py-4">
         {step === 1 && (
           <Step1Content
             content={content}
@@ -132,11 +131,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="p-4 flex gap-3 border-t border-brand-border">
+      <div className="p-5 flex gap-3 border-t border-brand-border bg-brand-card">
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-3 rounded-md border border-brand-border text-headline text-brand-text-primary transition-transform active:scale-95"
+            className="flex-1 py-4 rounded-xl border border-brand-border text-headline text-brand-text-primary transition-all active:scale-[0.98]"
           >
             Back
           </button>
@@ -146,10 +145,10 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
             className={cn(
-              'flex-1 py-3 rounded-md text-headline text-white transition-all active:scale-95',
+              'flex-1 py-4 rounded-xl text-headline text-white font-semibold transition-all active:scale-[0.98]',
               step === 1 && !canProceedStep1
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-brand-accent'
+                ? 'bg-brand-border cursor-not-allowed'
+                : 'bg-brand-primary'
             )}
           >
             Next
@@ -158,7 +157,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-3 rounded-md bg-brand-accent text-headline text-white transition-transform active:scale-95 disabled:opacity-50"
+            className="flex-1 py-4 rounded-xl bg-brand-primary text-headline text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {isSubmitting ? 'Sharing...' : 'Share Gratitude ✨'}
           </button>
@@ -194,25 +193,25 @@ function Step1Content({
   handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <label className="text-title-2 text-brand-text-primary block mb-2">
+        <label className="text-title-3 text-brand-text-primary block mb-3 font-semibold">
           What are you grateful for today?
         </label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="w-full h-32 px-4 py-3 bg-brand-surface rounded-md text-body text-brand-text-primary placeholder:text-brand-text-secondary resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
+          className="w-full h-36 px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
           maxLength={500}
         />
-        <p className="text-caption text-brand-text-secondary text-right mt-1">
+        <p className="text-caption text-brand-text-secondary text-right mt-2">
           {content.length}/500
         </p>
       </div>
 
       <div>
-        <label className="text-headline text-brand-text-primary block mb-2">
+        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
           How did it make you feel?
         </label>
         <input
@@ -220,13 +219,13 @@ function Step1Content({
           value={feeling}
           onChange={(e) => setFeeling(e.target.value)}
           placeholder="Happy, grateful, peaceful..."
-          className="w-full px-4 py-3 bg-brand-surface rounded-md text-body text-brand-text-primary placeholder:text-brand-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-accent/50 border border-brand-border"
+          className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
         />
       </div>
 
       <div>
-        <label className="text-headline text-brand-text-primary block mb-2">
-          📎 Add a photo (optional)
+        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
+          Add a photo (optional)
         </label>
         <input
           ref={fileInputRef}
@@ -236,15 +235,15 @@ function Step1Content({
           className="hidden"
         />
         {photoPreview ? (
-          <div className="relative rounded-md overflow-hidden">
+          <div className="relative rounded-xl overflow-hidden">
             <img
               src={photoPreview}
               alt="Preview"
-              className="w-full h-40 object-cover"
+              className="w-full h-44 object-cover"
             />
             <button
               onClick={() => setPhotoPreview(null)}
-              className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center"
+              className="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm"
             >
               ✕
             </button>
@@ -252,9 +251,12 @@ function Step1Content({
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full py-8 border-2 border-dashed border-brand-border rounded-md text-brand-text-secondary hover:border-brand-accent transition-colors"
+            className="w-full py-10 border-2 border-dashed border-brand-border rounded-xl text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary transition-all"
           >
-            Tap to add a photo
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[24px]">📷</span>
+              <span className="text-subheadline">Tap to add a photo</span>
+            </div>
           </button>
         )}
       </div>
@@ -271,7 +273,7 @@ function Step2Category({
 }) {
   return (
     <div>
-      <h2 className="text-title-2 text-brand-text-primary mb-4">
+      <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold">
         Choose a category
       </h2>
       <div className="grid grid-cols-2 gap-3">
@@ -280,10 +282,10 @@ function Step2Category({
             key={cat.value}
             onClick={() => setCategory(cat.value)}
             className={cn(
-              'flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all',
+              'flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all',
               category === cat.value
                 ? 'border-current shadow-sm'
-                : 'border-brand-border bg-brand-surface'
+                : 'border-brand-border bg-brand-surface hover:border-brand-text-muted'
             )}
             style={
               category === cat.value
@@ -291,9 +293,9 @@ function Step2Category({
                 : undefined
             }
           >
-            <span className="text-[32px]">{cat.emoji}</span>
+            <span className="text-[36px]">{cat.emoji}</span>
             <span
-              className="text-headline"
+              className="text-headline font-medium"
               style={
                 category === cat.value
                   ? { color: cat.color }
@@ -325,7 +327,7 @@ function Step3Visibility({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-title-2 text-brand-text-primary mb-4">
+        <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold">
           Who can see this?
         </h2>
         <div className="space-y-3">
@@ -334,15 +336,20 @@ function Step3Visibility({
               key={opt.value}
               onClick={() => setVisibility(opt.value)}
               className={cn(
-                'w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left',
+                'w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left',
                 visibility === opt.value
-                  ? 'border-brand-accent bg-brand-accent/5'
-                  : 'border-brand-border bg-brand-surface'
+                  ? 'border-brand-primary bg-brand-accent-light'
+                  : 'border-brand-border bg-brand-surface hover:border-brand-text-muted'
               )}
             >
-              <span className="text-[24px]">{opt.icon}</span>
+              <div className={cn(
+                'w-12 h-12 rounded-xl flex items-center justify-center',
+                visibility === opt.value ? 'bg-brand-primary text-white' : 'bg-brand-surface'
+              )}>
+                <span className="text-[20px]">{opt.icon}</span>
+              </div>
               <div className="flex-1">
-                <p className="text-headline text-brand-text-primary">
+                <p className="text-headline text-brand-text-primary font-medium">
                   {opt.label}
                 </p>
                 <p className="text-caption text-brand-text-secondary">
@@ -350,7 +357,7 @@ function Step3Visibility({
                 </p>
               </div>
               {visibility === opt.value && (
-                <span className="text-brand-accent text-headline">✓</span>
+                <span className="text-brand-primary text-headline font-bold">✓</span>
               )}
             </button>
           ))}
@@ -359,16 +366,16 @@ function Step3Visibility({
 
       {/* Preview */}
       <div>
-        <h3 className="text-headline text-brand-text-secondary mb-2">Preview</h3>
-        <div className="bg-brand-card rounded-lg shadow-card p-4">
+        <h3 className="text-headline text-brand-text-secondary mb-3 font-medium">Preview</h3>
+        <div className="bg-brand-card rounded-xl shadow-card p-4 border border-brand-border">
           <p className="text-body text-brand-text-primary mb-2">{content}</p>
           {feeling && (
-            <p className="text-subheadline text-brand-text-secondary italic mb-2">
+            <p className="text-subheadline text-brand-text-secondary italic mb-3">
               Feeling: {feeling}
             </p>
           )}
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-caption font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-caption font-medium"
             style={{
               backgroundColor: `${category.color}15`,
               color: category.color,

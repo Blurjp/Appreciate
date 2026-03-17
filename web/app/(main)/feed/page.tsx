@@ -18,7 +18,8 @@ export default function FeedPage() {
       const params = new URLSearchParams()
       if (selectedCategory) params.set('category', selectedCategory)
       const res = await fetch(`/api/posts?${params}`)
-      return res.json()
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
   })
 
@@ -45,13 +46,12 @@ export default function FeedPage() {
   return (
     <div className="px-4 pt-6">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-title text-brand-text-primary flex items-center gap-2">
-          🌟 Today&apos;s Appreciation Feed
+      <div className="mb-5">
+        <h1 className="text-title text-brand-text-primary">
+          Today&apos;s Feed
         </h1>
         <p className="text-subheadline text-brand-text-secondary mt-1">
-          {formatDate(new Date())} — {todayCount} appreciation
-          {todayCount !== 1 ? 's' : ''} today
+          {formatDate(new Date())} — {todayCount} appreciation{todayCount !== 1 ? 's' : ''} today
         </p>
       </div>
 
@@ -63,26 +63,25 @@ export default function FeedPage() {
         />
       </div>
 
-      {/* Section header */}
-      <h2 className="text-title-3 text-brand-text-primary mb-3">
-        🏆 Trending Appreciations
-      </h2>
-
       {/* Posts */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <span className="text-[32px] animate-pulse">🙏</span>
-          <p className="text-subheadline text-brand-text-secondary mt-2">
-            Loading...
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center animate-pulse">
+            <span className="text-[28px]">🙏</span>
+          </div>
+          <p className="text-subheadline text-brand-text-secondary mt-4">
+            Loading appreciations...
           </p>
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-12">
-          <span className="text-[48px]">🌱</span>
-          <p className="text-headline text-brand-text-primary mt-3">
+        <div className="text-center py-16">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center">
+            <span className="text-[36px]">🌱</span>
+          </div>
+          <p className="text-headline text-brand-text-primary mt-4">
             No appreciations yet
           </p>
-          <p className="text-subheadline text-brand-text-secondary mt-1">
+          <p className="text-subheadline text-brand-text-secondary mt-2 max-w-xs mx-auto">
             {selectedCategory
               ? 'Try clearing the filter or be the first to post!'
               : 'Be the first to share your gratitude!'}
@@ -90,7 +89,7 @@ export default function FeedPage() {
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-3 text-subheadline text-brand-accent"
+              className="mt-4 text-subheadline text-brand-primary font-medium"
             >
               Clear filter
             </button>
