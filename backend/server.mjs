@@ -497,6 +497,62 @@ app.post('/api/auth/login', async (request, response, next) => {
   }
 })
 
+app.post('/api/auth/anonymous', async (request, response, next) => {
+  try {
+    const anonRate = rateLimit({
+      scope: 'anonymous',
+      identifier: getRequestIdentifier(request),
+      limit: 5,
+      windowMs: 10 * 60 * 1000,
+    })
+    if (!anonRate.allowed) {
+      response.status(429).send('Too many requests. Please try again later.')
+      return
+    }
+
+    // Create anonymous user
+    const anonId = crypto.randomUUID()
+    const anonEmail = `guest_${anonId.slice(0, 8)}@appreciate.local`
+    const anonName = `Guest_${anonId.slice(0, 4)}`
+
+    const result = await pool.query(
+      `insert into appreciate_user (id, email, name, role)
+       values ($1, $2, $3, 'user')
+       returning *`,
+      [anonId, anonEmail, anonName],
+    )
+    const row = result.rows[0]
+
+    // Create session
+    const sid = crypto.randomUUID()
+    const csrfToken = crypto.randomUUID()
+    const expiresAt = new Date(Date.now() + sessionMaxAgeMs).toISOString()
+
+    await pool.query(
+      `insert into session_token (id, user_id, csrf_token, expires_at)
+       values ($1, $2, $3, $4)`,
+      [sid, row.id, csrfToken, expiresAt],
+    )
+
+    await createAuditLog(pool, {
+      actorUserId: row.id,
+      action: 'auth.anonymous_login',
+      targetType: 'session',
+      targetId: sid,
+      metadata: { identifier: getRequestIdentifier(request) },
+    })
+
+    setSessionCookie(response, sid)
+    response.json({
+      user: mapUser(row),
+      accessToken: sid,
+      refreshToken: sid,
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 app.post('/api/auth/logout', requireAuth, requireCsrf, async (request, response, next) => {
   try {
     await createAuditLog(pool, {
