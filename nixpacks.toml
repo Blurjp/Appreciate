@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["echo 'No build step needed for backend'"]
+
+[phases.start]
+cmds = ["node backend/server.mjs"]
+
+[start]
+cmd = "node backend/server.mjs"
