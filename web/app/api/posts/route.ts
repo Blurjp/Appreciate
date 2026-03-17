@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { fetchPosts, createPost } from '@/lib/db/posts'
+import { getToken } from 'next-auth/jwt'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3008/api/v1'
 
 // GET /api/posts — Fetch public feed (with optional category filter)
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const token = await getToken({ req })
+
+  if (!token || !token.accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(req.url)
 
   try {
-    const posts = await fetchPosts(supabase, {
-      category: searchParams.get('category') || undefined,
-      limit: parseInt(searchParams.get('limit') || '50'),
-      offset: parseInt(searchParams.get('offset') || '0'),
+    const res = await fetch(`${API_URL}/posts?${searchParams.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token.accessToken}`,
+      },
     })
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch posts')
+    }
+
+    const json = await res.json()
+    // Backend returns { success: true, data: [...] }
+    const posts = json.data || json
     return NextResponse.json(posts)
   } catch (error) {
     return NextResponse.json(
@@ -24,10 +38,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/posts — Create a new gratitude post
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const token = await getToken({ req })
 
-  if (!user) {
+  if (!token || !token.accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -42,14 +55,28 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const post = await createPost(supabase, {
-      content: content.trim(),
-      feeling: feeling || undefined,
-      category: category || 'OTHER',
-      visibility: visibility || 'PRIVATE',
-      photoUrl: photoUrl || undefined,
-      authorId: user.id,
+    const res = await fetch(`${API_URL}/posts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.accessToken}`,
+      },
+      body: JSON.stringify({
+        recipient: 'Someone', // Backend requires recipient field
+        message: content,
+        category: category || 'OTHER',
+        visibility: visibility?.toLowerCase() || 'public',
+        feeling: feeling || undefined,
+      }),
     })
+
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.error || 'Failed to create post')
+    }
+
+    const json = await res.json()
+    const post = json.data || json
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     return NextResponse.json(
