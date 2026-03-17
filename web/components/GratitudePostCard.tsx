@@ -38,13 +38,10 @@ export default function GratitudePostCard({
   }
 
   return (
-    <div className="bg-brand-card rounded-2xl shadow-card p-5 border border-brand-border transition-all">
+    <div className="bg-brand-card rounded-2xl p-5 border border-brand-border transition-all">
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-headline"
-          style={{ backgroundColor: category.color }}
-        >
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-headline border border-brand-border text-brand-text-primary">
           {initial}
         </div>
         <div className="flex-1 min-w-0">
@@ -83,14 +80,8 @@ export default function GratitudePostCard({
 
       {/* Category Badge */}
       <div className="flex items-center gap-2 mb-4">
-        <span
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-caption font-medium"
-          style={{
-            backgroundColor: `${category.color}20`,
-            color: category.color,
-          }}
-        >
-          {category.emoji} {category.label}
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium border border-brand-border text-brand-text-secondary tracking-wide uppercase">
+          {category.label}
         </span>
       </div>
 
@@ -99,18 +90,14 @@ export default function GratitudePostCard({
         <button
           onClick={handleHeart}
           className={cn(
-            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-subheadline font-medium transition-all',
+            'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline font-medium transition-all border',
             post.heartCount > 0
-              ? 'bg-brand-accent-light text-brand-primary'
-              : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light hover:text-brand-primary'
+              ? 'border-brand-primary bg-brand-primary text-white'
+              : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
           )}
         >
-          <span className={cn(isHeartAnimating && 'animate-heart-bounce')}>
-            ❤️
-          </span>
-          {post.heartCount > 0 && (
-            <span>{post.heartCount}</span>
-          )}
+          <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
+          {post.heartCount > 0 && <span>{post.heartCount}</span>}
         </button>
 
         {showActions && (
@@ -118,25 +105,25 @@ export default function GratitudePostCard({
             {onEdit && (
               <button
                 onClick={() => onEdit(post)}
-                className="px-3 py-2 rounded-xl text-subheadline text-brand-text-secondary hover:bg-brand-surface transition-all"
+                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-brand-primary hover:text-brand-primary transition-all"
               >
-                ✏️
+                Edit
               </button>
             )}
             {onToggleVisibility && (
               <button
                 onClick={() => onToggleVisibility(post)}
-                className="px-3 py-2 rounded-xl text-subheadline text-brand-text-secondary hover:bg-brand-surface transition-all"
+                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-brand-primary hover:text-brand-primary transition-all"
               >
-                {post.visibility === 'PRIVATE' ? '🌐' : '🔒'}
+                {post.visibility === 'PRIVATE' ? 'Share' : 'Privatise'}
               </button>
             )}
             {onDelete && (
               <button
                 onClick={() => onDelete(post.id)}
-                className="px-3 py-2 rounded-xl text-subheadline text-red-500 hover:bg-red-50 transition-all ml-auto"
+                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-red-400 hover:text-red-500 transition-all ml-auto"
               >
-                🗑️
+                Delete
               </button>
             )}
           </>
@@ -146,24 +133,27 @@ export default function GratitudePostCard({
   )
 }
 
-function VisibilityIcon({ visibility }: { visibility: string }) {
-  if (visibility === 'PRIVATE') {
-    return (
-      <div className="w-8 h-8 rounded-lg bg-brand-surface flex items-center justify-center">
-        <span className="text-caption">🔒</span>
-      </div>
-    )
-  }
-  if (visibility === 'ANONYMOUS') {
-    return (
-      <div className="w-8 h-8 rounded-lg bg-brand-surface flex items-center justify-center">
-        <span className="text-caption">❓</span>
-      </div>
-    )
-  }
+function HeartIcon({ filled, animating }: { filled: boolean; animating: boolean }) {
   return (
-    <div className="w-8 h-8 rounded-lg bg-brand-accent-light flex items-center justify-center">
-      <span className="text-caption">🌐</span>
-    </div>
+    <svg
+      className={cn('w-4 h-4 transition-transform', animating && 'animate-heart-bounce')}
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  )
+}
+
+function VisibilityIcon({ visibility }: { visibility: string }) {
+  const label = visibility === 'PRIVATE' ? 'Private' : visibility === 'ANONYMOUS' ? 'Anon' : 'Public'
+  return (
+    <span className="text-[10px] font-medium tracking-widest uppercase text-brand-text-muted border border-brand-border px-2 py-0.5 rounded-full">
+      {label}
+    </span>
   )
 }

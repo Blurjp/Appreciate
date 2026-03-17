@@ -3,33 +3,29 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 const ONBOARDING_PAGES = [
   {
-    icon: '✨',
     title: 'Welcome to Appreciate',
     subtitle: 'Practice daily gratitude and spread positivity',
-    bgColor: 'bg-brand-accent-light',
+    // heart with rays
+    svgPath: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z M12 2v1M12 21v1M4.22 4.22l.7.7M19.08 19.08l.7.7M2 12h1M21 12h1M4.22 19.78l.7-.7M19.08 4.92l.7-.7',
   },
   {
-    icon: '📝',
     title: 'Write Daily Gratitude',
     subtitle: 'Reflect on what you\'re thankful for each day',
-    bgColor: 'bg-brand-accent',
+    svgPath: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
   },
   {
-    icon: '🔥',
     title: 'Build Your Streak',
     subtitle: 'Stay consistent and grow your gratitude habit',
-    bgColor: 'bg-brand-primary',
+    svgPath: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z M9 12l2 2 4-4',
   },
   {
-    icon: '🌍',
     title: 'Share or Stay Private',
     subtitle: 'Keep reflections private or inspire others',
-    bgColor: 'bg-brand-accent-dark',
+    svgPath: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z M8 12h8',
   },
 ]
 
@@ -114,35 +110,13 @@ export default function WelcomePage() {
     setError('')
 
     try {
-      // Use Supabase anonymous auth
-      const { data, error: signInError } = await supabase.auth.signInAnonymously()
-
-      if (signInError) {
+      const { error: anonError } = await supabase.auth.signInAnonymously()
+      if (anonError) {
+        setError('Guest sign-in failed. Please try again.')
         setIsLoading(false)
-        setError(`Failed: ${signInError.message}`)
         return
       }
-
-      if (data?.user) {
-        // Create user record in database
-        const { error: dbError } = await supabase
-          .from('users')
-          .upsert({
-            id: data.user.id,
-            email: data.user.email || `guest_${data.user.id.slice(0, 8)}@appreciate.app`,
-            name: `Guest_${data.user.id.slice(0, 4)}`,
-            created_at: new Date().toISOString(),
-          })
-
-        if (dbError && dbError.code !== '23505') { // Ignore duplicate key errors
-          console.error('Failed to create user record:', dbError)
-        }
-
-        router.push('/feed')
-      } else {
-        setIsLoading(false)
-        setError('Unexpected response. Please try again.')
-      }
+      router.push('/feed')
     } catch (err) {
       setIsLoading(false)
       setError(`Error: ${(err as Error).message}`)
@@ -151,27 +125,28 @@ export default function WelcomePage() {
 
   if (showAuth) {
     return (
-      <div className="min-h-screen bg-brand-background flex items-center justify-center px-6">
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="w-full max-w-sm">
           {/* Logo Header */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-primary flex items-center justify-center mb-4 shadow-lg">
-              <span className="text-[40px]">🙏</span>
-            </div>
-            <h1 className="text-title text-brand-text-primary">Appreciate</h1>
+          <div className="text-center mb-10">
+            <svg className="w-12 h-12 mx-auto mb-4 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Simple Linear Design</p>
+            <h1 className="text-title text-brand-text-primary tracking-tight">Appreciate</h1>
             <p className="text-subheadline text-brand-text-secondary mt-1">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </p>
           </div>
 
           {/* Auth Card */}
-          <div className="bg-brand-card rounded-2xl shadow-card p-6 border border-brand-border">
+          <div className="p-6 border border-brand-border rounded-2xl">
             {/* Google Sign-in */}
             <GoogleSignInButton />
 
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px bg-brand-border" />
-              <span className="text-caption text-brand-text-muted">or</span>
+              <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">or</span>
               <div className="flex-1 h-px bg-brand-border" />
             </div>
 
@@ -183,7 +158,7 @@ export default function WelcomePage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Display Name"
-                  className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+                  className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
                   required
                 />
               )}
@@ -192,7 +167,7 @@ export default function WelcomePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+                className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
                 required
               />
               <input
@@ -200,7 +175,7 @@ export default function WelcomePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password (min 6 characters)"
-                className="w-full px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+                className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
                 required
                 minLength={6}
               />
@@ -214,42 +189,33 @@ export default function WelcomePage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-xl bg-brand-primary text-white font-semibold text-headline transition-all active:scale-[0.98] disabled:opacity-50 shadow-button"
+                className="w-full py-3.5 rounded-xl bg-brand-primary text-white font-semibold text-subheadline tracking-wide transition-all active:scale-[0.98] disabled:opacity-40"
               >
-                {isLoading
-                  ? 'Loading...'
-                  : isSignUp
-                  ? 'Sign Up with Email'
-                  : 'Sign In'}
+                {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
               </button>
             </form>
 
             <button
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setError('')
-              }}
-              className="w-full text-center mt-4 text-subheadline text-brand-primary font-medium"
+              onClick={() => { setIsSignUp(!isSignUp); setError('') }}
+              className="w-full text-center mt-4 text-caption tracking-wide text-brand-text-muted hover:text-brand-primary transition-colors"
             >
-              {isSignUp
-                ? 'Already have an account? Sign In'
-                : 'New here? Create Account'}
+              {isSignUp ? 'Already have an account? Sign In' : 'New here? Create Account'}
             </button>
           </div>
 
           {/* Guest Option */}
-          <div className="mt-6">
+          <div className="mt-4">
             <button
               onClick={handleGuestSignIn}
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl border-2 border-brand-border text-headline text-brand-text-primary transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary transition-all active:scale-[0.98] disabled:opacity-40"
             >
               Continue as Guest
             </button>
           </div>
 
-          <p className="text-center text-caption text-brand-text-secondary mt-6">
-            Your privacy matters. Private posts are never shared.
+          <p className="text-center text-[10px] tracking-widest uppercase text-brand-text-muted mt-6">
+            Private posts are never shared
           </p>
         </div>
       </div>
@@ -260,13 +226,13 @@ export default function WelcomePage() {
   const page = ONBOARDING_PAGES[currentPage]
 
   return (
-    <div className="min-h-screen bg-brand-background flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Skip Button */}
       {currentPage > 0 && (
         <div className="absolute top-6 right-6">
           <button
             onClick={() => setShowAuth(true)}
-            className="text-subheadline text-brand-text-secondary font-medium"
+            className="text-[10px] tracking-widest uppercase text-brand-text-muted hover:text-brand-primary transition-colors"
           >
             Skip
           </button>
@@ -275,16 +241,16 @@ export default function WelcomePage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8">
-        {/* Icon Container */}
-        <div
-          key={currentPage}
-          className={`w-32 h-32 rounded-3xl ${page.bgColor} flex items-center justify-center mb-8 shadow-lg animate-fade-in`}
-        >
-          <span className="text-[56px]">{page.icon}</span>
+        {/* Icon */}
+        <div key={currentPage} className="w-32 h-32 flex items-center justify-center mb-10 animate-fade-in">
+          <svg className="w-24 h-24 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d={page.svgPath} />
+          </svg>
         </div>
 
         {/* Text Content */}
-        <h1 className="text-title text-brand-text-primary text-center mb-3">
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-2">Simple Linear Design</p>
+        <h1 className="text-title text-brand-text-primary text-center mb-3 tracking-tight">
           {page.title}
         </h1>
         <p className="text-body text-brand-text-secondary text-center max-w-xs">
@@ -299,10 +265,8 @@ export default function WelcomePage() {
           {ONBOARDING_PAGES.map((_, i) => (
             <div
               key={i}
-              className={`h-2 rounded-full transition-all ${
-                i === currentPage
-                  ? 'w-8 bg-brand-primary'
-                  : 'w-2 bg-brand-border'
+              className={`h-px transition-all ${
+                i === currentPage ? 'w-8 bg-brand-primary' : 'w-4 bg-brand-border'
               }`}
             />
           ))}
@@ -311,7 +275,7 @@ export default function WelcomePage() {
         {/* Next Button */}
         <button
           onClick={handleNext}
-          className="w-full py-4 rounded-2xl bg-brand-primary text-white font-semibold text-headline transition-all active:scale-[0.98] shadow-button"
+          className="w-full py-4 rounded-2xl bg-brand-primary text-white font-semibold text-subheadline tracking-widest uppercase transition-all active:scale-[0.98]"
         >
           {isLastPage ? 'Get Started' : 'Continue'}
         </button>

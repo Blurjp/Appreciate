@@ -52,7 +52,13 @@ export const markNotificationSchema = z.object({
   read: z.boolean(),
 })
 
-export function validate<T>(schema: z.ZodType<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
+/**
+ * @template T
+ * @param {z.ZodType<T>} schema
+ * @param {unknown} data
+ * @returns {{ success: true; data: T } | { success: false; error: string }}
+ */
+export function validate(schema, data) {
   const result = schema.safeParse(data)
   if (result.success) {
     return { success: true, data: result.data }

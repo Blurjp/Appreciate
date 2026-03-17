@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Providers from './providers'
-import BottomNav from '@/components/layout/BottomNav'
 
 export const metadata: Metadata = {
   title: 'Appreciate — Gratitude & Appreciation Platform',
@@ -20,13 +19,7 @@ export default function RootLayout({
         <Providers>
           {/* Mobile Container */}
           <div className="max-w-3xl mx-auto bg-white min-h-screen relative shadow-xl">
-            {/* Main Content */}
-            <main className="pb-16">
-              {children}
-            </main>
-            
-            {/* Bottom Navigation */}
-            <BottomNav />
+            {children}
           </div>
         </Providers>
       </body>

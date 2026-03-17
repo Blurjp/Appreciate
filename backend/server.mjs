@@ -24,6 +24,22 @@ const sessionMaxAgeMs = 7 * 24 * 60 * 60 * 1000
 const distDir = path.join(process.cwd(), 'dist')
 const indexHtmlPath = path.join(distDir, 'index.html')
 
+app.use((req, res, next) => {
+  const allowedOrigins = ['http://localhost:3172', 'http://localhost:5173']
+  const origin = req.headers.origin
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  }
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204)
+    return
+  }
+  next()
+})
+
 app.use(express.json())
 
 function parseCookies(header = '') {
@@ -40,11 +56,11 @@ function parseCookies(header = '') {
 }
 
 function setSessionCookie(response, sid) {
-  response.setHeader('Set-Cookie', `sid=${sid}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`)
+  response.setHeader('Set-Cookie', `sid=${sid}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`)
 }
 
 function clearSessionCookie(response) {
-  response.setHeader('Set-Cookie', 'sid=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict')
+  response.setHeader('Set-Cookie', 'sid=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax')
 }
 
 function getRequestIdentifier(request) {
@@ -516,8 +532,8 @@ app.post('/api/auth/anonymous', async (request, response, next) => {
     const anonName = `Guest_${anonId.slice(0, 4)}`
 
     const result = await pool.query(
-      `insert into appreciate_user (id, email, name, role)
-       values ($1, $2, $3, 'user')
+      `insert into app_user (id, email, name, role, password_hash, avatar, bio)
+       values ($1, $2, $3, 'member', 'anonymous', '👤', '')
        returning *`,
       [anonId, anonEmail, anonName],
     )

@@ -10,27 +10,27 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          // Figma Design - Olive/Lime Green Theme
+          // Simple Linear Design — monochrome black & white
           'background': '#FFFFFF',
-          'surface': '#F5F7F0',
+          'surface': '#F7F7F7',
           'card': '#FFFFFF',
-          'primary': '#4A5D23',
-          'accent': '#A3D977',
-          'accent-light': '#C5E8A8',
-          'accent-dark': '#3A4B13',
-          'text-primary': '#3A4B13',
-          'text-secondary': '#5A6B3A',
-          'text-muted': '#8A9B6A',
-          'border': '#D4D9C8',
-          'divider': '#E8EBE0',
+          'primary': '#111111',
+          'accent': '#111111',
+          'accent-light': '#F0F0F0',
+          'accent-dark': '#000000',
+          'text-primary': '#111111',
+          'text-secondary': '#555555',
+          'text-muted': '#999999',
+          'border': '#E0E0E0',
+          'divider': '#F0F0F0',
         },
         category: {
-          family: '#4A5D23',
-          work: '#5A6D33',
-          'small-joys': '#A3D977',
-          nature: '#6B7D43',
-          health: '#8BC95E',
-          other: '#3A4B13',
+          family: '#111111',
+          work: '#333333',
+          'small-joys': '#555555',
+          nature: '#444444',
+          health: '#666666',
+          other: '#222222',
         },
       },
       fontFamily: {
@@ -72,14 +72,14 @@ const config: Config = {
         '2xl': '48px',
       },
       boxShadow: {
-        'card': '0 2px 8px rgba(0, 0, 0, 0.08)',
-        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.12)',
-        'elevated': '0 4px 16px rgba(0, 0, 0, 0.1)',
-        'button': '0 2px 4px rgba(0, 0, 0, 0.1)',
+        'card': 'none',
+        'card-hover': 'none',
+        'elevated': 'none',
+        'button': 'none',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #4A5D23, #5A6D33)',
-        'gradient-accent': 'linear-gradient(180deg, #A3D977, #8BC95E)',
+        'gradient-primary': 'none',
+        'gradient-accent': 'none',
       },
       keyframes: {
         'heart-bounce': {
