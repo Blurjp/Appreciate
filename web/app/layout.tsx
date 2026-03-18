@@ -3,9 +3,12 @@ import './globals.css'
 import Providers from './providers'
 
 export const metadata: Metadata = {
-  title: 'Appreciate — Gratitude & Appreciation Platform',
-  description:
-    'Build your gratitude habit, share appreciation, and make the world a more grateful place.',
+  title: 'Appreciate',
+  description: 'Build your gratitude habit, share appreciation, and make the world a more grateful place.',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({

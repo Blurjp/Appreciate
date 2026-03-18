@@ -111,9 +111,8 @@ export default function MyWallPage() {
   return (
     <div className="px-4 pt-6">
       {/* Header */}
-      <h1 className="text-title text-brand-text-primary mb-5">
-        My Gratitude Wall
-      </h1>
+      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Private</p>
+      <h1 className="text-title text-brand-text-primary tracking-tight mb-5">My Wall</h1>
 
       {/* Streak Card */}
       {streak && (
@@ -129,10 +128,10 @@ export default function MyWallPage() {
             key={opt.label}
             onClick={() => setFilter(opt.value)}
             className={cn(
-              'px-4 py-2 rounded-xl text-subheadline font-medium transition-all',
+              'px-4 py-2 rounded-full text-[10px] tracking-widest uppercase font-medium transition-all border',
               filter === opt.value
-                ? 'bg-brand-primary text-white'
-                : 'bg-brand-surface text-brand-text-secondary border border-brand-border'
+                ? 'bg-brand-primary text-white border-brand-primary'
+                : 'bg-white text-brand-text-muted border-brand-border hover:border-brand-primary hover:text-brand-primary'
             )}
           >
             {opt.label}
@@ -143,18 +142,16 @@ export default function MyWallPage() {
       {/* Posts */}
       {postsLoading ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center animate-pulse">
-            <span className="text-[28px]">🙏</span>
-          </div>
+          <svg className="w-10 h-10 mx-auto text-brand-border animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center">
-            <span className="text-[36px]">📝</span>
-          </div>
-          <p className="text-headline text-brand-text-primary mt-4">
-            No posts yet
-          </p>
+          <svg className="w-16 h-16 mx-auto text-brand-border mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <p className="text-headline text-brand-text-primary">No posts yet</p>
           <p className="text-subheadline text-brand-text-secondary mt-2 max-w-xs mx-auto">
             Start your gratitude journey by creating your first post!
           </p>
@@ -189,24 +186,23 @@ export default function MyWallPage() {
 
       {/* Delete Confirmation */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-brand-card rounded-2xl p-6 mx-6 max-w-sm w-full shadow-2xl animate-fade-in border border-brand-border">
-            <h3 className="text-title-3 text-brand-text-primary text-center mb-2">
-              Delete Post?
-            </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 mx-6 max-w-sm w-full animate-fade-in border border-brand-border">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted text-center mb-1">Confirm</p>
+            <h3 className="text-title-3 text-brand-text-primary text-center tracking-tight mb-2">Delete Post?</h3>
             <p className="text-subheadline text-brand-text-secondary text-center mb-5">
               This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-3 rounded-xl border border-brand-border text-headline text-brand-text-primary transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-full border border-brand-border text-subheadline text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-headline transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-full border border-brand-primary bg-brand-primary text-white text-subheadline transition-all active:scale-[0.98]"
               >
                 Delete
               </button>

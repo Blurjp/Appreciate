@@ -47,11 +47,10 @@ export default function FeedPage() {
     <div className="px-4 pt-6">
       {/* Header */}
       <div className="mb-5">
-        <h1 className="text-title text-brand-text-primary">
-          Today&apos;s Feed
-        </h1>
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">{formatDate(new Date())}</p>
+        <h1 className="text-title text-brand-text-primary tracking-tight">Today&apos;s Feed</h1>
         <p className="text-subheadline text-brand-text-secondary mt-1">
-          {formatDate(new Date())} — {todayCount} appreciation{todayCount !== 1 ? 's' : ''} today
+          {todayCount} appreciation{todayCount !== 1 ? 's' : ''} today
         </p>
       </div>
 
@@ -66,30 +65,23 @@ export default function FeedPage() {
       {/* Posts */}
       {isLoading ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center animate-pulse">
-            <span className="text-[28px]">🙏</span>
-          </div>
-          <p className="text-subheadline text-brand-text-secondary mt-4">
-            Loading appreciations...
-          </p>
+          <svg className="w-10 h-10 mx-auto text-brand-border animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-accent-light flex items-center justify-center">
-            <span className="text-[36px]">🌱</span>
-          </div>
-          <p className="text-headline text-brand-text-primary mt-4">
-            No appreciations yet
-          </p>
+          <svg className="w-16 h-16 mx-auto text-brand-border mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <p className="text-headline text-brand-text-primary">No appreciations yet</p>
           <p className="text-subheadline text-brand-text-secondary mt-2 max-w-xs mx-auto">
-            {selectedCategory
-              ? 'Try clearing the filter or be the first to post!'
-              : 'Be the first to share your gratitude!'}
+            {selectedCategory ? 'Try clearing the filter or be the first to post!' : 'Be the first to share your gratitude!'}
           </p>
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-4 text-subheadline text-brand-primary font-medium"
+              className="mt-4 text-[10px] tracking-widest uppercase text-brand-text-muted hover:text-brand-primary transition-colors"
             >
               Clear filter
             </button>

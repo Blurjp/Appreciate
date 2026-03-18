@@ -1,32 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3008/api/v1'
+import { createClient } from '@/lib/supabase/server'
+import { fetchPosts, createPost } from '@/lib/db/posts'
 
 // GET /api/posts — Fetch public feed (with optional category filter)
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req })
-
-  if (!token || !token.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+  const supabase = createClient()
   const { searchParams } = new URL(req.url)
+  const category = searchParams.get('category') || undefined
 
   try {
-    const res = await fetch(`${API_URL}/posts?${searchParams.toString()}`, {
-      headers: {
-        'Authorization': `Bearer ${token.accessToken}`,
-      },
-    })
-
-    if (!res.ok) {
-      throw new Error('Failed to fetch posts')
-    }
-
-    const json = await res.json()
-    // Backend returns { success: true, data: [...] }
-    const posts = json.data || json
+    const posts = await fetchPosts(supabase, { category })
     return NextResponse.json(posts)
   } catch (error) {
     return NextResponse.json(
@@ -38,9 +21,10 @@ export async function GET(req: NextRequest) {
 
 // POST /api/posts — Create a new gratitude post
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req })
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!token || !token.accessToken) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -48,35 +32,18 @@ export async function POST(req: NextRequest) {
   const { content, feeling, category, visibility, photoUrl } = body
 
   if (!content?.trim()) {
-    return NextResponse.json(
-      { error: 'Content is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Content is required' }, { status: 400 })
   }
 
   try {
-    const res = await fetch(`${API_URL}/posts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.accessToken}`,
-      },
-      body: JSON.stringify({
-        recipient: 'Someone', // Backend requires recipient field
-        message: content,
-        category: category || 'OTHER',
-        visibility: visibility?.toLowerCase() || 'public',
-        feeling: feeling || undefined,
-      }),
+    const post = await createPost(supabase, {
+      content,
+      feeling: feeling || undefined,
+      category: category || 'SMALL_JOYS',
+      visibility: visibility || 'PRIVATE',
+      photoUrl: photoUrl || undefined,
+      authorId: user.id,
     })
-
-    if (!res.ok) {
-      const error = await res.json()
-      throw new Error(error.error || 'Failed to create post')
-    }
-
-    const json = await res.json()
-    const post = json.data || json
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     return NextResponse.json(

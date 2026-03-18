@@ -27,10 +27,10 @@ function TabIcon({ name, isActive }: { name: string; isActive: boolean }) {
     case 'PlusIcon':
       return (
         <div className={cn(
-          'w-11 h-11 rounded-full flex items-center justify-center -mt-5 border-2 transition-all',
+          'w-7 h-7 rounded-full flex items-center justify-center border transition-all',
           isActive ? 'border-brand-primary bg-brand-primary' : 'border-brand-border bg-white'
         )}>
-          <svg className={cn('w-5 h-5', isActive ? 'text-white' : 'text-brand-text-muted')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className={cn('w-3.5 h-3.5', isActive ? 'text-white' : 'text-brand-text-muted')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         </div>
