@@ -93,19 +93,57 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      // Handle Google OAuth sign-in
+      if (account?.provider === 'google' && profile?.email) {
+        try {
+          // Try to login first, if fails, register
+          const loginRes = await fetch(`${API_URL}/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: profile.email,
+              name: profile.name || user.name || '',
+              googleId: profile.sub,
+              image: profile.picture || user.image || '',
+            }),
+          })
+
+          if (!loginRes.ok) {
+            console.error('Google auth failed:', await loginRes.text())
+            return false
+          }
+
+          const data = await loginRes.json()
+          // Attach backend tokens to user object for jwt callback
+          ;(user as any).id = data.data?.user?.id || data.user?.id || profile.email
+          ;(user as any).accessToken = data.data?.tokens?.accessToken || data.accessToken
+          ;(user as any).refreshToken = data.data?.tokens?.refreshToken || data.refreshToken
+          return true
+        } catch (error) {
+          console.error('Google OAuth error:', error)
+          return false
+        }
+      }
+      return true
+    },
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
         token.accessToken = (user as any).accessToken
         token.refreshToken = (user as any).refreshToken
       }
+      // For Google OAuth, also get tokens from account
+      if (account?.provider === 'google') {
+        token.accessToken = (user as any).accessToken || token.accessToken
+      }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id as string
-        (session.user as any).accessToken = token.accessToken as string
-        (session.user as any).refreshToken = token.refreshToken as string
+        ;(session.user as any).id = token.id as string
+        ;(session.user as any).accessToken = token.accessToken as string
+        ;(session.user as any).refreshToken = token.refreshToken as string
       }
       return session
     },
