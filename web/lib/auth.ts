@@ -104,8 +104,8 @@ export const authOptions: NextAuthOptions = {
             body: JSON.stringify({
               email: profile.email,
               name: profile.name || user.name || '',
-              googleId: profile.sub,
-              image: profile.picture || user.image || '',
+              googleId: profile.sub || (profile as any).id || user.id || '',
+              image: user.image || (profile as any).picture || '',
             }),
           })
 
