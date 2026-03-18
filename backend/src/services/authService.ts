@@ -180,3 +180,39 @@ export async function anonymousAuth(): Promise<AuthData> {
   const tokens = generateTokens(user.id);
   return { user: toPublicUser(user), tokens };
 }
+
+export async function signInWithGoogle(
+  email: string,
+  name: string,
+  googleId: string,
+  image?: string
+): Promise<AuthData> {
+  // Check if user exists by googleId
+  let user = await prisma.user.findUnique({ where: { googleId } });
+
+  if (!user) {
+    // Check if user exists by email (linking accounts)
+    user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      // Link Google ID to existing account
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId, provider: 'google', avatarUrl: image || user.avatarUrl },
+      });
+    } else {
+      // Create new user
+      user = await prisma.user.create({
+        data: { email, name, googleId, provider: 'google', avatarUrl: image },
+      });
+
+      // Initialize streak data
+      await prisma.streakData.create({
+        data: { userId: user.id },
+      });
+    }
+  }
+
+  const tokens = generateTokens(user.id);
+  return { user: toPublicUser(user), tokens };
+}

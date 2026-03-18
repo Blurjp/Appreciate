@@ -7,6 +7,7 @@ import {
   appleAuthSchema,
   anonymousAuthSchema,
   refreshTokenSchema,
+  googleAuthSchema,
 } from '../utils/validation';
 import * as authService from '../services/authService';
 import { success, error } from '../utils/response';
@@ -44,6 +45,17 @@ router.post('/apple', validate(appleAuthSchema), async (req, res: Response) => {
     success(res, data);
   } catch (err: any) {
     error(res, err.message, 'APPLE_AUTH_ERROR', err.status || 500);
+  }
+});
+
+// POST /api/v1/auth/google
+router.post('/google', validate(googleAuthSchema), async (req, res: Response) => {
+  try {
+    const { email, name, googleId, image } = req.body;
+    const data = await authService.signInWithGoogle(email, name, googleId, image);
+    success(res, data);
+  } catch (err: any) {
+    error(res, err.message, 'GOOGLE_AUTH_ERROR', err.status || 500);
   }
 });
 

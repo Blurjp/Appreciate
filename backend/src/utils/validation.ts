@@ -31,6 +31,13 @@ export const appleAuthSchema = z.object({
 
 export const anonymousAuthSchema = z.object({});
 
+export const googleAuthSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  googleId: z.string().min(1, 'Google ID is required'),
+  image: z.string().url().optional().nullable(),
+});
+
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
