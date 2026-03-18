@@ -94,11 +94,39 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign-in - just allow it, no backend needed
+      // Handle Google OAuth sign-in - integrate with backend
       if (account?.provider === 'google' && profile?.email) {
-        // Generate a pseudo ID from email for now
-        (user as any).id = profile.email
-        return true
+        try {
+          const res = await fetch(`${API_URL}/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: profile.email,
+              name: profile.name || user.name || '',
+              googleId: profile.sub || (profile as any).id || user.id || '',
+              image: user.image || (profile as any).picture || '',
+            }),
+          })
+
+          if (!res.ok) {
+            console.error('Google auth failed:', await res.text())
+            // Fallback: allow sign-in without backend
+            (user as any).id = profile.email
+            return true
+          }
+
+          const data = await res.json()
+          // Attach backend tokens to user object for jwt callback
+          (user as any).id = data.data?.user?.id || data.user?.id || profile.email
+          (user as any).accessToken = data.data?.tokens?.accessToken || data.accessToken
+          (user as any).refreshToken = data.data?.tokens?.refreshToken || data.refreshToken
+          return true
+        } catch (error) {
+          console.error('Google OAuth error:', error)
+          // Fallback: allow sign-in without backend
+          (user as any).id = profile.email
+          return true
+        }
       }
       return true
     },
