@@ -6,8 +6,10 @@ export const metadata: Metadata = {
   title: 'Appreciate',
   description: 'Build your gratitude habit, share appreciation, and make the world a more grateful place.',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.svg',
   },
 }
 
