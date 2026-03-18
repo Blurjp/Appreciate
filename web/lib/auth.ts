@@ -94,54 +94,29 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign-in
+      // Handle Google OAuth sign-in - just allow it, no backend needed
       if (account?.provider === 'google' && profile?.email) {
-        try {
-          // Try to login first, if fails, register
-          const loginRes = await fetch(`${API_URL}/auth/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: profile.email,
-              name: profile.name || user.name || '',
-              googleId: profile.sub || (profile as any).id || user.id || '',
-              image: user.image || (profile as any).picture || '',
-            }),
-          })
-
-          if (!loginRes.ok) {
-            console.error('Google auth failed:', await loginRes.text())
-            return false
-          }
-
-          const data = await loginRes.json()
-          // Attach backend tokens to user object for jwt callback
-          ;(user as any).id = data.data?.user?.id || data.user?.id || profile.email
-          ;(user as any).accessToken = data.data?.tokens?.accessToken || data.accessToken
-          ;(user as any).refreshToken = data.data?.tokens?.refreshToken || data.refreshToken
-          return true
-        } catch (error) {
-          console.error('Google OAuth error:', error)
-          return false
-        }
+        // Generate a pseudo ID from email for now
+        (user as any).id = profile.email
+        return true
       }
       return true
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id || (user as any).id
         token.accessToken = (user as any).accessToken
         token.refreshToken = (user as any).refreshToken
       }
-      // For Google OAuth, also get tokens from account
-      if (account?.provider === 'google') {
-        token.accessToken = (user as any).accessToken || token.accessToken
+      // For Google OAuth, store the Google access token
+      if (account?.provider === 'google' && account.access_token) {
+        token.accessToken = account.access_token
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        ;(session.user as any).id = token.id as string
+        ;(session.user as any).id = token.id as string || session.user.email
         ;(session.user as any).accessToken = token.accessToken as string
         ;(session.user as any).refreshToken = token.refreshToken as string
       }
