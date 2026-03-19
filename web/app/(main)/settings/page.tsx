@@ -138,7 +138,7 @@ export default function SettingsPage() {
             <button
               onClick={handleManageSubscription}
               disabled={isManaging}
-              className="text-caption tracking-wide text-brand-text-muted border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-primary hover:text-brand-primary transition-all disabled:opacity-40"
+              className="text-caption tracking-wide text-brand-text-muted border border-brand-border rounded-xl px-3 py-1.5 hover:border-brand-primary hover:text-brand-primary transition-all disabled:opacity-40"
             >
               {isManaging ? '...' : 'Manage'}
             </button>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
             <button
               onClick={handleUpgrade}
               disabled={isUpgrading}
-              className="w-full py-3.5 rounded-full bg-brand-primary text-white text-subheadline font-semibold tracking-wide transition-all active:scale-[0.98] disabled:opacity-40"
+              className="w-full py-3.5 rounded-xl bg-brand-primary text-white text-subheadline font-semibold tracking-wide transition-all active:scale-[0.98] disabled:opacity-40"
             >
               {isUpgrading ? 'Redirecting...' : 'Upgrade to Pro'}
             </button>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
       {/* Sign Out */}
       <button
         onClick={handleSignOut}
-        className="w-full py-4 rounded-full border border-brand-border text-subheadline tracking-wide text-brand-text-secondary hover:border-red-400 hover:text-red-500 transition-all active:scale-[0.98]"
+        className="w-full py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-secondary hover:border-red-400 hover:text-red-500 transition-all active:scale-[0.98]"
       >
         Sign Out
       </button>
@@ -248,14 +248,14 @@ export default function SettingsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowNameEdit(false)}
-                className="flex-1 py-3 rounded-full border border-brand-border text-subheadline text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-xl border border-brand-border text-subheadline text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 onClick={() => updateNameMutation.mutate(newName)}
                 disabled={!newName.trim()}
-                className="flex-1 py-3 rounded-full bg-brand-primary text-white text-subheadline disabled:opacity-40 transition-all active:scale-[0.98]"
+                className="flex-1 py-3 rounded-xl bg-brand-primary text-white text-subheadline disabled:opacity-40 transition-all active:scale-[0.98]"
               >
                 Save
               </button>
