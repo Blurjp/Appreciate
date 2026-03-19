@@ -1,27 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
-  const { content, feeling } = await req.json()
+  // Auth check
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  const { content, feeling } = await req.json()
   if (!content?.trim()) {
     return NextResponse.json({ error: 'Content required' }, { status: 400 })
   }
 
-  // Build a prompt that creates a beautiful, peaceful background
-  const keywords = feeling ? `${content} ${feeling}` : content
-  const prompt = `serene peaceful beautiful nature background for gratitude journal, ${keywords.slice(0, 100)}, soft light, dreamy, watercolor, no text, no people`
+  const prompt = `serene peaceful beautiful nature background, ${feeling ? feeling + ', ' : ''}soft dreamy light, watercolor style, no text, no people, suitable for a gratitude journal card`
 
-  // Pollinations.ai — free AI image generation, no API key required
-  const encoded = encodeURIComponent(prompt)
-  const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=768&nologo=true&seed=${Date.now()}`
+  const taskUUID = crypto.randomUUID()
 
-  // Verify the image is reachable
-  try {
-    const check = await fetch(imageUrl, { method: 'HEAD' })
-    if (!check.ok) throw new Error('Image service unavailable')
-  } catch {
+  const response = await fetch('https://api.runware.ai/v1', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.RUNWARE_API_KEY}`,
+    },
+    body: JSON.stringify([
+      {
+        taskType: 'imageInference',
+        taskUUID,
+        positivePrompt: prompt,
+        model: 'runware:100@1',
+        numberResults: 1,
+        outputType: ['URL'],
+        outputFormat: 'WEBP',
+        width: 768,
+        height: 768,
+      },
+    ]),
+  })
+
+  if (!response.ok) {
+    const err = await response.text()
+    console.error('Runware error:', err)
     return NextResponse.json({ error: 'Image generation failed' }, { status: 502 })
   }
 
-  return NextResponse.json({ data: { imageURL: imageUrl } })
+  const result = await response.json()
+  const imageURL = result?.data?.[0]?.imageURL
+
+  if (!imageURL) {
+    return NextResponse.json({ error: 'No image returned' }, { status: 502 })
+  }
+
+  return NextResponse.json({ data: { imageURL } })
 }
