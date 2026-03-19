@@ -17,6 +17,17 @@ interface Props {
   onToggleVisibility?: (post: GratitudePost) => void
 }
 
+function useShareLink(postId: string) {
+  const [copied, setCopied] = useState(false)
+  const share = async () => {
+    const url = `${window.location.origin}/share/${postId}`
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return { copied, share }
+}
+
 export default function GratitudePostCard({
   post,
   showActions = false,
@@ -26,6 +37,7 @@ export default function GratitudePostCard({
   onToggleVisibility,
 }: Props) {
   const [isHeartAnimating, setIsHeartAnimating] = useState(false)
+  const { copied, share } = useShareLink(post.id)
   const category = getCategoryMeta(post.category)
   const isAnonymous = post.visibility === 'ANONYMOUS'
   const authorName = isAnonymous ? 'Anonymous' : post.author.name
@@ -98,6 +110,25 @@ export default function GratitudePostCard({
         >
           <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
           {post.heartCount > 0 && <span>{post.heartCount}</span>}
+        </button>
+
+        <button
+          onClick={share}
+          title="Copy share link"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline transition-all border border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary"
+        >
+          {copied ? (
+            <>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Copied!</span>
+            </>
+          ) : (
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+          )}
         </button>
 
         {showActions && (
