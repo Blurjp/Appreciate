@@ -6,12 +6,16 @@ interface Props {
   message: string
   isVisible: boolean
   onDismiss: () => void
+  onCreateCard?: () => void
+  content?: string
+  feeling?: string
 }
 
 export default function ConfirmationOverlay({
   message,
   isVisible,
   onDismiss,
+  onCreateCard,
 }: Props) {
   const [show, setShow] = useState(false)
 
@@ -49,6 +53,17 @@ export default function ConfirmationOverlay({
 
         {/* Message */}
         <p className="text-title-2 text-brand-text-primary mb-6 font-semibold">{message}</p>
+
+        {/* Create Card Button */}
+        {onCreateCard && (
+          <button
+            onClick={onCreateCard}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-headline transition-all active:scale-[0.98] mb-3 flex items-center justify-center gap-2"
+          >
+            <span className="text-xl">✨</span>
+            Create Beautiful Card
+          </button>
+        )}
 
         {/* Continue button */}
         <button

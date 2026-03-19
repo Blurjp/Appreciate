@@ -11,6 +11,7 @@ import {
 } from '@/types'
 import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
+import AppreciationCardGenerator from './AppreciationCardGenerator'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -33,6 +34,9 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [confirmationMessage, setConfirmationMessage] = useState('')
+  const [showCardGenerator, setShowCardGenerator] = useState(false)
+  const [savedContent, setSavedContent] = useState('')
+  const [savedFeeling, setSavedFeeling] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -68,6 +72,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         }
       }
       await onSubmit({ content, feeling, category, visibility, photoUrl })
+      
+      // Save content for card generator
+      setSavedContent(content)
+      setSavedFeeling(feeling)
+      
       setConfirmationMessage(randomFrom(CONFIRMATIONS))
       setShowConfirmation(true)
     } catch {
@@ -185,7 +194,24 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         isVisible={showConfirmation}
         message={confirmationMessage}
         onDismiss={handleConfirmationDismiss}
+        onCreateCard={() => {
+          setShowConfirmation(false)
+          setShowCardGenerator(true)
+        }}
+        content={savedContent}
+        feeling={savedFeeling}
       />
+
+      {showCardGenerator && (
+        <AppreciationCardGenerator
+          content={savedContent}
+          feeling={savedFeeling}
+          onClose={() => {
+            setShowCardGenerator(false)
+            handleConfirmationDismiss()
+          }}
+        />
+      )}
     </div>
   )
 }
