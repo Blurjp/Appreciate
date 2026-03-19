@@ -26,6 +26,7 @@ async function fetchPost(id: string): Promise<GratitudePost | null> {
     category: data.category,
     visibility: data.visibility,
     photoUrl: data.photo_url || null,
+    cardTemplateId: data.card_template_id || 'minimal',
     authorId: data.author_id,
     author: {
       id: profiles?.id ?? '',

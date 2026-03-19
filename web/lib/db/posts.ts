@@ -15,6 +15,7 @@ function mapPost(row: Record<string, unknown>): GratitudePost {
     category: row.category as GratitudePost['category'],
     visibility: row.visibility as GratitudePost['visibility'],
     photoUrl: (row.photo_url as string) || null,
+    cardTemplateId: (row.card_template_id as string) || 'minimal',
     authorId: row.author_id as string,
     author: {
       id: profiles?.id ?? '',
@@ -102,12 +103,13 @@ export async function createPost(
 export async function updatePost(
   supabase: SupabaseClient,
   id: string,
-  data: { content?: string; category?: string; visibility?: string }
+  data: { content?: string; category?: string; visibility?: string; cardTemplateId?: string }
 ) {
   const updateData: Record<string, unknown> = {}
   if (data.content !== undefined) updateData.content = data.content
   if (data.category !== undefined) updateData.category = data.category
   if (data.visibility !== undefined) updateData.visibility = data.visibility
+  if (data.cardTemplateId !== undefined) updateData.card_template_id = data.cardTemplateId
 
   const { data: post, error } = await supabase
     .from('gratitude_posts')

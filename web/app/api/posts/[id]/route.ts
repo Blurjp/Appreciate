@@ -59,6 +59,7 @@ export async function PATCH(
       content: body.content,
       category: body.category,
       visibility: body.visibility,
+      cardTemplateId: body.cardTemplateId,
     })
     return NextResponse.json(post)
   } catch (error) {

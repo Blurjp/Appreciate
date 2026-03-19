@@ -17,6 +17,7 @@ export interface GratitudePost {
   category: GratitudeCategory
   visibility: PostVisibility
   photoUrl: string | null
+  cardTemplateId: string | null
   authorId: string
   author: {
     id: string

@@ -34,6 +34,14 @@ export default function MyWallPage() {
     },
   })
 
+  const { data: userProfile } = useQuery<{ isPro: boolean }>({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const res = await fetch('/api/user')
+      return res.json()
+    },
+  })
+
   const { data: streak } = useQuery<StreakData>({
     queryKey: ['streak'],
     queryFn: async () => {
@@ -59,6 +67,7 @@ export default function MyWallPage() {
       content?: string
       category?: GratitudeCategory
       visibility?: PostVisibility
+      cardTemplateId?: string
     }) => {
       const { id, ...body } = data
       const res = await fetch(`/api/posts/${id}`, {
@@ -103,6 +112,7 @@ export default function MyWallPage() {
     content: string
     category: GratitudeCategory
     visibility: PostVisibility
+    cardTemplateId: string
   }) => {
     updateMutation.mutate(data)
     showToast('Post updated', '✅')
@@ -179,6 +189,7 @@ export default function MyWallPage() {
         <EditPostModal
           post={editingPost}
           isOpen
+          isPro={userProfile?.isPro ?? false}
           onClose={() => setEditingPost(null)}
           onSave={handleEditSave}
         />
