@@ -27,7 +27,7 @@ export default function SettingsPage() {
     }
   }, [searchParams, queryClient, router])
 
-  const { data: user } = useQuery<UserProfile & { isPro: boolean; hasStripeCustomer: boolean }>({
+  const { data: user, isLoading } = useQuery<UserProfile & { isPro: boolean; hasStripeCustomer: boolean }>({
     queryKey: ['user'],
     queryFn: async () => {
       const res = await fetch('/api/user')
@@ -125,7 +125,12 @@ export default function SettingsPage() {
       </div>
 
       {/* Subscription Card */}
-      {user?.isPro ? (
+      {isLoading ? (
+        <div className="rounded-2xl p-5 mb-4 border border-brand-border animate-pulse">
+          <div className="h-5 w-32 bg-brand-surface rounded mb-2" />
+          <div className="h-3 w-48 bg-brand-surface rounded" />
+        </div>
+      ) : user?.isPro ? (
         <div className="rounded-2xl p-5 mb-4 border border-brand-primary bg-white">
           <div className="flex items-center justify-between mb-4">
             <div>
