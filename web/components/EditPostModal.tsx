@@ -20,6 +20,7 @@ interface Props {
   onSave: (data: {
     id: string
     content: string
+    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     cardTemplateId: string
@@ -28,17 +29,19 @@ interface Props {
 
 export default function EditPostModal({ post, isOpen, isPro = false, onClose, onSave }: Props) {
   const [content, setContent] = useState(post.content)
+  const [feeling, setFeeling] = useState(post.feeling ?? '')
   const [category, setCategory] = useState<GratitudeCategory>(post.category)
   const [visibility, setVisibility] = useState<PostVisibility>(post.visibility)
+  const existingAiUrl = post.cardTemplateId?.startsWith('ai:') ? post.cardTemplateId.slice(3) : null
   const [cardTemplateId, setCardTemplateId] = useState(post.cardTemplateId ?? 'minimal')
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
-  const [aiImageUrl, setAiImageUrl] = useState<string | null>(null)
+  const [aiImageUrl, setAiImageUrl] = useState<string | null>(existingAiUrl)
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   if (!isOpen) return null
 
   const handleSave = () => {
-    onSave({ id: post.id, content, category, visibility, cardTemplateId })
+    onSave({ id: post.id, content, feeling, category, visibility, cardTemplateId })
     onClose()
   }
 
@@ -48,7 +51,7 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
       const res = await fetch('/api/ai/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, feeling: post.feeling }),
+        body: JSON.stringify({ content, feeling }),
       })
       const result = await res.json()
       if (result.data?.imageURL) {
@@ -101,6 +104,18 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
                 className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
               />
               <p className="text-caption text-brand-text-secondary text-right mt-1">{content.length}/500</p>
+            </div>
+
+            {/* Feeling */}
+            <div>
+              <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">How did it make you feel?</p>
+              <input
+                type="text"
+                value={feeling}
+                onChange={(e) => setFeeling(e.target.value)}
+                placeholder="Happy, grateful, peaceful..."
+                className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+              />
             </div>
 
             {/* Card Background */}

@@ -103,10 +103,11 @@ export async function createPost(
 export async function updatePost(
   supabase: SupabaseClient,
   id: string,
-  data: { content?: string; category?: string; visibility?: string; cardTemplateId?: string }
+  data: { content?: string; feeling?: string; category?: string; visibility?: string; cardTemplateId?: string }
 ) {
   const updateData: Record<string, unknown> = {}
   if (data.content !== undefined) updateData.content = data.content
+  if (data.feeling !== undefined) updateData.feeling = data.feeling
   if (data.category !== undefined) updateData.category = data.category
   if (data.visibility !== undefined) updateData.visibility = data.visibility
   if (data.cardTemplateId !== undefined) updateData.card_template_id = data.cardTemplateId

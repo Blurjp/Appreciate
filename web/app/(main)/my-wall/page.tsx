@@ -65,6 +65,7 @@ export default function MyWallPage() {
     mutationFn: async (data: {
       id: string
       content?: string
+      feeling?: string
       category?: GratitudeCategory
       visibility?: PostVisibility
       cardTemplateId?: string
@@ -110,6 +111,7 @@ export default function MyWallPage() {
   const handleEditSave = (data: {
     id: string
     content: string
+    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     cardTemplateId: string

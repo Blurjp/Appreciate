@@ -57,6 +57,7 @@ export async function PATCH(
   try {
     const post = await updatePost(supabase, params.id, {
       content: body.content,
+      feeling: body.feeling,
       category: body.category,
       visibility: body.visibility,
       cardTemplateId: body.cardTemplateId,
