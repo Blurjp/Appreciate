@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserProfile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
@@ -11,9 +11,21 @@ export default function SettingsPage() {
   const [isUpgrading, setIsUpgrading] = useState(false)
   const [isManaging, setIsManaging] = useState(false)
   const [newName, setNewName] = useState('')
+  const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
   const queryClient = useQueryClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  useEffect(() => {
+    if (searchParams.get('upgraded') === 'true') {
+      setShowUpgradedBanner(true)
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+      router.replace('/settings')
+      const t = setTimeout(() => setShowUpgradedBanner(false), 4000)
+      return () => clearTimeout(t)
+    }
+  }, [searchParams, queryClient, router])
 
   const { data: user } = useQuery<UserProfile & { isPro: boolean; hasStripeCustomer: boolean }>({
     queryKey: ['user'],
@@ -81,6 +93,15 @@ export default function SettingsPage() {
     <div className="px-4 pt-6">
       <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Account</p>
       <h1 className="text-title text-brand-text-primary tracking-tight mb-6">Settings</h1>
+
+      {showUpgradedBanner && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-brand-primary/10 border border-brand-primary flex items-center gap-3">
+          <svg className="w-5 h-5 text-brand-primary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <p className="text-subheadline text-brand-primary font-medium">Welcome to Pro! All features are now unlocked.</p>
+        </div>
+      )}
 
       {/* Profile Card */}
       <div className="rounded-2xl p-5 mb-4 border border-brand-border">

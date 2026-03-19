@@ -3,16 +3,21 @@ import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
-  }
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-02-25.clover' })
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Test mode: no Stripe key, directly grant Pro access
+  if (!process.env.STRIPE_SECRET_KEY) {
+    await supabase.from('profiles').update({ is_pro: true }).eq('id', user.id)
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://appreciate.live'
+    return NextResponse.json({ url: `${origin}/settings?upgraded=true` })
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-02-25.clover' })
 
   // Get or create Stripe customer
   const { data: profile } = await supabase
