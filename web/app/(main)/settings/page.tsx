@@ -52,8 +52,14 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
       const { url } = await res.json()
-      if (url) window.location.href = url
-    } catch { setIsUpgrading(false) }
+      if (url) {
+        window.location.href = url
+      } else {
+        setIsUpgrading(false)
+      }
+    } catch {
+      setIsUpgrading(false)
+    }
   }
 
   const handleManageSubscription = async () => {
@@ -61,8 +67,14 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
       const { url } = await res.json()
-      if (url) window.location.href = url
-    } catch { setIsManaging(false) }
+      if (url) {
+        window.location.href = url
+      } else {
+        setIsManaging(false)
+      }
+    } catch {
+      setIsManaging(false)
+    }
   }
 
   return (
