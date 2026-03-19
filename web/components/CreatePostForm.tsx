@@ -190,7 +190,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-4 rounded-full border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
+            className="flex-1 py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
           >
             Back
           </button>
@@ -200,7 +200,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
             className={cn(
-              'flex-1 py-4 rounded-full text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98]',
+              'flex-1 py-4 rounded-xl text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98]',
               step === 1 && !canProceedStep1
                 ? 'bg-brand-border cursor-not-allowed'
                 : 'bg-brand-primary'
@@ -212,7 +212,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-4 rounded-full bg-brand-primary text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-40"
+            className="flex-1 py-4 rounded-xl bg-brand-primary text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-40"
           >
             {isSubmitting ? 'Sharing...' : 'Share'}
           </button>
