@@ -38,6 +38,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [savedContent, setSavedContent] = useState('')
   const [savedFeeling, setSavedFeeling] = useState('')
   const [isPro, setIsPro] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/user').then(r => r.json()).then(u => setIsPro(u.isPro ?? false)).catch(() => {})
@@ -50,6 +51,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const progress = (step / 3) * 100
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSubmitError(null)
     const file = e.target.files?.[0]
     if (file) {
       setPhotoFile(file)
@@ -62,19 +64,33 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const handleSubmit = async () => {
     if (isSubmitting) return
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
       let photoUrl: string | undefined
       if (photoFile) {
         const supabase = createClient()
-        const ext = photoFile.name.split('.').pop()
-        const path = `${Date.now()}.${ext}`
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        if (userError || !user) {
+          throw new Error('Please sign in again before uploading a photo.')
+        }
+
+        const ext = photoFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+        const safeExt = ext.replace(/[^a-z0-9]/g, '') || 'jpg'
+        const path = `${user.id}/${crypto.randomUUID()}.${safeExt}`
         const { error: uploadError } = await supabase.storage
           .from('photos')
-          .upload(path, photoFile, { upsert: true })
-        if (!uploadError) {
-          const { data } = supabase.storage.from('photos').getPublicUrl(path)
-          photoUrl = data.publicUrl
+          .upload(path, photoFile, {
+            cacheControl: '3600',
+            contentType: photoFile.type || undefined,
+            upsert: false,
+          })
+
+        if (uploadError) {
+          throw new Error(uploadError.message || 'Photo upload failed.')
         }
+
+        const { data } = supabase.storage.from('photos').getPublicUrl(path)
+        photoUrl = data.publicUrl
       }
       await onSubmit({ content, feeling, category, visibility, photoUrl })
       
@@ -84,8 +100,12 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       
       setConfirmationMessage(randomFrom(CONFIRMATIONS))
       setShowConfirmation(true)
-    } catch {
-      // Error handling
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'We could not attach your photo. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -162,7 +182,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="p-5 flex gap-3 border-t border-brand-border bg-white">
+      <div className="p-5 border-t border-brand-border bg-white">
+        {submitError && (
+          <p className="mb-3 text-sm text-red-500">{submitError}</p>
+        )}
+        <div className="flex gap-3">
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
@@ -193,6 +217,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             {isSubmitting ? 'Sharing...' : 'Share'}
           </button>
         )}
+        </div>
       </div>
 
       <ConfirmationOverlay

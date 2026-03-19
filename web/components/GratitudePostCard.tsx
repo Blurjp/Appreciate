@@ -8,6 +8,7 @@ import {
 } from '@/types'
 import { cn } from '@/lib/utils'
 import { CARD_TEMPLATES } from './AppreciationCardGenerator'
+import ShareLinkActions from './ShareLinkActions'
 
 interface Props {
   post: GratitudePost
@@ -16,17 +17,6 @@ interface Props {
   onEdit?: (post: GratitudePost) => void
   onDelete?: (id: string) => void
   onToggleVisibility?: (post: GratitudePost) => void
-}
-
-function useShareLink(postId: string) {
-  const [copied, setCopied] = useState(false)
-  const share = async () => {
-    const url = `${window.location.origin}/share/${postId}`
-    await navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  return { copied, share }
 }
 
 export default function GratitudePostCard({
@@ -38,11 +28,13 @@ export default function GratitudePostCard({
   onToggleVisibility,
 }: Props) {
   const [isHeartAnimating, setIsHeartAnimating] = useState(false)
-  const { copied, share } = useShareLink(post.id)
+  const [isShareOpen, setIsShareOpen] = useState(false)
   const category = getCategoryMeta(post.category)
   const isAnonymous = post.visibility === 'ANONYMOUS'
   const authorName = isAnonymous ? 'Anonymous' : post.author.name
   const initial = isAnonymous ? '?' : authorName[0]?.toUpperCase() || '?'
+  const shareUrl = typeof window === 'undefined' ? `/share/${post.id}` : `${window.location.origin}/share/${post.id}`
+  const shareText = `${authorName} shared a gratitude moment on Appreciate.`
 
   const handleHeart = () => {
     setIsHeartAnimating(true)
@@ -133,40 +125,38 @@ export default function GratitudePostCard({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 pt-3 border-t border-brand-border">
-        <button
-          onClick={handleHeart}
-          className={cn(
-            'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline font-medium transition-all border',
-            post.heartCount > 0
-              ? 'border-brand-primary bg-brand-primary text-white'
-              : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
-          )}
-        >
-          <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
-          {post.heartCount > 0 && <span>{post.heartCount}</span>}
-        </button>
+      <div className="pt-3 border-t border-brand-border">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleHeart}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline font-medium transition-all border',
+              post.heartCount > 0
+                ? 'border-brand-primary bg-brand-primary text-white'
+                : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
+            )}
+          >
+            <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
+            {post.heartCount > 0 && <span>{post.heartCount}</span>}
+          </button>
 
-        <button
-          onClick={share}
-          title="Copy share link"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline transition-all border border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary"
-        >
-          {copied ? (
-            <>
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Copied!</span>
-            </>
-          ) : (
+          <button
+            onClick={() => setIsShareOpen((open) => !open)}
+            title="Share post"
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline transition-all border',
+              isShareOpen
+                ? 'border-brand-primary text-brand-primary'
+                : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
+            )}
+          >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
             </svg>
-          )}
-        </button>
+            <span>{isShareOpen ? 'Close' : 'Share'}</span>
+          </button>
 
-        {showActions && (
+          {showActions && (
           <>
             {onEdit && (
               <button
@@ -193,6 +183,18 @@ export default function GratitudePostCard({
               </button>
             )}
           </>
+          )}
+        </div>
+
+        {isShareOpen && (
+          <div className="mt-3">
+            <ShareLinkActions
+              url={shareUrl}
+              title="Share this gratitude moment"
+              text={shareText}
+              compact
+            />
+          </div>
         )}
       </div>
     </div>

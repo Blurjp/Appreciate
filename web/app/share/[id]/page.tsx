@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { GratitudePost, CATEGORIES } from '@/types'
 import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import ShareCardClient from './ShareCardClient'
 
 interface Props {
@@ -59,13 +58,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SharePage({ params }: Props) {
   const post = await fetchPost(params.id)
+  const signupHref = `/welcome?next=${encodeURIComponent('/feed')}&from=share&id=${params.id}`
 
   if (!post) {
-    return <PrivateCard />
+    return <PrivateCard signupHref={signupHref} />
   }
 
   if (post.visibility === 'PRIVATE') {
-    return <PrivateCard />
+    return <PrivateCard signupHref={signupHref} />
   }
 
   const category = CATEGORIES.find((c) => c.value === post.category) ?? CATEGORIES[5]
@@ -160,24 +160,33 @@ export default async function SharePage({ params }: Props) {
           {/* CTA footer */}
           <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-400 mb-2">Share your own gratitude</p>
-            <a
-              href="https://appreciate.live"
-              className="text-xs font-semibold tracking-wide"
-              style={{ color: category.color }}
-            >
-              appreciate.live →
-            </a>
+            <div className="flex flex-col gap-2">
+              <a
+                href={signupHref}
+                className="inline-flex items-center justify-center px-4 py-3 rounded-full text-subheadline font-semibold tracking-wide text-white"
+                style={{ backgroundColor: category.color }}
+              >
+                Sign up for Appreciate
+              </a>
+              <a
+                href="https://appreciate.live"
+                className="text-xs font-semibold tracking-wide"
+                style={{ color: category.color }}
+              >
+                appreciate.live →
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Share button */}
-        <ShareCardClient />
+        <ShareCardClient authorName={authorName} />
       </div>
     </div>
   )
 }
 
-function PrivateCard() {
+function PrivateCard({ signupHref }: { signupHref: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-slate-100">
       <div className="bg-white rounded-3xl shadow-xl p-10 max-w-sm w-full text-center">
@@ -188,12 +197,20 @@ function PrivateCard() {
         </div>
         <h2 className="text-lg font-semibold text-gray-700 mb-2">Private Appreciation</h2>
         <p className="text-sm text-gray-400 mb-6">This moment of gratitude is kept private by its author.</p>
-        <a
-          href="https://appreciate.live"
-          className="inline-block px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold"
-        >
-          Start your own journey
-        </a>
+        <div className="flex flex-col gap-3">
+          <a
+            href={signupHref}
+            className="inline-block px-5 py-3 rounded-full bg-gray-900 text-white text-subheadline font-semibold tracking-wide"
+          >
+            Sign up for Appreciate
+          </a>
+          <a
+            href="https://appreciate.live"
+            className="inline-block px-5 py-3 rounded-full border border-gray-200 text-gray-700 text-subheadline font-semibold tracking-wide"
+          >
+            Start your own journey
+          </a>
+        </div>
       </div>
     </div>
   )
