@@ -92,24 +92,16 @@ export default function SettingsPage() {
       </div>
 
       {/* Subscription Card */}
-      <div className="rounded-2xl p-5 mb-4 border border-brand-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <p className="text-headline text-brand-text-primary font-semibold">
-                {user?.isPro ? 'Appreciate Pro' : 'Free Plan'}
-              </p>
-              {user?.isPro && (
-                <span className="text-[9px] tracking-widest uppercase font-semibold bg-brand-primary text-white px-2 py-0.5 rounded-full">
-                  Active
-                </span>
-              )}
+      {user?.isPro ? (
+        <div className="rounded-2xl p-5 mb-4 border border-brand-primary bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <p className="text-headline text-brand-text-primary font-semibold">Appreciate Pro</p>
+                <span className="text-[9px] tracking-widest uppercase font-semibold bg-brand-primary text-white px-2 py-0.5 rounded-full">Active</span>
+              </div>
+              <p className="text-caption text-brand-text-muted">All features unlocked</p>
             </div>
-            <p className="text-caption text-brand-text-muted">
-              {user?.isPro ? 'AI image generation & more' : 'Upgrade for AI features'}
-            </p>
-          </div>
-          {user?.isPro ? (
             <button
               onClick={handleManageSubscription}
               disabled={isManaging}
@@ -117,17 +109,74 @@ export default function SettingsPage() {
             >
               {isManaging ? '...' : 'Manage'}
             </button>
-          ) : (
+          </div>
+          <div className="space-y-2.5">
+            {[
+              'Unlimited gratitude entries',
+              'AI-generated appreciation cards',
+              'Custom card backgrounds',
+              'Share cards publicly',
+              'Priority support',
+            ].map((feature) => (
+              <div key={feature} className="flex items-center gap-2.5">
+                <svg className="w-4 h-4 text-brand-primary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-caption text-brand-text-secondary">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl overflow-hidden mb-4 border border-brand-border">
+          {/* Free plan header */}
+          <div className="p-5 border-b border-brand-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-headline text-brand-text-primary font-semibold mb-0.5">Free Plan</p>
+                <p className="text-caption text-brand-text-muted">Basic journaling features</p>
+              </div>
+              <span className="text-[9px] tracking-widest uppercase font-semibold text-brand-text-muted border border-brand-border px-2 py-0.5 rounded-full">Current</span>
+            </div>
+          </div>
+          {/* Feature comparison */}
+          <div className="p-5 space-y-2.5">
+            {[
+              { label: 'Unlimited gratitude entries', included: true },
+              { label: 'Share cards publicly', included: true },
+              { label: 'AI-generated appreciation cards', included: false },
+              { label: 'Custom card backgrounds', included: false },
+              { label: 'Priority support', included: false },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2.5">
+                {item.included ? (
+                  <svg className="w-4 h-4 text-brand-primary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-brand-border flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                  </svg>
+                )}
+                <span className={`text-caption ${item.included ? 'text-brand-text-secondary' : 'text-brand-text-muted'}`}>
+                  {item.label}
+                  {!item.included && <span className="ml-1.5 text-[9px] tracking-widest uppercase font-medium text-brand-primary">Pro</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+          {/* Upgrade CTA */}
+          <div className="px-5 pb-5">
             <button
               onClick={handleUpgrade}
               disabled={isUpgrading}
-              className="text-caption tracking-wide text-white bg-brand-primary rounded-full px-3 py-1.5 transition-all active:scale-[0.98] disabled:opacity-40"
+              className="w-full py-3.5 rounded-full bg-brand-primary text-white text-subheadline font-semibold tracking-wide transition-all active:scale-[0.98] disabled:opacity-40"
             >
-              {isUpgrading ? '...' : 'Upgrade'}
+              {isUpgrading ? 'Redirecting...' : 'Upgrade to Pro'}
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* About Section */}
       <div className="rounded-2xl overflow-hidden mb-4 border border-brand-border">
