@@ -8,12 +8,14 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function SettingsPage() {
   const [showNameEdit, setShowNameEdit] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [isManaging, setIsManaging] = useState(false)
   const [newName, setNewName] = useState('')
   const queryClient = useQueryClient()
   const router = useRouter()
   const supabase = createClient()
 
-  const { data: user } = useQuery<UserProfile>({
+  const { data: user } = useQuery<UserProfile & { isPro: boolean; hasStripeCustomer: boolean }>({
     queryKey: ['user'],
     queryFn: async () => {
       const res = await fetch('/api/user')
@@ -45,6 +47,24 @@ export default function SettingsPage() {
   const email = user?.email || ''
   const initial = displayName[0]?.toUpperCase() || 'U'
 
+  const handleUpgrade = async () => {
+    setIsUpgrading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch { setIsUpgrading(false) }
+  }
+
+  const handleManageSubscription = async () => {
+    setIsManaging(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch { setIsManaging(false) }
+  }
+
   return (
     <div className="px-4 pt-6">
       <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Account</p>
@@ -68,6 +88,44 @@ export default function SettingsPage() {
             </div>
             <p className="text-subheadline text-brand-text-secondary truncate mt-0.5">{email}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Subscription Card */}
+      <div className="rounded-2xl p-5 mb-4 border border-brand-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="text-headline text-brand-text-primary font-semibold">
+                {user?.isPro ? 'Appreciate Pro' : 'Free Plan'}
+              </p>
+              {user?.isPro && (
+                <span className="text-[9px] tracking-widest uppercase font-semibold bg-brand-primary text-white px-2 py-0.5 rounded-full">
+                  Active
+                </span>
+              )}
+            </div>
+            <p className="text-caption text-brand-text-muted">
+              {user?.isPro ? 'AI image generation & more' : 'Upgrade for AI features'}
+            </p>
+          </div>
+          {user?.isPro ? (
+            <button
+              onClick={handleManageSubscription}
+              disabled={isManaging}
+              className="text-caption tracking-wide text-brand-text-muted border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-primary hover:text-brand-primary transition-all disabled:opacity-40"
+            >
+              {isManaging ? '...' : 'Manage'}
+            </button>
+          ) : (
+            <button
+              onClick={handleUpgrade}
+              disabled={isUpgrading}
+              className="text-caption tracking-wide text-white bg-brand-primary rounded-full px-3 py-1.5 transition-all active:scale-[0.98] disabled:opacity-40"
+            >
+              {isUpgrading ? '...' : 'Upgrade'}
+            </button>
+          )}
         </div>
       </div>
 

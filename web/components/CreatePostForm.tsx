@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   GratitudeCategory,
   PostVisibility,
@@ -37,6 +37,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [showCardGenerator, setShowCardGenerator] = useState(false)
   const [savedContent, setSavedContent] = useState('')
   const [savedFeeling, setSavedFeeling] = useState('')
+  const [isPro, setIsPro] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/user').then(r => r.json()).then(u => setIsPro(u.isPro ?? false)).catch(() => {})
+  }, [])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -206,6 +211,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         <AppreciationCardGenerator
           content={savedContent}
           feeling={savedFeeling}
+          isPro={isPro}
           onClose={() => {
             setShowCardGenerator(false)
             handleConfirmationDismiss()

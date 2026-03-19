@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
+import UpgradeModal from './UpgradeModal'
 
 export interface CardTemplate {
   id: string
@@ -76,6 +77,7 @@ interface Props {
   content: string
   feeling?: string
   authorName?: string
+  isPro?: boolean
   onClose?: () => void
 }
 
@@ -83,6 +85,7 @@ export default function AppreciationCardGenerator({
   content,
   feeling,
   authorName = 'Anonymous',
+  isPro = false,
   onClose,
 }: Props) {
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(CARD_TEMPLATES[0])
@@ -92,6 +95,7 @@ export default function AppreciationCardGenerator({
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null)
   const [useAiImage, setUseAiImage] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const handleGenerateAIImage = async () => {
@@ -175,6 +179,7 @@ export default function AppreciationCardGenerator({
   }
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -332,18 +337,25 @@ export default function AppreciationCardGenerator({
 
           {/* AI Image Generation */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              AI Generated Background
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">
+                AI Generated Background
+              </label>
+              {!isPro && (
+                <span className="text-[9px] tracking-widest uppercase font-semibold border border-brand-border text-brand-text-muted px-2 py-0.5 rounded-full">
+                  Pro
+                </span>
+              )}
+            </div>
             <button
-              onClick={handleGenerateAIImage}
-              disabled={isGeneratingAI || !customText.trim()}
-              className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              onClick={isPro ? handleGenerateAIImage : () => setShowUpgrade(true)}
+              disabled={isPro && (isGeneratingAI || !customText.trim())}
+              className="w-full py-3.5 border border-brand-border text-brand-text-primary font-semibold rounded-xl hover:border-brand-primary hover:text-brand-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
               </svg>
-              {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate AI Image' : 'Generate AI Image'}
+              {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate AI Image' : isPro ? 'Generate AI Image' : 'Generate AI Image ✦ Pro'}
             </button>
             
             {aiImageUrl && (
@@ -403,5 +415,8 @@ export default function AppreciationCardGenerator({
         </div>
       </div>
     </div>
+
+    {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+  </>
   )
 }

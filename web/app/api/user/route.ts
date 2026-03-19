@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, name, email, avatar_url, created_at')
+    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id')
     .eq('id', user.id)
     .single()
 
@@ -29,6 +29,8 @@ export async function GET() {
     email: profile.email,
     avatarUrl: profile.avatar_url,
     createdAt: profile.created_at,
+    isPro: profile.is_pro ?? false,
+    hasStripeCustomer: !!profile.stripe_customer_id,
   })
 }
 
