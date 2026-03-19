@@ -66,6 +66,16 @@ cd backend && PGSSLMODE=disable node db/verify.mjs   # Verify connection
 - `backend/validation.mjs` - Request validation schemas
 - `src/context/AuthContext.tsx` - Auth context for Vite frontend
 
+## Database — Run SQL Directly with psql
+
+**Never ask the user to run SQL manually.** Use psql directly:
+
+```bash
+PGSSLMODE=require psql "postgresql://postgres.jkzqokejtraczcbgnjoh:1qaz2wsx%23E%24R%24R%25T@aws-1-us-east-1.pooler.supabase.com:5432/postgres" -c "YOUR SQL HERE"
+```
+
+The DATABASE_URL is in `backend/.env` if you need to re-read it.
+
 ## Environment Variables
 
 Required in `backend/.env.local`:
