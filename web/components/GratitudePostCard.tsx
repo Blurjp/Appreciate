@@ -7,6 +7,7 @@ import {
   timeAgo,
 } from '@/types'
 import { cn } from '@/lib/utils'
+import { CARD_TEMPLATES } from './AppreciationCardGenerator'
 
 interface Props {
   post: GratitudePost
@@ -78,6 +79,40 @@ export default function GratitudePostCard({
           Feeling: {post.feeling}
         </p>
       )}
+
+      {/* Card Background */}
+      {post.cardTemplateId && post.cardTemplateId !== 'minimal' && (() => {
+        const isAi = post.cardTemplateId.startsWith('ai:')
+        const aiUrl = isAi ? post.cardTemplateId.slice(3) : null
+        const template = !isAi ? CARD_TEMPLATES.find((t) => t.id === post.cardTemplateId) : null
+        const bg = isAi && aiUrl
+          ? `url(${aiUrl}) center/cover`
+          : template?.background
+        if (!bg) return null
+        const textColor = isAi ? '#ffffff' : (template?.textColor ?? '#1a1a1a')
+        return (
+          <div
+            className="mb-4 rounded-xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between"
+            style={{ background: bg }}
+          >
+            {isAi && <div className="absolute inset-0 bg-black/25 rounded-xl" />}
+            <p
+              className="relative z-10 text-body font-medium leading-relaxed line-clamp-4"
+              style={{ color: textColor }}
+            >
+              &ldquo;{post.content}&rdquo;
+            </p>
+            {post.feeling && (
+              <p
+                className="relative z-10 text-caption italic mt-2 opacity-80"
+                style={{ color: textColor }}
+              >
+                Feeling: {post.feeling}
+              </p>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Photo */}
       {post.photoUrl && (
