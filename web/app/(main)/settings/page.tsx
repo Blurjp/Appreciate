@@ -211,18 +211,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* About Section */}
-      <div className="rounded-2xl overflow-hidden mb-4 border border-brand-border">
-        <div className="px-5 py-4 border-b border-brand-border flex justify-between items-center">
-          <span className="text-body text-brand-text-primary">Version</span>
-          <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">1.0.0</span>
-        </div>
-        <div className="px-5 py-4 flex justify-between items-center">
-          <span className="text-body text-brand-text-primary">Data Storage</span>
-          <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">Cloud</span>
-        </div>
-      </div>
-
       {/* Sign Out */}
       <button
         onClick={handleSignOut}
