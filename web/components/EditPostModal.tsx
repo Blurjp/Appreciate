@@ -36,12 +36,12 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-brand-card rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[80vh] overflow-y-auto animate-slide-up border border-brand-border">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] flex flex-col border border-brand-border">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-brand-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border flex-shrink-0">
           <button
             onClick={onClose}
-            className="text-brand-text-secondary text-headline font-medium"
+            className="text-subheadline tracking-wide text-brand-text-muted hover:text-brand-text-primary transition-colors"
           >
             Cancel
           </button>
@@ -50,7 +50,7 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
             onClick={handleSave}
             disabled={!content.trim()}
             className={cn(
-              'text-headline font-semibold transition-colors',
+              'text-subheadline tracking-wide font-semibold transition-colors',
               content.trim() ? 'text-brand-primary' : 'text-brand-text-muted'
             )}
           >
@@ -58,43 +58,44 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
+        <div className="overflow-y-auto flex-1 px-5 py-5 space-y-6">
           {/* Content */}
           <div>
-            <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-              Content
-            </label>
+            <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Content</p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full h-28 px-4 py-3 bg-brand-surface rounded-xl text-body text-brand-text-primary resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent border border-brand-border"
+              maxLength={500}
+              className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
             />
+            <p className="text-caption text-brand-text-secondary text-right mt-1">{content.length}/500</p>
           </div>
 
           {/* Category */}
           <div>
-            <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-              Category
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-3">Category</p>
+            <div className="grid grid-cols-2 gap-3">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
                   className={cn(
-                    'flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all',
+                    'flex flex-col items-center gap-3 p-4 rounded-xl border transition-all',
                     category === cat.value
-                      ? 'border-current'
-                      : 'border-brand-border bg-brand-surface hover:border-brand-text-muted'
+                      ? 'border-brand-primary bg-white'
+                      : 'border-brand-border bg-white hover:border-brand-primary'
                   )}
-                  style={
-                    category === cat.value
-                      ? { borderColor: cat.color, backgroundColor: `${cat.color}10` }
-                      : undefined
-                  }
                 >
-                  <span className="text-[22px]">{cat.emoji}</span>
-                  <span className="text-caption font-medium" style={category === cat.value ? { color: cat.color } : undefined}>
+                  <svg
+                    className={cn('w-7 h-7', category === cat.value ? 'text-brand-primary' : 'text-brand-border')}
+                    viewBox="0 0 24 24"
+                    fill={category === cat.value ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  <span className={cn('text-[10px] tracking-widest uppercase font-medium', category === cat.value ? 'text-brand-primary' : 'text-brand-text-muted')}>
                     {cat.label}
                   </span>
                 </button>
@@ -104,25 +105,35 @@ export default function EditPostModal({ post, isOpen, onClose, onSave }: Props) 
 
           {/* Visibility */}
           <div>
-            <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-              Visibility
-            </label>
-            <div className="space-y-2">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-3">Visibility</p>
+            <div className="space-y-3">
               {VISIBILITY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setVisibility(opt.value)}
                   className={cn(
-                    'w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all',
+                    'w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left',
                     visibility === opt.value
-                      ? 'border-brand-primary bg-brand-accent-light'
-                      : 'border-brand-border bg-brand-surface hover:border-brand-text-muted'
+                      ? 'border-brand-primary bg-white'
+                      : 'border-brand-border bg-white hover:border-brand-primary'
                   )}
                 >
-                  <span className="text-[20px]">{opt.icon}</span>
-                  <span className="text-subheadline text-brand-text-primary font-medium">{opt.label}</span>
+                  <div className={cn(
+                    'w-10 h-10 rounded-full flex items-center justify-center border flex-shrink-0',
+                    visibility === opt.value ? 'border-brand-primary' : 'border-brand-border'
+                  )}>
+                    <svg className={cn('w-4 h-4', visibility === opt.value ? 'text-brand-primary' : 'text-brand-text-muted')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-subheadline text-brand-text-primary font-medium tracking-wide">{opt.label}</p>
+                    <p className="text-caption text-brand-text-muted">{opt.description}</p>
+                  </div>
                   {visibility === opt.value && (
-                    <span className="ml-auto text-brand-primary font-bold">✓</span>
+                    <svg className="w-4 h-4 text-brand-primary flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
                   )}
                 </button>
               ))}
