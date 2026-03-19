@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
-import { createClient } from '@/lib/supabase/client'
 
 export interface CardTemplate {
   id: string
@@ -98,15 +97,9 @@ export default function AppreciationCardGenerator({
   const handleGenerateAIImage = async () => {
     setIsGeneratingAI(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://appreciate-production.up.railway.app/api/v1'}/ai/generate-image`, {
+      const response = await fetch('/api/ai/generate-image', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: customText,
           feeling: customFeeling,
@@ -122,7 +115,6 @@ export default function AppreciationCardGenerator({
       setUseAiImage(true)
     } catch (error) {
       console.error('Failed to generate AI image:', error)
-      alert('Failed to generate AI image. Please try again.')
     } finally {
       setIsGeneratingAI(false)
     }
