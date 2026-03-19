@@ -61,6 +61,20 @@ export default function MyWallPage() {
     },
   })
 
+  const heartMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heartToggle: true }),
+      })
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+    },
+  })
+
   const updateMutation = useMutation({
     mutationFn: async (data: {
       id: string
@@ -175,9 +189,7 @@ export default function MyWallPage() {
               key={post.id}
               post={post}
               showActions
-              onHeart={(id) =>
-                updateMutation.mutate({ id, visibility: post.visibility })
-              }
+              onHeart={(id) => heartMutation.mutate(id)}
               onEdit={setEditingPost}
               onDelete={handleDelete}
               onToggleVisibility={handleToggleVisibility}

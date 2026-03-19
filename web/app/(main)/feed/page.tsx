@@ -28,7 +28,7 @@ export default function FeedPage() {
       const res = await fetch(`/api/posts/${postId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ heartIncrement: true }),
+        body: JSON.stringify({ heartToggle: true }),
       })
       return res.json()
     },
