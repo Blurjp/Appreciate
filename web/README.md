@@ -108,6 +108,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
+# Cloudinary (required for post photo uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+# Optional: defaults to appreciate/posts
+CLOUDINARY_UPLOAD_FOLDER=appreciate/posts
+
 # Legacy (kept for backwards compatibility)
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-here"

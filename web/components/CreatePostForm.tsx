@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   GratitudeCategory,
   PostVisibility,
@@ -12,7 +12,6 @@ import {
 import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
 import AppreciationCardGenerator from './AppreciationCardGenerator'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   onSubmit: (data: {
@@ -54,6 +53,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     setSubmitError(null)
     const file = e.target.files?.[0]
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        setSubmitError('Please choose an image file.')
+        return
+      }
+
       setPhotoFile(file)
       const reader = new FileReader()
       reader.onloadend = () => setPhotoPreview(reader.result as string)
@@ -68,29 +72,20 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     try {
       let photoUrl: string | undefined
       if (photoFile) {
-        const supabase = createClient()
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        if (userError || !user) {
-          throw new Error('Please sign in again before uploading a photo.')
+        const formData = new FormData()
+        formData.append('file', photoFile)
+
+        const uploadRes = await fetch('/api/uploads/post-image', {
+          method: 'POST',
+          body: formData,
+        })
+
+        const uploadBody = await uploadRes.json().catch(() => null)
+        if (!uploadRes.ok) {
+          throw new Error(uploadBody?.error || 'Photo upload failed.')
         }
 
-        const ext = photoFile.name.split('.').pop()?.toLowerCase() || 'jpg'
-        const safeExt = ext.replace(/[^a-z0-9]/g, '') || 'jpg'
-        const path = `${user.id}/${crypto.randomUUID()}.${safeExt}`
-        const { error: uploadError } = await supabase.storage
-          .from('photos')
-          .upload(path, photoFile, {
-            cacheControl: '3600',
-            contentType: photoFile.type || undefined,
-            upsert: false,
-          })
-
-        if (uploadError) {
-          throw new Error(uploadError.message || 'Photo upload failed.')
-        }
-
-        const { data } = supabase.storage.from('photos').getPublicUrl(path)
-        photoUrl = data.publicUrl
+        photoUrl = uploadBody?.url
       }
       await onSubmit({ content, feeling, category, visibility, photoUrl })
       
