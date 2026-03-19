@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paginationSchema = exports.updateProfileSchema = exports.updatePostSchema = exports.createPostSchema = exports.refreshTokenSchema = exports.appleAuthSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.paginationSchema = exports.updateProfileSchema = exports.updatePostSchema = exports.createPostSchema = exports.refreshTokenSchema = exports.googleAuthSchema = exports.anonymousAuthSchema = exports.appleAuthSchema = exports.loginSchema = exports.registerSchema = void 0;
 const zod_1 = require("zod");
 const types_1 = require("../types");
 exports.registerSchema = zod_1.z.object({
@@ -27,6 +27,13 @@ exports.appleAuthSchema = zod_1.z.object({
     })
         .optional()
         .nullable(),
+});
+exports.anonymousAuthSchema = zod_1.z.object({});
+exports.googleAuthSchema = zod_1.z.object({
+    email: zod_1.z.string().email('Invalid email address'),
+    name: zod_1.z.string().min(1, 'Name is required').max(100, 'Name too long'),
+    googleId: zod_1.z.string().min(1, 'Google ID is required'),
+    image: zod_1.z.string().url().optional().nullable(),
 });
 exports.refreshTokenSchema = zod_1.z.object({
     refreshToken: zod_1.z.string().min(1, 'Refresh token is required'),

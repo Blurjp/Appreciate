@@ -8,6 +8,8 @@ exports.login = login;
 exports.signInWithApple = signInWithApple;
 exports.refreshTokens = refreshTokens;
 exports.getMe = getMe;
+exports.anonymousAuth = anonymousAuth;
+exports.signInWithGoogle = signInWithGoogle;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = __importDefault(require("../config/database"));
@@ -124,5 +126,52 @@ async function getMe(userId) {
         throw err;
     }
     return toPublicUser(user);
+}
+async function anonymousAuth() {
+    // Generate a unique anonymous ID
+    const anonymousId = crypto.randomUUID();
+    const email = `anon_${anonymousId}@anonymous.local`;
+    const name = `Guest`;
+    const user = await database_1.default.user.create({
+        data: {
+            email,
+            name,
+            provider: 'anonymous',
+            isAnonymous: true,
+        },
+    });
+    // Initialize streak data
+    await database_1.default.streakData.create({
+        data: { userId: user.id },
+    });
+    const tokens = (0, jwt_1.generateTokens)(user.id);
+    return { user: toPublicUser(user), tokens };
+}
+async function signInWithGoogle(email, name, googleId, image) {
+    // Check if user exists by googleId
+    let user = await database_1.default.user.findUnique({ where: { googleId } });
+    if (!user) {
+        // Check if user exists by email (linking accounts)
+        user = await database_1.default.user.findUnique({ where: { email } });
+        if (user) {
+            // Link Google ID to existing account
+            user = await database_1.default.user.update({
+                where: { id: user.id },
+                data: { googleId, provider: 'google', avatarUrl: image || user.avatarUrl },
+            });
+        }
+        else {
+            // Create new user
+            user = await database_1.default.user.create({
+                data: { email, name, googleId, provider: 'google', avatarUrl: image },
+            });
+            // Initialize streak data
+            await database_1.default.streakData.create({
+                data: { userId: user.id },
+            });
+        }
+    }
+    const tokens = (0, jwt_1.generateTokens)(user.id);
+    return { user: toPublicUser(user), tokens };
 }
 //# sourceMappingURL=authService.js.map

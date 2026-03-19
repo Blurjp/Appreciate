@@ -73,6 +73,27 @@ router.post('/apple', (0, validate_1.validate)(validation_1.appleAuthSchema), as
         (0, response_1.error)(res, err.message, 'APPLE_AUTH_ERROR', err.status || 500);
     }
 });
+// POST /api/v1/auth/google
+router.post('/google', (0, validate_1.validate)(validation_1.googleAuthSchema), async (req, res) => {
+    try {
+        const { email, name, googleId, image } = req.body;
+        const data = await authService.signInWithGoogle(email, name, googleId, image);
+        (0, response_1.success)(res, data);
+    }
+    catch (err) {
+        (0, response_1.error)(res, err.message, 'GOOGLE_AUTH_ERROR', err.status || 500);
+    }
+});
+// POST /api/v1/auth/anonymous
+router.post('/anonymous', (0, validate_1.validate)(validation_1.anonymousAuthSchema), async (_req, res) => {
+    try {
+        const data = await authService.anonymousAuth();
+        (0, response_1.success)(res, data, 201);
+    }
+    catch (err) {
+        (0, response_1.error)(res, err.message, 'ANONYMOUS_AUTH_ERROR', err.status || 500);
+    }
+});
 // POST /api/v1/auth/refresh
 router.post('/refresh', (0, validate_1.validate)(validation_1.refreshTokenSchema), async (req, res) => {
     try {

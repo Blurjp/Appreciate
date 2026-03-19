@@ -10,4 +10,6 @@ export declare function signInWithApple(identityToken: string, userInfo?: {
 } | null): Promise<AuthData>;
 export declare function refreshTokens(refreshToken: string): Promise<AuthData>;
 export declare function getMe(userId: string): Promise<UserPublic>;
+export declare function anonymousAuth(): Promise<AuthData>;
+export declare function signInWithGoogle(email: string, name: string, googleId: string, image?: string): Promise<AuthData>;
 //# sourceMappingURL=authService.d.ts.map

@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import postsRoutes from './routes/posts';
 import streakRoutes from './routes/streak';
 import userRoutes from './routes/users';
+import aiRoutes from './routes/ai';
 import { errorHandler } from './middleware/errorHandler';
 
 // Load environment variables
@@ -46,6 +47,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/posts', postsRoutes);
 app.use('/api/v1/streak', streakRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

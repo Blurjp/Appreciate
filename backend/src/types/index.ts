@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
+  message?: string;
   error?: {
     message: string;
     code: string;

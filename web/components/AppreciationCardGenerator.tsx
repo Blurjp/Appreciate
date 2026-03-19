@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
+import { createClient } from '@/lib/supabase/client'
 
 export interface CardTemplate {
   id: string
@@ -89,7 +90,43 @@ export default function AppreciationCardGenerator({
   const [customText, setCustomText] = useState(content)
   const [customFeeling, setCustomFeeling] = useState(feeling || '')
   const [isExporting, setIsExporting] = useState(false)
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
+  const [aiImageUrl, setAiImageUrl] = useState<string | null>(null)
+  const [useAiImage, setUseAiImage] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
+
+  const handleGenerateAIImage = async () => {
+    setIsGeneratingAI(true)
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://appreciate-production.up.railway.app/api/v1'}/ai/generate-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          content: customText,
+          feeling: customFeeling,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate image')
+      }
+
+      const result = await response.json()
+      setAiImageUrl(result.data.imageURL)
+      setUseAiImage(true)
+    } catch (error) {
+      console.error('Failed to generate AI image:', error)
+      alert('Failed to generate AI image. Please try again.')
+    } finally {
+      setIsGeneratingAI(false)
+    }
+  }
 
   const handleExport = async () => {
     if (!cardRef.current || isExporting) return
@@ -167,19 +204,32 @@ export default function AppreciationCardGenerator({
             <div
               ref={cardRef}
               className="w-80 h-96 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden shadow-xl"
-              style={{ background: selectedTemplate.background }}
+              style={{ 
+                background: useAiImage && aiImageUrl 
+                  ? `url(${aiImageUrl}) center/cover` 
+                  : selectedTemplate.background 
+              }}
             >
+              {/* Overlay for AI image */}
+              {useAiImage && aiImageUrl && (
+                <div className="absolute inset-0 bg-black/30" />
+              )}
+              
               {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 opacity-20">
-                <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
-                  <circle cx="80" cy="20" r="40" />
-                </svg>
-              </div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 opacity-20">
-                <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
-                  <circle cx="20" cy="80" r="30" />
-                </svg>
-              </div>
+              {!useAiImage && (
+                <>
+                  <div className="absolute top-0 right-0 w-32 h-32 opacity-20">
+                    <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
+                      <circle cx="80" cy="20" r="40" />
+                    </svg>
+                  </div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 opacity-20">
+                    <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
+                      <circle cx="20" cy="80" r="30" />
+                    </svg>
+                  </div>
+                </>
+              )}
 
               {/* Content */}
               <div className="relative z-10">
@@ -187,7 +237,7 @@ export default function AppreciationCardGenerator({
                   <span className="text-2xl">✨</span>
                   <span
                     className="text-sm font-medium tracking-wider uppercase"
-                    style={{ color: selectedTemplate.accentColor }}
+                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.accentColor }}
                   >
                     Gratitude
                   </span>
@@ -195,7 +245,7 @@ export default function AppreciationCardGenerator({
                 
                 <p
                   className="text-lg leading-relaxed font-medium"
-                  style={{ color: selectedTemplate.textColor }}
+                  style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
                 >
                   "{customText}"
                 </p>
@@ -203,7 +253,7 @@ export default function AppreciationCardGenerator({
                 {customFeeling && (
                   <p
                     className="mt-4 text-sm italic opacity-80"
-                    style={{ color: selectedTemplate.textColor }}
+                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
                   >
                     Feeling: {customFeeling}
                   </p>
@@ -215,13 +265,13 @@ export default function AppreciationCardGenerator({
                 <div className="flex items-center gap-2">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: selectedTemplate.accentColor }}
+                    style={{ backgroundColor: useAiImage ? 'rgba(255,255,255,0.3)' : selectedTemplate.accentColor }}
                   >
                     {authorName.charAt(0).toUpperCase()}
                   </div>
                   <span
                     className="text-sm font-medium"
-                    style={{ color: selectedTemplate.textColor }}
+                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
                   >
                     {authorName}
                   </span>
@@ -286,6 +336,50 @@ export default function AppreciationCardGenerator({
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
               />
             </div>
+          </div>
+
+          {/* AI Image Generation */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              AI Generated Background
+            </label>
+            <button
+              onClick={handleGenerateAIImage}
+              disabled={isGeneratingAI || !customText.trim()}
+              className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+              </svg>
+              {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate AI Image' : 'Generate AI Image'}
+            </button>
+            
+            {aiImageUrl && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setUseAiImage(true)}
+                  className={cn(
+                    'flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all',
+                    useAiImage
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  )}
+                >
+                  Use AI Image
+                </button>
+                <button
+                  onClick={() => setUseAiImage(false)}
+                  className={cn(
+                    'flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all',
+                    !useAiImage
+                      ? 'border-gray-900 bg-gray-50 text-gray-900'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  )}
+                >
+                  Use Template
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

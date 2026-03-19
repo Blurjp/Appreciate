@@ -68,6 +68,23 @@ export declare const appleAuthSchema: z.ZodObject<{
         } | null | undefined;
     } | null | undefined;
 }>;
+export declare const anonymousAuthSchema: z.ZodObject<{}, "strip", z.ZodTypeAny, {}, {}>;
+export declare const googleAuthSchema: z.ZodObject<{
+    email: z.ZodString;
+    name: z.ZodString;
+    googleId: z.ZodString;
+    image: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+}, "strip", z.ZodTypeAny, {
+    email: string;
+    name: string;
+    googleId: string;
+    image?: string | null | undefined;
+}, {
+    email: string;
+    name: string;
+    googleId: string;
+    image?: string | null | undefined;
+}>;
 export declare const refreshTokenSchema: z.ZodObject<{
     refreshToken: z.ZodString;
 }, "strip", z.ZodTypeAny, {

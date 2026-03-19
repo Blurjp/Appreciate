@@ -11,6 +11,7 @@ const auth_1 = __importDefault(require("./routes/auth"));
 const posts_1 = __importDefault(require("./routes/posts"));
 const streak_1 = __importDefault(require("./routes/streak"));
 const users_1 = __importDefault(require("./routes/users"));
+const ai_1 = __importDefault(require("./routes/ai"));
 const errorHandler_1 = require("./middleware/errorHandler");
 // Load environment variables
 (0, dotenv_1.config)();
@@ -39,10 +40,11 @@ app.get('/health', (req, res) => {
     });
 });
 // API Routes
-app.use('/api/auth', auth_1.default);
-app.use('/api/posts', posts_1.default);
-app.use('/api/streak', streak_1.default);
-app.use('/api/user', users_1.default);
+app.use('/api/v1/auth', auth_1.default);
+app.use('/api/v1/posts', posts_1.default);
+app.use('/api/v1/streak', streak_1.default);
+app.use('/api/v1/users', users_1.default);
+app.use('/api/v1/ai', ai_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
