@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
 import UpgradeModal from './UpgradeModal'
@@ -11,8 +11,11 @@ export interface CardTemplate {
   background: string
   textColor: string
   accentColor: string
-  decoration?: string
 }
+
+export type CardBackgroundSource = 'template' | 'photo' | 'ai'
+
+export const PHOTO_CARD_TEMPLATE_ID = 'photo'
 
 export const CARD_TEMPLATES: CardTemplate[] = [
   {
@@ -73,10 +76,20 @@ export const CARD_TEMPLATES: CardTemplate[] = [
   },
 ]
 
+interface ResolvedCardPresentation {
+  source: CardBackgroundSource
+  background: string
+  textColor: string
+  accentColor: string
+  label: string
+  overlayClassName?: string
+}
+
 interface Props {
   content: string
   feeling?: string
   authorName?: string
+  photoPreview?: string | null
   isPro?: boolean
   initialCardTemplateId?: string | null
   onContentChange?: (value: string) => void
@@ -85,10 +98,116 @@ interface Props {
   onClose?: () => void
 }
 
+export function resolveCardPresentation(cardTemplateId?: string | null, photoUrl?: string | null): ResolvedCardPresentation {
+  if (cardTemplateId === PHOTO_CARD_TEMPLATE_ID && photoUrl) {
+    return {
+      source: 'photo',
+      background: `url(${photoUrl}) center/cover`,
+      textColor: '#ffffff',
+      accentColor: '#ffffff',
+      label: 'Your Photo',
+      overlayClassName: 'bg-black/35',
+    }
+  }
+
+  if (cardTemplateId?.startsWith('ai:')) {
+    const aiUrl = cardTemplateId.slice(3)
+    return {
+      source: 'ai',
+      background: `url(${aiUrl}) center/cover`,
+      textColor: '#ffffff',
+      accentColor: '#ffffff',
+      label: 'AI Remix',
+      overlayClassName: 'bg-black/28',
+    }
+  }
+
+  const template = CARD_TEMPLATES.find((entry) => entry.id === cardTemplateId) ?? CARD_TEMPLATES[0]
+  return {
+    source: 'template',
+    background: template.background,
+    textColor: template.textColor,
+    accentColor: template.accentColor,
+    label: template.name,
+  }
+}
+
+function getInitialSource(initialCardTemplateId?: string | null, hasPhotoPreview?: boolean): CardBackgroundSource {
+  if (initialCardTemplateId === PHOTO_CARD_TEMPLATE_ID && hasPhotoPreview) return 'photo'
+  if (initialCardTemplateId?.startsWith('ai:')) return 'ai'
+  return 'template'
+}
+
+async function extractPhotoPaletteHint(photoPreview: string) {
+  if (typeof window === 'undefined') return undefined
+
+  const image = new Image()
+  image.crossOrigin = 'anonymous'
+  const loaded = new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve()
+    image.onerror = () => reject(new Error('Failed to load uploaded photo'))
+  })
+  image.src = photoPreview
+  await loaded
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 24
+  canvas.height = 24
+  const context = canvas.getContext('2d')
+  if (!context) return undefined
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  const { data } = context.getImageData(0, 0, canvas.width, canvas.height)
+
+  let r = 0
+  let g = 0
+  let b = 0
+
+  for (let index = 0; index < data.length; index += 4) {
+    r += data[index]
+    g += data[index + 1]
+    b += data[index + 2]
+  }
+
+  const samples = data.length / 4
+  const average = {
+    r: r / samples,
+    g: g / samples,
+    b: b / samples,
+  }
+
+  const brightness = (average.r + average.g + average.b) / 3
+  const brightnessHint = brightness > 180 ? 'bright airy light' : brightness > 110 ? 'balanced natural light' : 'moody low light'
+
+  const sortedChannels = [
+    { key: 'red', value: average.r },
+    { key: 'green', value: average.g },
+    { key: 'blue', value: average.b },
+  ].sort((a, b) => b.value - a.value)
+
+  const primary = sortedChannels[0]?.key
+  const secondary = sortedChannels[1]?.key
+
+  const paletteMap: Record<string, string> = {
+    red: 'warm rose and amber tones',
+    green: 'earthy green and sage tones',
+    blue: 'cool blue and indigo tones',
+  }
+
+  const secondaryMap: Record<string, string> = {
+    red: 'with coral warmth',
+    green: 'with soft botanical depth',
+    blue: 'with calm atmospheric depth',
+  }
+
+  return `${brightnessHint}, ${paletteMap[primary] || 'soft neutral tones'} ${secondaryMap[secondary] || ''}`.trim()
+}
+
 export default function AppreciationCardGenerator({
   content,
   feeling,
   authorName = 'Anonymous',
+  photoPreview,
   isPro = false,
   initialCardTemplateId,
   onContentChange,
@@ -97,30 +216,55 @@ export default function AppreciationCardGenerator({
   onClose,
 }: Props) {
   const initialAiUrl = initialCardTemplateId?.startsWith('ai:') ? initialCardTemplateId.slice(3) : null
-  const initialTemplate = initialCardTemplateId && !initialCardTemplateId.startsWith('ai:')
+  const initialTemplate = initialCardTemplateId && !initialCardTemplateId.startsWith('ai:') && initialCardTemplateId !== PHOTO_CARD_TEMPLATE_ID
     ? CARD_TEMPLATES.find((template) => template.id === initialCardTemplateId) ?? CARD_TEMPLATES[0]
     : CARD_TEMPLATES[0]
+
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(initialTemplate)
+  const [backgroundSource, setBackgroundSource] = useState<CardBackgroundSource>(
+    getInitialSource(initialCardTemplateId, Boolean(photoPreview))
+  )
   const [customText, setCustomText] = useState(content)
   const [customFeeling, setCustomFeeling] = useState(feeling || '')
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
-  const [useAiImage, setUseAiImage] = useState(Boolean(initialAiUrl))
   const [showUpgrade, setShowUpgrade] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  const resolvedCardTemplateId = useAiImage && aiImageUrl ? `ai:${aiImageUrl}` : selectedTemplate.id
+  const hasPhotoPreview = Boolean(photoPreview)
+  const resolvedCardTemplateId = useMemo(() => {
+    if (backgroundSource === 'photo' && hasPhotoPreview) return PHOTO_CARD_TEMPLATE_ID
+    if (backgroundSource === 'ai' && aiImageUrl) return `ai:${aiImageUrl}`
+    return selectedTemplate.id
+  }, [aiImageUrl, backgroundSource, hasPhotoPreview, selectedTemplate.id])
+
+  const previewCard = useMemo(
+    () => resolveCardPresentation(
+      backgroundSource === 'photo' && hasPhotoPreview
+        ? PHOTO_CARD_TEMPLATE_ID
+        : backgroundSource === 'ai' && aiImageUrl
+          ? `ai:${aiImageUrl}`
+          : selectedTemplate.id,
+      photoPreview
+    ),
+    [aiImageUrl, backgroundSource, hasPhotoPreview, photoPreview, selectedTemplate.id]
+  )
 
   const handleGenerateAIImage = async () => {
+    if (!customText.trim()) return
+
     setIsGeneratingAI(true)
     try {
+      const photoPaletteHint = photoPreview ? await extractPhotoPaletteHint(photoPreview) : undefined
       const response = await fetch('/api/ai/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: customText,
           feeling: customFeeling,
+          photoPaletteHint,
+          hasPhotoReference: Boolean(photoPreview),
         }),
       })
 
@@ -129,8 +273,12 @@ export default function AppreciationCardGenerator({
       }
 
       const result = await response.json()
+      if (!result.data?.imageURL) {
+        throw new Error('No image returned')
+      }
+
       setAiImageUrl(result.data.imageURL)
-      setUseAiImage(true)
+      setBackgroundSource('ai')
     } catch (error) {
       console.error('Failed to generate AI image:', error)
     } finally {
@@ -140,7 +288,7 @@ export default function AppreciationCardGenerator({
 
   const handleExport = async () => {
     if (!cardRef.current || isExporting) return
-    
+
     setIsExporting(true)
     try {
       const canvas = await html2canvas(cardRef.current, {
@@ -148,7 +296,7 @@ export default function AppreciationCardGenerator({
         useCORS: true,
         backgroundColor: null,
       })
-      
+
       const link = document.createElement('a')
       link.download = `appreciation-card-${Date.now()}.png`
       link.href = canvas.toDataURL('image/png')
@@ -162,7 +310,7 @@ export default function AppreciationCardGenerator({
 
   const handleShare = async () => {
     if (!cardRef.current || isExporting) return
-    
+
     setIsExporting(true)
     try {
       const canvas = await html2canvas(cardRef.current, {
@@ -170,7 +318,7 @@ export default function AppreciationCardGenerator({
         useCORS: true,
         backgroundColor: null,
       })
-      
+
       canvas.toBlob(async (blob) => {
         if (blob && navigator.share) {
           try {
@@ -192,264 +340,376 @@ export default function AppreciationCardGenerator({
     }
   }
 
+  const sourceCards: Array<{
+    id: CardBackgroundSource
+    title: string
+    description: string
+    disabled?: boolean
+    badge?: string
+  }> = [
+    {
+      id: 'photo',
+      title: 'Use Uploaded Photo',
+      description: hasPhotoPreview
+        ? 'Turn the uploaded moment into a full-bleed background.'
+        : 'Add a photo first to unlock this background option.',
+      disabled: !hasPhotoPreview,
+    },
+    {
+      id: 'template',
+      title: 'Choose a Template',
+      description: 'Pick a polished art direction with predictable text contrast.',
+    },
+    {
+      id: 'ai',
+      title: 'AI Remix',
+      description: hasPhotoPreview
+        ? 'Generate a new background from your words and your photo’s palette.'
+        : 'Generate a new background from your words and feeling.',
+      badge: !isPro ? 'Pro' : undefined,
+    },
+  ]
+
   return (
     <>
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900">Create Appreciation Card</h2>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        <div className="p-5 space-y-6">
-          {/* Card Preview */}
-          <div className="flex justify-center">
-            <div
-              ref={cardRef}
-              className="w-80 h-96 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden shadow-xl"
-              style={{ 
-                background: useAiImage && aiImageUrl 
-                  ? `url(${aiImageUrl}) center/cover` 
-                  : selectedTemplate.background 
-              }}
-            >
-              {/* Overlay for AI image */}
-              {useAiImage && aiImageUrl && (
-                <div className="absolute inset-0 bg-black/30" />
-              )}
-              
-              {/* Decorative Elements */}
-              {!useAiImage && (
-                <>
-                  <div className="absolute top-0 right-0 w-32 h-32 opacity-20">
-                    <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
-                      <circle cx="80" cy="20" r="40" />
-                    </svg>
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 opacity-20">
-                    <svg viewBox="0 0 100 100" fill={selectedTemplate.accentColor}>
-                      <circle cx="20" cy="80" r="30" />
-                    </svg>
-                  </div>
-                </>
-              )}
-
-              {/* Content */}
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">✨</span>
-                  <span
-                    className="text-sm font-medium tracking-wider uppercase"
-                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.accentColor }}
-                  >
-                    Gratitude
-                  </span>
-                </div>
-                
-                <p
-                  className="text-lg leading-relaxed font-medium"
-                  style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
-                >
-                  "{customText}"
-                </p>
-
-                {customFeeling && (
-                  <p
-                    className="mt-4 text-sm italic opacity-80"
-                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
-                  >
-                    Feeling: {customFeeling}
-                  </p>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: useAiImage ? 'rgba(255,255,255,0.3)' : selectedTemplate.accentColor }}
-                  >
-                    {authorName.charAt(0).toUpperCase()}
-                  </div>
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: useAiImage ? '#ffffff' : selectedTemplate.textColor }}
-                  >
-                    {authorName}
-                  </span>
-                </div>
-                <span className="text-2xl">🙏</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Template Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Choose a Template
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {CARD_TEMPLATES.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => setSelectedTemplate(template)}
-                  className={cn(
-                    'h-16 rounded-xl border-2 transition-all',
-                    selectedTemplate.id === template.id
-                      ? 'border-gray-900 ring-2 ring-gray-900 ring-offset-2'
-                      : 'border-gray-200 hover:border-gray-300'
-                  )}
-                  style={{ background: template.background }}
-                  title={template.name}
-                >
-                  <span className="sr-only">{template.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Edit Content */}
-          <div className="space-y-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+        <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] border border-brand-border bg-white shadow-[0_30px_80px_rgba(17,17,17,0.18)]">
+          <div className="flex items-start justify-between gap-4 border-b border-brand-border px-6 py-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Edit Message
-              </label>
-              <textarea
-                value={customText}
-                onChange={(e) => {
-                  setCustomText(e.target.value)
-                  onContentChange?.(e.target.value)
-                }}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
-                rows={3}
-                maxLength={200}
-              />
-              <p className="text-xs text-gray-500 text-right mt-1">
-                {customText.length}/200
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">Create Card</p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-text-primary">
+                Design the background first, then publish the appreciation
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-brand-text-secondary">
+                You can build the card from your uploaded photo, a curated template, or an AI remix that follows your message and feeling.
               </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                How does it make you feel?
-              </label>
-              <input
-                type="text"
-                value={customFeeling}
-                onChange={(e) => {
-                  setCustomFeeling(e.target.value)
-                  onFeelingChange?.(e.target.value)
-                }}
-                placeholder="Happy, grateful, peaceful..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              />
-            </div>
-          </div>
-
-          {/* AI Image Generation */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
-                AI Generated Background
-              </label>
-              {!isPro && (
-                <span className="text-[9px] tracking-widest uppercase font-semibold border border-brand-border text-brand-text-muted px-2 py-0.5 rounded-full">
-                  Pro
-                </span>
-              )}
-            </div>
-            <button
-              onClick={isPro ? handleGenerateAIImage : () => setShowUpgrade(true)}
-              disabled={isPro && (isGeneratingAI || !customText.trim())}
-              className="w-full py-3.5 border border-brand-border text-brand-text-primary font-semibold rounded-xl hover:border-brand-primary hover:text-brand-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-              </svg>
-              {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate AI Image' : isPro ? 'Generate AI Image' : 'Generate AI Image ✦ Pro'}
-            </button>
-            
-            {aiImageUrl && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setUseAiImage(true)}
-                  className={cn(
-                    'flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all',
-                    useAiImage
-                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  )}
-                >
-                  Use AI Image
-                </button>
-                <button
-                  onClick={() => setUseAiImage(false)}
-                  className={cn(
-                    'flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-all',
-                    !useAiImage
-                      ? 'border-gray-900 bg-gray-50 text-gray-900'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  )}
-                >
-                  Use Template
-                </button>
-              </div>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-border text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+              >
+                ✕
+              </button>
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className={cn('flex gap-3', onApply && 'flex-wrap')}>
-            {onApply && (
-              <button
-                onClick={() => onApply({
-                  content: customText,
-                  feeling: customFeeling,
-                  cardTemplateId: resolvedCardTemplateId,
+          <div className="grid flex-1 gap-0 overflow-y-auto lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="border-b border-brand-border px-6 py-6 lg:border-b-0 lg:border-r">
+              <div className="mb-5 grid gap-3 md:grid-cols-3">
+                {sourceCards.map((source) => {
+                  const isSelected = backgroundSource === source.id
+                  return (
+                    <button
+                      key={source.id}
+                      onClick={() => {
+                        if (source.disabled) return
+                        if (source.id === 'ai' && !isPro) {
+                          setShowUpgrade(true)
+                          return
+                        }
+                        setBackgroundSource(source.id)
+                      }}
+                      className={cn(
+                        'rounded-3xl border p-4 text-left transition-all',
+                        source.disabled
+                          ? 'cursor-not-allowed border-brand-border/70 bg-brand-surface/60 text-brand-text-muted'
+                          : isSelected
+                            ? 'border-brand-primary bg-amber-50'
+                            : 'border-brand-border bg-white hover:border-brand-primary'
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-semibold text-brand-text-primary">{source.title}</p>
+                        {source.badge && (
+                          <span className="rounded-full border border-brand-border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                            {source.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-brand-text-secondary">{source.description}</p>
+                    </button>
+                  )
                 })}
-                disabled={!customText.trim()}
-                className="w-full py-3.5 bg-brand-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Use This Card
-              </button>
-            )}
-            <button
-              onClick={handleExport}
-              disabled={isExporting || !customText.trim()}
-              className="flex-1 py-3.5 bg-brand-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              {isExporting ? 'Exporting...' : 'Download'}
-            </button>
-            
-            {typeof navigator !== 'undefined' && 'share' in navigator && (
-              <button
-                onClick={handleShare}
-                disabled={isExporting || !customText.trim()}
-                className="flex-1 py-3.5 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                Share
-              </button>
-            )}
+              </div>
+
+              <div className="flex justify-center">
+                <div
+                  ref={cardRef}
+                  className="relative flex h-[470px] w-[350px] flex-col justify-between overflow-hidden rounded-[30px] border border-white/40 p-7 shadow-[0_28px_60px_rgba(17,17,17,0.18)]"
+                  style={{ background: previewCard.background }}
+                >
+                  {previewCard.overlayClassName && (
+                    <div className={cn('absolute inset-0', previewCard.overlayClassName)} />
+                  )}
+
+                  {previewCard.source === 'template' && (
+                    <>
+                      <div
+                        className="absolute right-0 top-0 h-36 w-36 rounded-full opacity-20"
+                        style={{ background: previewCard.accentColor, transform: 'translate(28%, -28%)' }}
+                      />
+                      <div
+                        className="absolute bottom-0 left-0 h-28 w-28 rounded-full opacity-20"
+                        style={{ background: previewCard.accentColor, transform: 'translate(-30%, 30%)' }}
+                      />
+                    </>
+                  )}
+
+                  <div className="relative z-10">
+                    <div className="mb-5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">✨</span>
+                        <span
+                          className="text-xs font-semibold uppercase tracking-[0.34em]"
+                          style={{ color: previewCard.accentColor }}
+                        >
+                          Gratitude
+                        </span>
+                      </div>
+                      <span
+                        className="rounded-full border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em]"
+                        style={{ color: previewCard.textColor, background: previewCard.source === 'template' ? 'rgba(255,255,255,0.28)' : 'rgba(17,17,17,0.16)' }}
+                      >
+                        {previewCard.label}
+                      </span>
+                    </div>
+
+                    <p
+                      className="text-[30px] font-semibold leading-[1.2]"
+                      style={{ color: previewCard.textColor }}
+                    >
+                      &ldquo;{customText || 'Your appreciation message will appear here.'}&rdquo;
+                    </p>
+
+                    {customFeeling && (
+                      <p
+                        className="mt-5 text-base italic opacity-85"
+                        style={{ color: previewCard.textColor }}
+                      >
+                        Feeling: {customFeeling}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold"
+                        style={{
+                          backgroundColor: previewCard.source === 'template' ? previewCard.accentColor : 'rgba(255,255,255,0.22)',
+                          color: '#ffffff',
+                        }}
+                      >
+                        {authorName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: previewCard.textColor }}>
+                          {authorName}
+                        </p>
+                        <p className="text-xs opacity-75" style={{ color: previewCard.textColor }}>
+                          appreciate.live
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-2xl">🙏</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-6">
+              <div className="space-y-6">
+                <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                    Card Copy
+                  </p>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-brand-text-primary">Message</label>
+                      <textarea
+                        value={customText}
+                        onChange={(event) => {
+                          setCustomText(event.target.value)
+                          onContentChange?.(event.target.value)
+                        }}
+                        className="h-32 w-full resize-none rounded-2xl border border-brand-border bg-white px-4 py-3 text-body text-brand-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                        maxLength={200}
+                      />
+                      <p className="mt-1 text-right text-xs text-brand-text-muted">{customText.length}/200</p>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-brand-text-primary">Feeling</label>
+                      <input
+                        type="text"
+                        value={customFeeling}
+                        onChange={(event) => {
+                          setCustomFeeling(event.target.value)
+                          onFeelingChange?.(event.target.value)
+                        }}
+                        placeholder="Happy, grateful, peaceful..."
+                        className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-body text-brand-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {backgroundSource === 'photo' && (
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                      Your Photo
+                    </p>
+                    {photoPreview ? (
+                      <>
+                        <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                          Your uploaded image becomes the full card background with an automatic dark overlay for text readability.
+                        </p>
+                        <div className="mt-4 overflow-hidden rounded-3xl border border-brand-border">
+                          <img src={photoPreview} alt="Uploaded background preview" className="h-40 w-full object-cover" />
+                        </div>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                        Add a photo in step 1 to use it as the background.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {backgroundSource === 'template' && (
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                          Template Studio
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                          Choose a polished visual direction when you want fast, reliable contrast and consistent styling.
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                        {selectedTemplate.name}
+                      </span>
+                    </div>
+                    <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {CARD_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          onClick={() => {
+                            setSelectedTemplate(template)
+                            setBackgroundSource('template')
+                          }}
+                          className={cn(
+                            'rounded-3xl border p-2 transition-all',
+                            selectedTemplate.id === template.id
+                              ? 'border-brand-primary ring-2 ring-brand-primary ring-offset-2'
+                              : 'border-brand-border hover:border-brand-primary'
+                          )}
+                        >
+                          <div className="h-20 rounded-2xl" style={{ background: template.background }} />
+                          <p className="mt-2 text-xs font-semibold text-brand-text-primary">{template.name}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {backgroundSource === 'ai' && (
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                          AI Remix
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                          Generate a fresh background from the appreciation text and feeling.
+                          {photoPreview ? ' Your uploaded photo also contributes palette and mood hints.' : ''}
+                        </p>
+                      </div>
+                      {!isPro && (
+                        <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                          Pro
+                        </span>
+                      )}
+                    </div>
+
+                    {photoPreview && (
+                      <div className="mt-4 rounded-2xl border border-brand-border bg-brand-surface/60 px-4 py-3 text-xs leading-5 text-brand-text-secondary">
+                        The AI background is not copying the uploaded image pixel-for-pixel. It is using your words plus the photo&rsquo;s color/vibe hint to keep the card visually coherent.
+                      </div>
+                    )}
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        onClick={isPro ? handleGenerateAIImage : () => setShowUpgrade(true)}
+                        disabled={isPro && (isGeneratingAI || !customText.trim())}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-primary px-5 py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                      >
+                        <SparkleIcon />
+                        {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate Background' : 'Generate AI Background'}
+                      </button>
+
+                      {aiImageUrl && (
+                        <button
+                          onClick={() => setBackgroundSource('ai')}
+                          className="rounded-2xl border border-brand-border px-5 py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary"
+                        >
+                          Use Current AI Result
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className={cn('flex gap-3', onApply && 'flex-wrap')}>
+                  {onApply && (
+                    <button
+                      onClick={() => onApply({
+                        content: customText,
+                        feeling: customFeeling,
+                        cardTemplateId: resolvedCardTemplateId,
+                      })}
+                      disabled={!customText.trim()}
+                      className="w-full rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                    >
+                      Use This Card
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleExport}
+                    disabled={isExporting || !customText.trim()}
+                    className="flex-1 rounded-2xl border border-brand-border py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
+                  >
+                    {isExporting ? 'Exporting...' : 'Download PNG'}
+                  </button>
+
+                  {typeof navigator !== 'undefined' && 'share' in navigator && (
+                    <button
+                      onClick={handleShare}
+                      disabled={isExporting || !customText.trim()}
+                      className="flex-1 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      Share Card
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
-  </>
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+    </>
+  )
+}
+
+function SparkleIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+    </svg>
   )
 }

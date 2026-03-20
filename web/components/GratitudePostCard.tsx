@@ -8,7 +8,7 @@ import {
   timeAgo,
 } from '@/types'
 import { cn } from '@/lib/utils'
-import { CARD_TEMPLATES } from './AppreciationCardGenerator'
+import { PHOTO_CARD_TEMPLATE_ID, resolveCardPresentation } from './AppreciationCardGenerator'
 import ShareLinkActions from './ShareLinkActions'
 
 interface Props {
@@ -115,7 +115,7 @@ function GratitudePostCard({
       <CardBackground post={post} />
 
       {/* Photo */}
-      {post.photoUrl && (
+      {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
         <div className="mb-4 rounded-xl overflow-hidden relative h-48">
           <Image
             src={post.photoUrl}
@@ -216,28 +216,17 @@ function GratitudePostCard({
 const CardBackground = ({ post }: { post: GratitudePost }) => {
   const cardStyle = useMemo(() => {
     if (!post.cardTemplateId || post.cardTemplateId === 'minimal') return null
-
-    const isAi = post.cardTemplateId.startsWith('ai:')
-    const aiUrl = isAi ? post.cardTemplateId.slice(3) : null
-    const template = !isAi ? CARD_TEMPLATES.find((t) => t.id === post.cardTemplateId) : null
-    const bg = isAi && aiUrl
-      ? `url(${aiUrl}) center/cover`
-      : template?.background
-
-    if (!bg) return null
-
-    const textColor = isAi ? '#ffffff' : (template?.textColor ?? '#1a1a1a')
-    return { bg, textColor, isAi }
-  }, [post.cardTemplateId])
+    return resolveCardPresentation(post.cardTemplateId, post.photoUrl)
+  }, [post.cardTemplateId, post.photoUrl])
 
   if (!cardStyle) return null
 
   return (
     <div
       className="mb-4 rounded-xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between"
-      style={{ background: cardStyle.bg }}
+      style={{ background: cardStyle.background }}
     >
-      {cardStyle.isAi && <div className="absolute inset-0 bg-black/25 rounded-xl" />}
+      {cardStyle.overlayClassName && <div className={cn('absolute inset-0 rounded-xl', cardStyle.overlayClassName)} />}
       <p
         className="relative z-10 text-body font-medium leading-relaxed line-clamp-4"
         style={{ color: cardStyle.textColor }}

@@ -26,30 +26,32 @@ function matchEmotion(feeling: string): { scene: string; colors: string; mood: s
   return EMOTION_STYLES.grateful
 }
 
-function buildPrompt(feeling?: string): string {
+function buildPrompt(feeling?: string, photoPaletteHint?: string, hasPhotoReference?: boolean): string {
   const style = matchEmotion(feeling || 'grateful')
   return [
     style.scene,
     `${style.mood} atmosphere`,
     `${style.colors} color palette`,
+    photoPaletteHint ? `inspired by uploaded photo palette: ${photoPaletteHint}` : null,
+    hasPhotoReference ? 'keep visual harmony with the uploaded reference photo while creating a new background' : null,
     'soft dreamy light, beautiful composition with space for text overlay',
     'commercial greeting card quality, masterpiece, 8k resolution',
-  ].join(', ')
+  ].filter(Boolean).join(', ')
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { content, feeling } = await req.json()
+  const { content, feeling, photoPaletteHint, hasPhotoReference } = await req.json()
   if (!content?.trim()) {
     return NextResponse.json({ error: 'Content required' }, { status: 400 })
   }
 
-  const positivePrompt = buildPrompt(feeling)
+  const positivePrompt = buildPrompt(feeling, photoPaletteHint, hasPhotoReference)
   const taskUUID = crypto.randomUUID()
 
   const response = await fetch('https://api.runware.ai/v1', {

@@ -11,7 +11,10 @@ import {
 } from '@/types'
 import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
-import AppreciationCardGenerator, { CARD_TEMPLATES } from './AppreciationCardGenerator'
+import AppreciationCardGenerator, {
+  PHOTO_CARD_TEMPLATE_ID,
+  resolveCardPresentation,
+} from './AppreciationCardGenerator'
 
 interface Props {
   onSubmit: (data: {
@@ -87,7 +90,10 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 
         photoUrl = uploadBody?.url
       }
-      await onSubmit({ content, feeling, category, visibility, photoUrl, cardTemplateId })
+      const resolvedCardTemplateId = cardTemplateId === PHOTO_CARD_TEMPLATE_ID && !photoUrl
+        ? 'minimal'
+        : cardTemplateId
+      await onSubmit({ content, feeling, category, visibility, photoUrl, cardTemplateId: resolvedCardTemplateId })
       setConfirmationMessage(randomFrom(CONFIRMATIONS))
       setShowConfirmation(true)
     } catch (error) {
@@ -150,7 +156,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             feeling={feeling}
             setFeeling={setFeeling}
             photoPreview={photoPreview}
-            setPhotoPreview={setPhotoPreview}
+            onRemovePhoto={() => {
+              setPhotoPreview(null)
+              setPhotoFile(null)
+              setCardTemplateId((current) => current === PHOTO_CARD_TEMPLATE_ID ? 'minimal' : current)
+            }}
             fileInputRef={fileInputRef}
             handlePhotoChange={handlePhotoChange}
           />
@@ -166,6 +176,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             content={content}
             feeling={feeling}
             cardTemplateId={cardTemplateId}
+            photoPreview={photoPreview}
             onOpenGenerator={() => setShowCardGenerator(true)}
           />
         )}
@@ -229,6 +240,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         <AppreciationCardGenerator
           content={content}
           feeling={feeling}
+          photoPreview={photoPreview}
           isPro={isPro}
           initialCardTemplateId={cardTemplateId}
           onContentChange={setContent}
@@ -254,7 +266,7 @@ function Step1Content({
   feeling,
   setFeeling,
   photoPreview,
-  setPhotoPreview,
+  onRemovePhoto,
   fileInputRef,
   handlePhotoChange,
 }: {
@@ -263,7 +275,7 @@ function Step1Content({
   feeling: string
   setFeeling: (v: string) => void
   photoPreview: string | null
-  setPhotoPreview: (v: string | null) => void
+  onRemovePhoto: () => void
   fileInputRef: React.RefObject<HTMLInputElement | null>
   handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
@@ -318,7 +330,7 @@ function Step1Content({
               className="w-full h-44 object-cover"
             />
             <button
-              onClick={() => setPhotoPreview(null)}
+              onClick={onRemovePhoto}
               className="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm"
             >
               ✕
@@ -385,19 +397,22 @@ function Step3Card({
   content,
   feeling,
   cardTemplateId,
+  photoPreview,
   onOpenGenerator,
 }: {
   content: string
   feeling: string
   cardTemplateId: string
+  photoPreview: string | null
   onOpenGenerator: () => void
 }) {
-  const isAi = cardTemplateId.startsWith('ai:')
-  const aiUrl = isAi ? cardTemplateId.slice(3) : null
-  const template = !isAi ? getCardTemplateById(cardTemplateId) : null
-  const background = isAi && aiUrl ? `url(${aiUrl}) center/cover` : (template?.background ?? CARD_FALLBACK.background)
-  const textColor = isAi ? '#ffffff' : (template?.textColor ?? CARD_FALLBACK.textColor)
-  const accentColor = isAi ? '#ffffff' : (template?.accentColor ?? CARD_FALLBACK.accentColor)
+  const preview = resolveCardPresentation(cardTemplateId, photoPreview)
+  const isTemplate = preview.source === 'template'
+  const sourceSummary = preview.source === 'photo'
+    ? 'Your uploaded photo is driving the whole card.'
+    : preview.source === 'ai'
+      ? 'AI generated a new background from your words and photo vibe.'
+      : 'A curated background keeps the card polished and readable.'
 
   return (
     <div className="space-y-5">
@@ -407,56 +422,61 @@ function Step3Card({
           Create Beautiful Card
         </h2>
         <p className="mt-2 text-sm text-brand-text-secondary">
-          Choose a template or AI background before you publish the post.
+          Pick the background source that makes this appreciation feel right before you publish it.
         </p>
       </div>
 
       <div
         className="relative overflow-hidden rounded-[28px] border border-brand-border p-6 min-h-[280px] flex flex-col justify-between shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
-        style={{ background }}
+        style={{ background: preview.background }}
       >
-        {isAi && <div className="absolute inset-0 bg-black/25" />}
-        {!isAi && (
+        {preview.overlayClassName && <div className={cn('absolute inset-0', preview.overlayClassName)} />}
+        {isTemplate && (
           <>
             <div
               className="absolute right-0 top-0 h-28 w-28 rounded-full opacity-20"
-              style={{ background: accentColor, transform: 'translate(30%, -30%)' }}
+              style={{ background: preview.accentColor, transform: 'translate(30%, -30%)' }}
             />
             <div
               className="absolute bottom-0 left-0 h-24 w-24 rounded-full opacity-20"
-              style={{ background: accentColor, transform: 'translate(-30%, 30%)' }}
+              style={{ background: preview.accentColor, transform: 'translate(-30%, 30%)' }}
             />
           </>
         )}
         <div className="relative z-10">
           <div className="mb-4 flex items-center gap-2">
             <span className="text-2xl">✨</span>
-            <span className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: accentColor }}>
-              Gratitude
+            <span className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: preview.accentColor }}>
+              {preview.label}
             </span>
           </div>
-          <p className="text-xl font-semibold leading-relaxed" style={{ color: textColor }}>
+          <p className="text-xl font-semibold leading-relaxed" style={{ color: preview.textColor }}>
             &ldquo;{content || 'Your gratitude message will appear here.'}&rdquo;
           </p>
           {feeling && (
-            <p className="mt-4 text-sm italic opacity-80" style={{ color: textColor }}>
+            <p className="mt-4 text-sm italic opacity-80" style={{ color: preview.textColor }}>
               Feeling: {feeling}
             </p>
           )}
         </div>
         <div className="relative z-10 flex items-center justify-between">
-          <span className="text-sm font-medium" style={{ color: textColor }}>
-            {isAi ? 'AI Card' : (template?.name ?? 'Minimal')}
+          <span className="text-sm font-medium" style={{ color: preview.textColor }}>
+            {preview.label}
           </span>
           <span className="text-2xl">🙏</span>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-brand-border bg-brand-surface/60 p-4 text-sm leading-6 text-brand-text-secondary">
+        {sourceSummary}
+        {cardTemplateId === PHOTO_CARD_TEMPLATE_ID && !photoPreview && ' Add a photo in step 1 to use this mode.'}
       </div>
 
       <button
         onClick={onOpenGenerator}
         className="w-full py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary hover:text-brand-primary transition-all active:scale-[0.98]"
       >
-        Create Beautiful Card
+        Open Card Designer
       </button>
     </div>
   )
@@ -531,14 +551,4 @@ function Step3Visibility({
       </div>
     </div>
   )
-}
-
-const CARD_FALLBACK = {
-  background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
-  textColor: '#1a1a1a',
-  accentColor: '#ff6b6b',
-}
-
-function getCardTemplateById(cardTemplateId: string) {
-  return CARD_TEMPLATES.find((template) => template.id === cardTemplateId)
 }
