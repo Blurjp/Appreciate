@@ -1,63 +1,52 @@
-import { createClient } from '@/lib/supabase/server'
 import { GratitudePost, CATEGORIES } from '@/types'
 import { Metadata } from 'next'
 import ShareCardClient from './ShareCardClient'
+import { fetchSharedPost } from '@/lib/posts'
+import { getPostShareMeta, getSiteUrl } from '@/lib/share'
 
 interface Props {
   params: { id: string }
 }
 
-async function fetchPost(id: string): Promise<GratitudePost | null> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('gratitude_posts')
-    .select('*, profiles(id, name, avatar_url)')
-    .eq('id', id)
-    .single()
-
-  if (error || !data) return null
-
-  const profiles = data.profiles as { id: string; name: string; avatar_url: string | null } | null
-  return {
-    id: data.id,
-    content: data.content,
-    feeling: data.feeling || null,
-    category: data.category,
-    visibility: data.visibility,
-    photoUrl: data.photo_url || null,
-    cardTemplateId: data.card_template_id || 'minimal',
-    authorId: data.author_id,
-    author: {
-      id: profiles?.id ?? '',
-      name: profiles?.name ?? 'Someone',
-      avatarUrl: profiles?.avatar_url ?? null,
-    },
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    heartCount: data.heart_count ?? 0,
-    isBookmarked: false,
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await fetchPost(params.id)
+  const post = await fetchSharedPost(params.id)
   if (!post || post.visibility === 'PRIVATE') {
-    return { title: 'Appreciate — A moment of gratitude' }
+    return {
+      title: 'Appreciate — A moment of gratitude',
+      metadataBase: new URL(getSiteUrl()),
+    }
   }
-  const authorName = post.visibility === 'ANONYMOUS' ? 'Someone' : post.author.name
+  const { authorName, previewText, shareImageUrl, sharePageUrl } = getPostShareMeta(post)
   return {
+    metadataBase: new URL(getSiteUrl()),
     title: `${authorName} is grateful — Appreciate`,
-    description: post.content.slice(0, 160),
+    description: previewText,
     openGraph: {
       title: `${authorName} shared a moment of gratitude`,
-      description: post.content.slice(0, 160),
+      description: previewText,
+      url: sharePageUrl,
       siteName: 'Appreciate',
+      type: 'article',
+      images: [
+        {
+          url: shareImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${authorName} shared a gratitude moment`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${authorName} shared a moment of gratitude`,
+      description: previewText,
+      images: [shareImageUrl],
     },
   }
 }
 
 export default async function SharePage({ params }: Props) {
-  const post = await fetchPost(params.id)
+  const post = await fetchSharedPost(params.id)
   const signupHref = `/welcome?next=${encodeURIComponent('/feed')}&from=share&id=${params.id}`
 
   if (!post) {
@@ -180,7 +169,7 @@ export default async function SharePage({ params }: Props) {
         </div>
 
         {/* Share button */}
-        <ShareCardClient authorName={authorName} />
+        <ShareCardClient authorName={authorName} postId={post.id} />
       </div>
     </div>
   )

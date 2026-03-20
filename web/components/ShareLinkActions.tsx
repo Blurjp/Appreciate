@@ -7,6 +7,7 @@ interface ShareLinkActionsProps {
   url: string
   title?: string
   text?: string
+  imageUrl?: string
   compact?: boolean
 }
 
@@ -26,6 +27,7 @@ export default function ShareLinkActions({
   url,
   title = 'Share',
   text,
+  imageUrl,
   compact = false,
 }: ShareLinkActionsProps) {
   const [status, setStatus] = useState<{ message: string; tone: StatusTone }>({
@@ -60,6 +62,27 @@ export default function ShareLinkActions({
   }
 
   const handleInstagramShare = async () => {
+    if (imageUrl && navigator.share) {
+      try {
+        const response = await fetch(imageUrl)
+        if (response.ok) {
+          const blob = await response.blob()
+          const file = new File([blob], 'appreciation-card.png', { type: blob.type || 'image/png' })
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({
+              title,
+              text,
+              files: [file],
+            })
+            setSuccess('Opened your image share sheet for Instagram.')
+            return
+          }
+        }
+      } catch {
+        // Fall through to the standard share/copy path.
+      }
+    }
+
     if (navigator.share) {
       try {
         await navigator.share({ title, text, url })

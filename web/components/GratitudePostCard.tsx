@@ -34,6 +34,9 @@ export default function GratitudePostCard({
   const authorName = isAnonymous ? 'Anonymous' : post.author.name
   const initial = isAnonymous ? '?' : authorName[0]?.toUpperCase() || '?'
   const shareUrl = typeof window === 'undefined' ? `/share/${post.id}` : `${window.location.origin}/share/${post.id}`
+  const shareImageUrl = typeof window === 'undefined'
+    ? `/share/${post.id}/opengraph-image`
+    : `${window.location.origin}/share/${post.id}/opengraph-image`
   const shareText = `${authorName} shared a gratitude moment on Appreciate.`
 
   const handleHeart = () => {
@@ -192,6 +195,7 @@ export default function GratitudePostCard({
               url={shareUrl}
               title="Share this gratitude moment"
               text={shareText}
+              imageUrl={shareImageUrl}
               compact
             />
           </div>
