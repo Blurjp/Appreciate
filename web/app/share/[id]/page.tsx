@@ -16,13 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       metadataBase: new URL(getSiteUrl()),
     }
   }
-  const { authorName, previewText, shareImageUrl, sharePageUrl } = getPostShareMeta(post)
+  const { authorName, previewText, previewTitle, shareImageUrl, sharePageUrl } = getPostShareMeta(post)
   return {
     metadataBase: new URL(getSiteUrl()),
-    title: `${authorName} is grateful — Appreciate`,
+    title: `${previewTitle} — Appreciate`,
     description: previewText,
     openGraph: {
-      title: `${authorName} shared a moment of gratitude`,
+      title: previewTitle,
       description: previewText,
       url: sharePageUrl,
       siteName: 'Appreciate',
@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: shareImageUrl,
           width: 1200,
           height: 630,
-          alt: `${authorName} shared a gratitude moment`,
+          alt: previewTitle,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${authorName} shared a moment of gratitude`,
+      title: previewTitle,
       description: previewText,
       images: [shareImageUrl],
     },
