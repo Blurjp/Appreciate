@@ -11,7 +11,7 @@ import {
 } from '@/types'
 import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
-import AppreciationCardGenerator from './AppreciationCardGenerator'
+import AppreciationCardGenerator, { CARD_TEMPLATES } from './AppreciationCardGenerator'
 
 interface Props {
   onSubmit: (data: {
@@ -20,6 +20,7 @@ interface Props {
     category: GratitudeCategory
     visibility: PostVisibility
     photoUrl?: string
+    cardTemplateId?: string
   }) => Promise<void>
   onClose?: () => void
 }
@@ -30,12 +31,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [feeling, setFeeling] = useState('')
   const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
+  const [cardTemplateId, setCardTemplateId] = useState<string>('minimal')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [confirmationMessage, setConfirmationMessage] = useState('')
   const [showCardGenerator, setShowCardGenerator] = useState(false)
-  const [savedContent, setSavedContent] = useState('')
-  const [savedFeeling, setSavedFeeling] = useState('')
   const [isPro, setIsPro] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -47,7 +47,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
   const canProceedStep1 = content.trim().length > 0
-  const progress = (step / 3) * 100
+  const progress = (step / 4) * 100
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSubmitError(null)
@@ -87,12 +87,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 
         photoUrl = uploadBody?.url
       }
-      await onSubmit({ content, feeling, category, visibility, photoUrl })
-      
-      // Save content for card generator
-      setSavedContent(content)
-      setSavedFeeling(feeling)
-      
+      await onSubmit({ content, feeling, category, visibility, photoUrl, cardTemplateId })
       setConfirmationMessage(randomFrom(CONFIRMATIONS))
       setShowConfirmation(true)
     } catch (error) {
@@ -112,6 +107,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     setFeeling('')
     setCategory('SMALL_JOYS')
     setVisibility('PRIVATE')
+    setCardTemplateId('minimal')
     setPhotoPreview(null)
     setPhotoFile(null)
     setStep(1)
@@ -126,7 +122,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">
-            {step} / 3
+            {step} / 4
           </span>
           {onClose && (
             <button
@@ -166,6 +162,14 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           />
         )}
         {step === 3 && (
+          <Step3Card
+            content={content}
+            feeling={feeling}
+            cardTemplateId={cardTemplateId}
+            onOpenGenerator={() => setShowCardGenerator(true)}
+          />
+        )}
+        {step === 4 && (
           <Step3Visibility
             visibility={visibility}
             setVisibility={setVisibility}
@@ -190,7 +194,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             Back
           </button>
         )}
-        {step < 3 ? (
+        {step < 4 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
@@ -219,22 +223,24 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         isVisible={showConfirmation}
         message={confirmationMessage}
         onDismiss={handleConfirmationDismiss}
-        onCreateCard={() => {
-          setShowConfirmation(false)
-          setShowCardGenerator(true)
-        }}
-        content={savedContent}
-        feeling={savedFeeling}
       />
 
       {showCardGenerator && (
         <AppreciationCardGenerator
-          content={savedContent}
-          feeling={savedFeeling}
+          content={content}
+          feeling={feeling}
           isPro={isPro}
+          initialCardTemplateId={cardTemplateId}
+          onContentChange={setContent}
+          onFeelingChange={setFeeling}
+          onApply={({ content: nextContent, feeling: nextFeeling, cardTemplateId: nextCardTemplateId }) => {
+            setContent(nextContent)
+            setFeeling(nextFeeling)
+            setCardTemplateId(nextCardTemplateId)
+            setShowCardGenerator(false)
+          }}
           onClose={() => {
             setShowCardGenerator(false)
-            handleConfirmationDismiss()
           }}
         />
       )}
@@ -258,7 +264,7 @@ function Step1Content({
   setFeeling: (v: string) => void
   photoPreview: string | null
   setPhotoPreview: (v: string | null) => void
-  fileInputRef: React.RefObject<HTMLInputElement>
+  fileInputRef: React.RefObject<HTMLInputElement | null>
   handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
   return (
@@ -375,6 +381,87 @@ function Step2Category({
   )
 }
 
+function Step3Card({
+  content,
+  feeling,
+  cardTemplateId,
+  onOpenGenerator,
+}: {
+  content: string
+  feeling: string
+  cardTemplateId: string
+  onOpenGenerator: () => void
+}) {
+  const isAi = cardTemplateId.startsWith('ai:')
+  const aiUrl = isAi ? cardTemplateId.slice(3) : null
+  const template = !isAi ? getCardTemplateById(cardTemplateId) : null
+  const background = isAi && aiUrl ? `url(${aiUrl}) center/cover` : (template?.background ?? CARD_FALLBACK.background)
+  const textColor = isAi ? '#ffffff' : (template?.textColor ?? CARD_FALLBACK.textColor)
+  const accentColor = isAi ? '#ffffff' : (template?.accentColor ?? CARD_FALLBACK.accentColor)
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 3</p>
+        <h2 className="text-title-3 text-brand-text-primary font-semibold tracking-tight">
+          Create Beautiful Card
+        </h2>
+        <p className="mt-2 text-sm text-brand-text-secondary">
+          Choose a template or AI background before you publish the post.
+        </p>
+      </div>
+
+      <div
+        className="relative overflow-hidden rounded-[28px] border border-brand-border p-6 min-h-[280px] flex flex-col justify-between shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
+        style={{ background }}
+      >
+        {isAi && <div className="absolute inset-0 bg-black/25" />}
+        {!isAi && (
+          <>
+            <div
+              className="absolute right-0 top-0 h-28 w-28 rounded-full opacity-20"
+              style={{ background: accentColor, transform: 'translate(30%, -30%)' }}
+            />
+            <div
+              className="absolute bottom-0 left-0 h-24 w-24 rounded-full opacity-20"
+              style={{ background: accentColor, transform: 'translate(-30%, 30%)' }}
+            />
+          </>
+        )}
+        <div className="relative z-10">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-2xl">✨</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: accentColor }}>
+              Gratitude
+            </span>
+          </div>
+          <p className="text-xl font-semibold leading-relaxed" style={{ color: textColor }}>
+            &ldquo;{content || 'Your gratitude message will appear here.'}&rdquo;
+          </p>
+          {feeling && (
+            <p className="mt-4 text-sm italic opacity-80" style={{ color: textColor }}>
+              Feeling: {feeling}
+            </p>
+          )}
+        </div>
+        <div className="relative z-10 flex items-center justify-between">
+          <span className="text-sm font-medium" style={{ color: textColor }}>
+            {isAi ? 'AI Card' : (template?.name ?? 'Minimal')}
+          </span>
+          <span className="text-2xl">🙏</span>
+        </div>
+      </div>
+
+      <button
+        onClick={onOpenGenerator}
+        className="w-full py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary hover:text-brand-primary transition-all active:scale-[0.98]"
+      >
+        Create Beautiful Card
+      </button>
+    </div>
+  )
+}
+
 function Step3Visibility({
   visibility,
   setVisibility,
@@ -391,10 +478,10 @@ function Step3Visibility({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 3</p>
-        <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
-          Who can see this?
-        </h2>
+      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 4</p>
+      <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
+        Who can see this?
+      </h2>
         <div className="space-y-3">
           {VISIBILITY_OPTIONS.map((opt) => (
             <button
@@ -444,4 +531,14 @@ function Step3Visibility({
       </div>
     </div>
   )
+}
+
+const CARD_FALLBACK = {
+  background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)',
+  textColor: '#1a1a1a',
+  accentColor: '#ff6b6b',
+}
+
+function getCardTemplateById(cardTemplateId: string) {
+  return CARD_TEMPLATES.find((template) => template.id === cardTemplateId)
 }

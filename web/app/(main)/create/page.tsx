@@ -16,6 +16,7 @@ export default function CreatePage() {
       category: GratitudeCategory
       visibility: PostVisibility
       photoUrl?: string
+      cardTemplateId?: string
     }) => {
       const res = await fetch('/api/posts', {
         method: 'POST',

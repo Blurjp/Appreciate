@@ -80,6 +80,7 @@ export async function createPost(
     category: string
     visibility: string
     photoUrl?: string
+    cardTemplateId?: string
     authorId: string
   }
 ) {
@@ -91,6 +92,7 @@ export async function createPost(
       category: data.category,
       visibility: data.visibility,
       photo_url: data.photoUrl || null,
+      card_template_id: data.cardTemplateId || 'minimal',
       author_id: data.authorId,
     })
     .select(POST_SELECT)

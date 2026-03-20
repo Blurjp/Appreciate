@@ -78,6 +78,10 @@ interface Props {
   feeling?: string
   authorName?: string
   isPro?: boolean
+  initialCardTemplateId?: string | null
+  onContentChange?: (value: string) => void
+  onFeelingChange?: (value: string) => void
+  onApply?: (data: { content: string; feeling: string; cardTemplateId: string }) => void
   onClose?: () => void
 }
 
@@ -86,17 +90,27 @@ export default function AppreciationCardGenerator({
   feeling,
   authorName = 'Anonymous',
   isPro = false,
+  initialCardTemplateId,
+  onContentChange,
+  onFeelingChange,
+  onApply,
   onClose,
 }: Props) {
-  const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(CARD_TEMPLATES[0])
+  const initialAiUrl = initialCardTemplateId?.startsWith('ai:') ? initialCardTemplateId.slice(3) : null
+  const initialTemplate = initialCardTemplateId && !initialCardTemplateId.startsWith('ai:')
+    ? CARD_TEMPLATES.find((template) => template.id === initialCardTemplateId) ?? CARD_TEMPLATES[0]
+    : CARD_TEMPLATES[0]
+  const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(initialTemplate)
   const [customText, setCustomText] = useState(content)
   const [customFeeling, setCustomFeeling] = useState(feeling || '')
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
-  const [aiImageUrl, setAiImageUrl] = useState<string | null>(null)
-  const [useAiImage, setUseAiImage] = useState(false)
+  const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
+  const [useAiImage, setUseAiImage] = useState(Boolean(initialAiUrl))
   const [showUpgrade, setShowUpgrade] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
+
+  const resolvedCardTemplateId = useAiImage && aiImageUrl ? `ai:${aiImageUrl}` : selectedTemplate.id
 
   const handleGenerateAIImage = async () => {
     setIsGeneratingAI(true)
@@ -311,7 +325,10 @@ export default function AppreciationCardGenerator({
               </label>
               <textarea
                 value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
+                onChange={(e) => {
+                  setCustomText(e.target.value)
+                  onContentChange?.(e.target.value)
+                }}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
                 rows={3}
                 maxLength={200}
@@ -328,7 +345,10 @@ export default function AppreciationCardGenerator({
               <input
                 type="text"
                 value={customFeeling}
-                onChange={(e) => setCustomFeeling(e.target.value)}
+                onChange={(e) => {
+                  setCustomFeeling(e.target.value)
+                  onFeelingChange?.(e.target.value)
+                }}
                 placeholder="Happy, grateful, peaceful..."
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary"
               />
@@ -387,7 +407,20 @@ export default function AppreciationCardGenerator({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className={cn('flex gap-3', onApply && 'flex-wrap')}>
+            {onApply && (
+              <button
+                onClick={() => onApply({
+                  content: customText,
+                  feeling: customFeeling,
+                  cardTemplateId: resolvedCardTemplateId,
+                })}
+                disabled={!customText.trim()}
+                className="w-full py-3.5 bg-brand-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Use This Card
+              </button>
+            )}
             <button
               onClick={handleExport}
               disabled={isExporting || !customText.trim()}
