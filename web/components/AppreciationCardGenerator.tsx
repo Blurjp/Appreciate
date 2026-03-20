@@ -386,85 +386,93 @@ export default function AppreciationCardGenerator({
             ? 'shadow-[0_20px_50px_rgba(17,17,17,0.08)]'
             : 'max-h-[92vh] max-w-6xl shadow-[0_30px_80px_rgba(17,17,17,0.18)]'
         )}>
-          <div className="flex items-start justify-between gap-4 border-b border-brand-border px-6 py-5">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">Create Card</p>
-              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-text-primary">
-                Build the card before you publish
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-brand-text-secondary">
-                Pick the background source, tune the message, and keep the preview centered while you refine the final share card.
-              </p>
+          {!embedded && (
+            <div className="flex items-center justify-between gap-4 border-b border-brand-border px-6 py-5">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">Create Card</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-text-primary">
+                  Design your share card
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-brand-text-secondary">
+                  Pick a background, customize the message, and preview how it will look when shared.
+                </p>
+              </div>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-border text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+                >
+                  ✕
+                </button>
+              )}
             </div>
-            {!embedded && onClose && (
-              <button
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-border text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+          )}
 
-          <div className="grid flex-1 gap-0 overflow-y-auto lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
-            <div className="border-b border-brand-border px-6 py-6 lg:border-b-0 lg:border-r">
-              <div className="mx-auto max-w-[560px]">
-                <div className="mb-4 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
-                      Background Source
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                      Start with your photo, a preset look, or an AI-generated remix.
-                    </p>
+          <div className="grid flex-1 gap-0 overflow-y-auto xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)]">
+            <div className="border-b border-brand-border bg-[linear-gradient(180deg,rgba(250,247,241,0.7),rgba(255,255,255,0))] px-5 py-5 sm:px-6 sm:py-6 xl:border-b-0 xl:border-r xl:px-8 xl:py-8">
+              <div className="mx-auto flex max-w-[720px] flex-col gap-6">
+                <div className="rounded-[28px] border border-brand-border bg-white/90 p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)] sm:p-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                        Background Source
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                        Choose the visual foundation first, then fine-tune the message around it.
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center self-start rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                      {previewCard.label}
+                    </span>
                   </div>
-                  <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
-                    Live Preview
-                  </span>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    {sourceCards.map((source) => {
+                      const isSelected = backgroundSource === source.id
+                      return (
+                        <button
+                          key={source.id}
+                          onClick={() => {
+                            if (source.disabled) return
+                            if (source.id === 'ai' && !isPro) {
+                              setShowUpgrade(true)
+                              return
+                            }
+                            setBackgroundSource(source.id)
+                          }}
+                          className={cn(
+                            'rounded-[22px] border p-4 text-left transition-all',
+                            source.disabled
+                              ? 'cursor-not-allowed border-brand-border/70 bg-brand-surface/60 text-brand-text-muted'
+                              : isSelected
+                                ? 'border-brand-primary bg-amber-50 shadow-[0_12px_28px_rgba(17,17,17,0.05)]'
+                                : 'border-brand-border bg-white hover:border-brand-primary'
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm font-semibold text-brand-text-primary">{source.title}</p>
+                            {source.badge && (
+                              <span className="rounded-full border border-brand-border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
+                                {source.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-2 text-xs leading-5 text-brand-text-secondary">{source.description}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
-                <div className="mb-6 grid gap-3 md:grid-cols-3">
-                {sourceCards.map((source) => {
-                  const isSelected = backgroundSource === source.id
-                  return (
-                    <button
-                      key={source.id}
-                      onClick={() => {
-                        if (source.disabled) return
-                        if (source.id === 'ai' && !isPro) {
-                          setShowUpgrade(true)
-                          return
-                        }
-                        setBackgroundSource(source.id)
-                      }}
-                      className={cn(
-                        'rounded-3xl border p-4 text-left transition-all',
-                        source.disabled
-                          ? 'cursor-not-allowed border-brand-border/70 bg-brand-surface/60 text-brand-text-muted'
-                          : isSelected
-                            ? 'border-brand-primary bg-amber-50'
-                            : 'border-brand-border bg-white hover:border-brand-primary'
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-sm font-semibold text-brand-text-primary">{source.title}</p>
-                        {source.badge && (
-                          <span className="rounded-full border border-brand-border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
-                            {source.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-2 text-xs leading-5 text-brand-text-secondary">{source.description}</p>
-                      </button>
-                  )
-                })}
-                </div>
-
-                <div className="rounded-[32px] border border-brand-border bg-brand-surface/45 px-5 py-6 sm:px-6">
+                <div className="rounded-[32px] border border-brand-border bg-brand-surface/45 p-4 sm:p-6 xl:p-8">
+                  <div className="mb-5 flex items-center justify-center">
+                    <span className="rounded-full border border-brand-border bg-white px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                      Live Preview
+                    </span>
+                  </div>
                   <div className="flex justify-center">
                     <div
                       ref={cardRef}
-                      className="relative flex h-[470px] w-[350px] flex-col justify-between overflow-hidden rounded-[30px] border border-white/40 p-7 shadow-[0_28px_60px_rgba(17,17,17,0.18)]"
+                      className="relative flex h-[440px] w-[330px] flex-col justify-between overflow-hidden rounded-[30px] border border-white/40 p-7 shadow-[0_28px_60px_rgba(17,17,17,0.16)] sm:h-[500px] sm:w-[360px] sm:p-8"
                       style={{ background: previewCard.background }}
                     >
                       {previewCard.overlayClassName && (
@@ -475,11 +483,11 @@ export default function AppreciationCardGenerator({
                         <>
                           <div
                             className="absolute right-0 top-0 h-36 w-36 rounded-full opacity-20"
-                            style={{ background: previewCard.accentColor, transform: 'translate(28%, -28%)' }}
+                            style={{ background: previewCard.accentColor, transform: 'translate(25%, -25%)' }}
                           />
                           <div
                             className="absolute bottom-0 left-0 h-28 w-28 rounded-full opacity-20"
-                            style={{ background: previewCard.accentColor, transform: 'translate(-30%, 30%)' }}
+                            style={{ background: previewCard.accentColor, transform: 'translate(-25%, 25%)' }}
                           />
                         </>
                       )}
@@ -489,22 +497,22 @@ export default function AppreciationCardGenerator({
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">✨</span>
                             <span
-                              className="text-xs font-semibold uppercase tracking-[0.34em]"
+                              className="text-[10px] font-semibold uppercase tracking-[0.3em]"
                               style={{ color: previewCard.accentColor }}
                             >
                               Gratitude
                             </span>
                           </div>
                           <span
-                            className="rounded-full border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em]"
-                            style={{ color: previewCard.textColor, background: previewCard.source === 'template' ? 'rgba(255,255,255,0.28)' : 'rgba(17,17,17,0.16)' }}
+                            className="rounded-full border border-white/20 px-3 py-1 text-[9px] font-semibold uppercase tracking-[0.2em]"
+                            style={{ color: previewCard.textColor, background: previewCard.source === 'template' ? 'rgba(255,255,255,0.25)' : 'rgba(17,17,17,0.14)' }}
                           >
                             {previewCard.label}
                           </span>
                         </div>
 
                         <p
-                          className="text-[30px] font-semibold leading-[1.2]"
+                          className="text-[28px] font-semibold leading-[1.22] sm:text-[31px]"
                           style={{ color: previewCard.textColor }}
                         >
                           &ldquo;{customText || 'Your appreciation message will appear here.'}&rdquo;
@@ -514,9 +522,9 @@ export default function AppreciationCardGenerator({
                       <div className="relative z-10 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold"
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold"
                             style={{
-                              backgroundColor: previewCard.source === 'template' ? previewCard.accentColor : 'rgba(255,255,255,0.22)',
+                              backgroundColor: previewCard.source === 'template' ? previewCard.accentColor : 'rgba(255,255,255,0.2)',
                               color: '#ffffff',
                             }}
                           >
@@ -526,7 +534,7 @@ export default function AppreciationCardGenerator({
                             <p className="text-sm font-medium" style={{ color: previewCard.textColor }}>
                               {authorName}
                             </p>
-                            <p className="text-xs opacity-75" style={{ color: previewCard.textColor }}>
+                            <p className="text-[10px] opacity-70" style={{ color: previewCard.textColor }}>
                               appreciate.live
                             </p>
                           </div>
@@ -539,44 +547,46 @@ export default function AppreciationCardGenerator({
               </div>
             </div>
 
-            <div className="px-6 py-6">
-              <div className="mx-auto flex max-w-[520px] flex-col gap-5">
-                <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
-                    Card Copy
-                  </p>
-                  <div className="mt-4 space-y-4">
+            <div className="px-5 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-8">
+              <div className="mx-auto flex max-w-[460px] flex-col gap-5">
+                <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
+                  <div className="flex items-end justify-between gap-3">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-brand-text-primary">Message</label>
-                      <textarea
-                        value={customText}
-                        onChange={(event) => {
-                          setCustomText(event.target.value)
-                          onContentChange?.(event.target.value)
-                        }}
-                        className="h-32 w-full resize-none rounded-2xl border border-brand-border bg-white px-4 py-3 text-body text-brand-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                        maxLength={200}
-                      />
-                      <p className="mt-1 text-right text-xs text-brand-text-muted">{customText.length}/200</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                        Card Message
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                        Keep it short, specific, and easy to read on a share card.
+                      </p>
                     </div>
-                    <div className="rounded-2xl border border-brand-border bg-white px-4 py-3 text-sm leading-6 text-brand-text-secondary">
-                      Keep the message short enough to hold shape across X, Facebook, LinkedIn, and the generated card preview.
-                    </div>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
+                      {customText.length}/200
+                    </span>
                   </div>
+                  <textarea
+                    value={customText}
+                    onChange={(event) => {
+                      setCustomText(event.target.value)
+                      onContentChange?.(event.target.value)
+                    }}
+                    className="mt-4 h-36 w-full resize-none rounded-2xl border border-brand-border bg-brand-surface/35 px-4 py-4 text-sm leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                    placeholder="Your gratitude message..."
+                    maxLength={200}
+                  />
                 </div>
 
                 {backgroundSource === 'photo' && (
-                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
                       Your Photo
                     </p>
                     {photoPreview ? (
                       <>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                          Your uploaded image becomes the full card background with an automatic dark overlay for text readability.
+                          Your uploaded photo becomes the full card background with a readability overlay applied automatically.
                         </p>
                         <div className="mt-4 overflow-hidden rounded-3xl border border-brand-border">
-                          <img src={photoPreview} alt="Uploaded background preview" className="h-40 w-full object-cover" />
+                          <img src={photoPreview} alt="Preview" className="h-44 w-full object-cover" />
                         </div>
                       </>
                     ) : (
@@ -588,17 +598,17 @@ export default function AppreciationCardGenerator({
                 )}
 
                 {backgroundSource === 'template' && (
-                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
+                    <div className="flex items-end justify-between gap-3">
                       <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
-                          Template Studio
+                          Template Library
                         </p>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                          Choose a polished visual direction when you want fast, reliable contrast and consistent styling.
+                          Select a polished look with reliable contrast and cleaner typography balance.
                         </p>
                       </div>
-                      <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                      <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
                         {selectedTemplate.name}
                       </span>
                     </div>
@@ -611,14 +621,14 @@ export default function AppreciationCardGenerator({
                             setBackgroundSource('template')
                           }}
                           className={cn(
-                            'rounded-3xl border p-2 text-left transition-all',
+                            'rounded-2xl border p-2 text-left transition-all',
                             selectedTemplate.id === template.id
-                              ? 'border-brand-primary ring-2 ring-brand-primary ring-offset-2'
+                              ? 'border-brand-primary ring-2 ring-brand-primary ring-offset-1'
                               : 'border-brand-border hover:border-brand-primary'
                           )}
                         >
-                          <div className="h-20 rounded-2xl" style={{ background: template.background }} />
-                          <p className="mt-2 text-xs font-semibold text-brand-text-primary">{template.name}</p>
+                          <div className="h-20 rounded-xl" style={{ background: template.background }} />
+                          <p className="mt-2 text-center text-[11px] font-semibold text-brand-text-primary">{template.name}</p>
                         </button>
                       ))}
                     </div>
@@ -626,46 +636,43 @@ export default function AppreciationCardGenerator({
                 )}
 
                 {backgroundSource === 'ai' && (
-                  <div className="rounded-[28px] border border-brand-border bg-white p-5">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
+                    <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
                           AI Remix
                         </p>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                          Generate a fresh background from the appreciation text.
-                          {photoPreview ? ' Your uploaded photo also contributes palette and mood hints.' : ''}
+                          Generate a fresh background from your words.
+                          {photoPreview ? ' Your photo also contributes color direction.' : ''}
                         </p>
                       </div>
                       {!isPro && (
-                        <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                        <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
                           Pro
                         </span>
                       )}
                     </div>
-
                     {photoPreview && (
                       <div className="mt-4 rounded-2xl border border-brand-border bg-brand-surface/60 px-4 py-3 text-xs leading-5 text-brand-text-secondary">
-                        The AI background is not copying the uploaded image pixel-for-pixel. It is using your words plus the photo&rsquo;s color/vibe hint to keep the card visually coherent.
+                        AI uses your words plus the uploaded photo&apos;s palette hint. It is not copying the image directly.
                       </div>
                     )}
-
-                    <div className="mt-5 flex flex-wrap gap-3">
+                    <div className="mt-5 flex gap-3">
                       <button
                         onClick={isPro ? handleGenerateAIImage : () => setShowUpgrade(true)}
                         disabled={isPro && (isGeneratingAI || !customText.trim())}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-primary px-5 py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                       >
                         <SparkleIcon />
-                        {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate Background' : 'Generate AI Background'}
+                        {isGeneratingAI ? 'Generating...' : aiImageUrl ? 'Regenerate Background' : 'Generate Background'}
                       </button>
-
                       {aiImageUrl && (
                         <button
                           onClick={() => setBackgroundSource('ai')}
-                          className="rounded-2xl border border-brand-border px-5 py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary"
+                          className="rounded-2xl border border-brand-border px-4 py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary"
                         >
-                          Use Current AI Result
+                          Use Result
                         </button>
                       )}
                     </div>
@@ -681,7 +688,7 @@ export default function AppreciationCardGenerator({
                         cardTemplateId: resolvedCardTemplateId,
                       })}
                       disabled={!customText.trim()}
-                      className="w-full rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                      className="w-full rounded-xl bg-brand-primary py-3 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     >
                       Use This Card
                     </button>
@@ -701,7 +708,7 @@ export default function AppreciationCardGenerator({
                       disabled={isExporting || !customText.trim()}
                       className="flex-1 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
                     >
-                      Share Card
+                      Share
                     </button>
                   )}
                 </div>
