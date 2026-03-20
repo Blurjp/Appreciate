@@ -206,7 +206,6 @@ async function extractPhotoPaletteHint(photoPreview: string) {
 
 export default function AppreciationCardGenerator({
   content,
-  feeling,
   authorName = 'Anonymous',
   photoPreview,
   isPro = false,
@@ -227,7 +226,6 @@ export default function AppreciationCardGenerator({
     getInitialSource(initialCardTemplateId, Boolean(photoPreview))
   )
   const [customText, setCustomText] = useState(content)
-  const [customFeeling, setCustomFeeling] = useState(feeling || '')
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
@@ -268,7 +266,6 @@ export default function AppreciationCardGenerator({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: customText,
-          feeling: customFeeling,
           photoPaletteHint,
           hasPhotoReference: Boolean(photoPreview),
         }),
@@ -371,7 +368,7 @@ export default function AppreciationCardGenerator({
       title: 'AI Remix',
       description: hasPhotoPreview
         ? 'Generate a new background from your words and your photo’s palette.'
-        : 'Generate a new background from your words and feeling.',
+        : 'Generate a new background from your words alone.',
       badge: !isPro ? 'Pro' : undefined,
     },
   ]
@@ -393,10 +390,10 @@ export default function AppreciationCardGenerator({
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">Create Card</p>
               <h2 className="mt-1 text-2xl font-semibold tracking-tight text-brand-text-primary">
-                Design the background first, then publish the appreciation
+                Build the card before you publish
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-brand-text-secondary">
-                You can build the card from your uploaded photo, a curated template, or an AI remix that follows your message and feeling.
+                Pick the background source, tune the message, and keep the preview centered while you refine the final share card.
               </p>
             </div>
             {!embedded && onClose && (
@@ -409,9 +406,24 @@ export default function AppreciationCardGenerator({
             )}
           </div>
 
-          <div className="grid flex-1 gap-0 overflow-y-auto lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="grid flex-1 gap-0 overflow-y-auto lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
             <div className="border-b border-brand-border px-6 py-6 lg:border-b-0 lg:border-r">
-              <div className="mb-5 grid gap-3 md:grid-cols-3">
+              <div className="mx-auto max-w-[560px]">
+                <div className="mb-4 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                      Background Source
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                      Start with your photo, a preset look, or an AI-generated remix.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+                    Live Preview
+                  </span>
+                </div>
+
+                <div className="mb-6 grid gap-3 md:grid-cols-3">
                 {sourceCards.map((source) => {
                   const isSelected = backgroundSource === source.id
                   return (
@@ -443,98 +455,92 @@ export default function AppreciationCardGenerator({
                         )}
                       </div>
                       <p className="mt-2 text-xs leading-5 text-brand-text-secondary">{source.description}</p>
-                    </button>
+                      </button>
                   )
                 })}
-              </div>
+                </div>
 
-              <div className="flex justify-center">
-                <div
-                  ref={cardRef}
-                  className="relative flex h-[470px] w-[350px] flex-col justify-between overflow-hidden rounded-[30px] border border-white/40 p-7 shadow-[0_28px_60px_rgba(17,17,17,0.18)]"
-                  style={{ background: previewCard.background }}
-                >
-                  {previewCard.overlayClassName && (
-                    <div className={cn('absolute inset-0', previewCard.overlayClassName)} />
-                  )}
-
-                  {previewCard.source === 'template' && (
-                    <>
-                      <div
-                        className="absolute right-0 top-0 h-36 w-36 rounded-full opacity-20"
-                        style={{ background: previewCard.accentColor, transform: 'translate(28%, -28%)' }}
-                      />
-                      <div
-                        className="absolute bottom-0 left-0 h-28 w-28 rounded-full opacity-20"
-                        style={{ background: previewCard.accentColor, transform: 'translate(-30%, 30%)' }}
-                      />
-                    </>
-                  )}
-
-                  <div className="relative z-10">
-                    <div className="mb-5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">✨</span>
-                        <span
-                          className="text-xs font-semibold uppercase tracking-[0.34em]"
-                          style={{ color: previewCard.accentColor }}
-                        >
-                          Gratitude
-                        </span>
-                      </div>
-                      <span
-                        className="rounded-full border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em]"
-                        style={{ color: previewCard.textColor, background: previewCard.source === 'template' ? 'rgba(255,255,255,0.28)' : 'rgba(17,17,17,0.16)' }}
-                      >
-                        {previewCard.label}
-                      </span>
-                    </div>
-
-                    <p
-                      className="text-[30px] font-semibold leading-[1.2]"
-                      style={{ color: previewCard.textColor }}
+                <div className="rounded-[32px] border border-brand-border bg-brand-surface/45 px-5 py-6 sm:px-6">
+                  <div className="flex justify-center">
+                    <div
+                      ref={cardRef}
+                      className="relative flex h-[470px] w-[350px] flex-col justify-between overflow-hidden rounded-[30px] border border-white/40 p-7 shadow-[0_28px_60px_rgba(17,17,17,0.18)]"
+                      style={{ background: previewCard.background }}
                     >
-                      &ldquo;{customText || 'Your appreciation message will appear here.'}&rdquo;
-                    </p>
+                      {previewCard.overlayClassName && (
+                        <div className={cn('absolute inset-0', previewCard.overlayClassName)} />
+                      )}
 
-                    {customFeeling && (
-                      <p
-                        className="mt-5 text-base italic opacity-85"
-                        style={{ color: previewCard.textColor }}
-                      >
-                        Feeling: {customFeeling}
-                      </p>
-                    )}
-                  </div>
+                      {previewCard.source === 'template' && (
+                        <>
+                          <div
+                            className="absolute right-0 top-0 h-36 w-36 rounded-full opacity-20"
+                            style={{ background: previewCard.accentColor, transform: 'translate(28%, -28%)' }}
+                          />
+                          <div
+                            className="absolute bottom-0 left-0 h-28 w-28 rounded-full opacity-20"
+                            style={{ background: previewCard.accentColor, transform: 'translate(-30%, 30%)' }}
+                          />
+                        </>
+                      )}
 
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold"
-                        style={{
-                          backgroundColor: previewCard.source === 'template' ? previewCard.accentColor : 'rgba(255,255,255,0.22)',
-                          color: '#ffffff',
-                        }}
-                      >
-                        {authorName.charAt(0).toUpperCase()}
+                      <div className="relative z-10">
+                        <div className="mb-5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">✨</span>
+                            <span
+                              className="text-xs font-semibold uppercase tracking-[0.34em]"
+                              style={{ color: previewCard.accentColor }}
+                            >
+                              Gratitude
+                            </span>
+                          </div>
+                          <span
+                            className="rounded-full border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.26em]"
+                            style={{ color: previewCard.textColor, background: previewCard.source === 'template' ? 'rgba(255,255,255,0.28)' : 'rgba(17,17,17,0.16)' }}
+                          >
+                            {previewCard.label}
+                          </span>
+                        </div>
+
+                        <p
+                          className="text-[30px] font-semibold leading-[1.2]"
+                          style={{ color: previewCard.textColor }}
+                        >
+                          &ldquo;{customText || 'Your appreciation message will appear here.'}&rdquo;
+                        </p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium" style={{ color: previewCard.textColor }}>
-                          {authorName}
-                        </p>
-                        <p className="text-xs opacity-75" style={{ color: previewCard.textColor }}>
-                          appreciate.live
-                        </p>
+
+                      <div className="relative z-10 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold"
+                            style={{
+                              backgroundColor: previewCard.source === 'template' ? previewCard.accentColor : 'rgba(255,255,255,0.22)',
+                              color: '#ffffff',
+                            }}
+                          >
+                            {authorName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium" style={{ color: previewCard.textColor }}>
+                              {authorName}
+                            </p>
+                            <p className="text-xs opacity-75" style={{ color: previewCard.textColor }}>
+                              appreciate.live
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-2xl">🙏</span>
                       </div>
                     </div>
-                    <span className="text-2xl">🙏</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="px-6 py-6">
-              <div className="space-y-6">
+              <div className="mx-auto flex max-w-[520px] flex-col gap-5">
                 <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
                     Card Copy
@@ -552,6 +558,9 @@ export default function AppreciationCardGenerator({
                         maxLength={200}
                       />
                       <p className="mt-1 text-right text-xs text-brand-text-muted">{customText.length}/200</p>
+                    </div>
+                    <div className="rounded-2xl border border-brand-border bg-white px-4 py-3 text-sm leading-6 text-brand-text-secondary">
+                      Keep the message short enough to hold shape across X, Facebook, LinkedIn, and the generated card preview.
                     </div>
                   </div>
                 </div>
@@ -602,7 +611,7 @@ export default function AppreciationCardGenerator({
                             setBackgroundSource('template')
                           }}
                           className={cn(
-                            'rounded-3xl border p-2 transition-all',
+                            'rounded-3xl border p-2 text-left transition-all',
                             selectedTemplate.id === template.id
                               ? 'border-brand-primary ring-2 ring-brand-primary ring-offset-2'
                               : 'border-brand-border hover:border-brand-primary'
@@ -668,7 +677,7 @@ export default function AppreciationCardGenerator({
                     <button
                       onClick={() => onApply({
                         content: customText,
-                        feeling: customFeeling,
+                        feeling: '',
                         cardTemplateId: resolvedCardTemplateId,
                       })}
                       disabled={!customText.trim()}

@@ -49,7 +49,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
   const canProceedStep1 = content.trim().length > 0
-  const progress = (step / 4) * 100
+  const progress = (step / 3) * 100
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSubmitError(null)
@@ -132,7 +132,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">
-            {step} / 4
+            {step} / 3
           </span>
           {onClose && (
             <button
@@ -157,6 +157,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <Step1Content
             content={content}
             setContent={setContent}
+            category={category}
+            setCategory={setCategory}
             photoPreview={photoPreview}
             onRemovePhoto={() => {
               setPhotoPreview(null)
@@ -168,12 +170,6 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           />
         )}
         {step === 2 && (
-          <Step2Category
-            category={category}
-            setCategory={setCategory}
-          />
-        )}
-        {step === 3 && (
           <AppreciationCardGenerator
             content={content}
             photoPreview={photoPreview}
@@ -184,8 +180,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             onCardTemplateIdChange={setCardTemplateId}
           />
         )}
-        {step === 4 && (
-          <Step4Visibility
+        {step === 3 && (
+          <Step3Visibility
             visibility={visibility}
             setVisibility={setVisibility}
             content={content}
@@ -210,7 +206,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             Back
           </button>
         )}
-        {step < 4 ? (
+        {step < 3 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
@@ -257,6 +253,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 function Step1Content({
   content,
   setContent,
+  category,
+  setCategory,
   photoPreview,
   onRemovePhoto,
   fileInputRef,
@@ -264,6 +262,8 @@ function Step1Content({
 }: {
   content: string
   setContent: (v: string) => void
+  category: GratitudeCategory
+  setCategory: (v: GratitudeCategory) => void
   photoPreview: string | null
   onRemovePhoto: () => void
   fileInputRef: React.RefObject<HTMLInputElement | null>
@@ -286,6 +286,55 @@ function Step1Content({
         <p className="text-caption text-brand-text-secondary text-right mt-2">
           {content.length}/500
         </p>
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <label className="text-headline text-brand-text-primary block font-medium">
+              Choose a category
+            </label>
+            <p className="mt-1 text-sm text-brand-text-secondary">
+              Set the tone before you design the share card.
+            </p>
+          </div>
+          <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
+            {CATEGORIES.find((cat) => cat.value === category)?.label}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setCategory(cat.value)}
+              className={cn(
+                'flex items-center gap-3 rounded-2xl border px-4 py-4 text-left transition-all',
+                category === cat.value
+                  ? 'border-brand-primary bg-white shadow-[0_10px_24px_rgba(17,17,17,0.05)]'
+                  : 'border-brand-border bg-white hover:border-brand-primary'
+              )}
+            >
+              <div
+                className={cn(
+                  'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border',
+                  category === cat.value ? 'border-brand-primary text-brand-primary' : 'border-brand-border text-brand-text-muted'
+                )}
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill={category === cat.value ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </div>
+              <div>
+                <p className={cn('text-sm font-semibold', category === cat.value ? 'text-brand-text-primary' : 'text-brand-text-primary')}>
+                  {cat.label}
+                </p>
+                <p className="mt-1 text-xs text-brand-text-muted">
+                  Shape the card style and feed context.
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
@@ -332,45 +381,7 @@ function Step1Content({
   )
 }
 
-function Step2Category({
-  category,
-  setCategory,
-}: {
-  category: GratitudeCategory
-  setCategory: (v: GratitudeCategory) => void
-}) {
-  return (
-    <div>
-      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 2</p>
-      <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
-        Choose a category
-      </h2>
-      <div className="grid grid-cols-2 gap-3">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.value}
-            onClick={() => setCategory(cat.value)}
-            className={cn(
-              'flex flex-col items-center gap-3 p-5 rounded-xl border transition-all',
-              category === cat.value
-                ? 'border-brand-primary bg-white'
-                : 'border-brand-border bg-white hover:border-brand-primary'
-            )}
-          >
-            <svg className={cn('w-8 h-8', category === cat.value ? 'text-brand-primary' : 'text-brand-border')} viewBox="0 0 24 24" fill={category === cat.value ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span className={cn('text-[10px] tracking-widest uppercase font-medium', category === cat.value ? 'text-brand-primary' : 'text-brand-text-muted')}>
-              {cat.label}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function Step4Visibility({
+function Step3Visibility({
   visibility,
   setVisibility,
   content,
@@ -390,7 +401,7 @@ function Step4Visibility({
   return (
     <div className="space-y-6">
       <div>
-      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 4</p>
+      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 3</p>
       <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
         Who can see this?
       </h2>
