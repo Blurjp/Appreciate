@@ -10,7 +10,7 @@ interface FeedPageProps {
 
 // Server Component - fetches initial data on the server
 export default async function FeedPage({ searchParams }: FeedPageProps) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const category = searchParams.category
 
   // Fetch initial posts on the server for instant display

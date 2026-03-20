@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { GratitudePost } from '@/types'
 
 export async function fetchSharedPost(id: string): Promise<GratitudePost | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('gratitude_posts')
     .select('*, profiles(id, name, avatar_url)')

@@ -5,7 +5,7 @@ import { uploadBufferToCloudinary } from '@/lib/cloudinary'
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
 export async function POST(req: Request) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

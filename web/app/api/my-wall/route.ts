@@ -4,7 +4,7 @@ import { fetchMyPosts } from '@/lib/db/posts'
 
 // GET /api/my-wall — Fetch all posts for the authenticated user
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

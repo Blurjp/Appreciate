@@ -106,18 +106,6 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
               <p className="text-caption text-brand-text-secondary text-right mt-1">{content.length}/500</p>
             </div>
 
-            {/* Feeling */}
-            <div>
-              <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">How did it make you feel?</p>
-              <input
-                type="text"
-                value={feeling}
-                onChange={(e) => setFeeling(e.target.value)}
-                placeholder="Happy, grateful, peaceful..."
-                className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-              />
-            </div>
-
             {/* Card Background */}
             <div>
               <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-3">Card Background</p>

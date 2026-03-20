@@ -4,7 +4,7 @@ import { fetchStreak } from '@/lib/db/streak'
 
 // GET /api/streak — Fetch streak data for the authenticated user
 export async function GET() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

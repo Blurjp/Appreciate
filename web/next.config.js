@@ -24,16 +24,13 @@ const nextConfig = {
     minimumCacheTTL: 60,
   },
 
-  // Enable SWC minification for faster builds
-  swcMinify: true,
-
   // Enable gzip compression
   compress: true,
 
   // Disable source maps in production for smaller bundle size
   productionBrowserSourceMaps: false,
 
-  // Optimize bundle size
+  // Optimize bundle size with modular imports
   modularizeImports: {
     'lucide-react': {
       transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
@@ -43,11 +40,18 @@ const nextConfig = {
   // Strict mode for better development experience
   reactStrictMode: true,
 
-  // Optimize CSS
-  optimizeFonts: true,
-
   // Power performance optimizations
   poweredByHeader: false,
+
+  // Turbopack configuration
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
 }
 
 module.exports = withBundleAnalyzer(nextConfig)

@@ -5,14 +5,15 @@ import { updatePost, deletePost, toggleHeart } from '@/lib/db/posts'
 // GET /api/posts/:id — Fetch a single post
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
 
   const { data: post, error } = await supabase
     .from('gratitude_posts')
     .select('*, profiles(id, name, avatar_url)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !post) {
@@ -25,9 +26,10 @@ export async function GET(
 // PATCH /api/posts/:id — Update post or toggle heart
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const body = await req.json()
 
   // Heart toggle
@@ -38,7 +40,7 @@ export async function PATCH(
     }
 
     try {
-      const hearted = await toggleHeart(supabase, params.id, user.id)
+      const hearted = await toggleHeart(supabase, id, user.id)
       return NextResponse.json({ hearted })
     } catch (error) {
       return NextResponse.json(
@@ -55,7 +57,7 @@ export async function PATCH(
   }
 
   try {
-    const post = await updatePost(supabase, params.id, {
+    const post = await updatePost(supabase, id, {
       content: body.content,
       feeling: body.feeling,
       category: body.category,
@@ -74,9 +76,10 @@ export async function PATCH(
 // DELETE /api/posts/:id — Delete a post (RLS ensures only owner can delete)
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -84,7 +87,7 @@ export async function DELETE(
   }
 
   try {
-    await deletePost(supabase, params.id)
+    await deletePost(supabase, id)
     return NextResponse.json({ success: true })
   } catch (error) {
     return NextResponse.json(

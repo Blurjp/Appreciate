@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { ReactElement } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ShareLinkActionsProps {
@@ -104,7 +105,7 @@ export default function ShareLinkActions({
     id: SharePlatform
     label: string
     hint: string
-    icon: JSX.Element
+    icon: ReactElement
     onClick: () => void | Promise<void>
     accentClass: string
     bgClass: string
