@@ -93,7 +93,6 @@ interface Props {
   isPro?: boolean
   embedded?: boolean
   initialCardTemplateId?: string | null
-  onContentChange?: (value: string) => void
   onCardTemplateIdChange?: (value: string) => void
   onApply?: (data: { content: string; feeling: string; cardTemplateId: string }) => void
   onClose?: () => void
@@ -211,7 +210,6 @@ export default function AppreciationCardGenerator({
   isPro = false,
   embedded = false,
   initialCardTemplateId,
-  onContentChange,
   onCardTemplateIdChange,
   onApply,
   onClose,
@@ -225,7 +223,6 @@ export default function AppreciationCardGenerator({
   const [backgroundSource, setBackgroundSource] = useState<CardBackgroundSource>(
     getInitialSource(initialCardTemplateId, Boolean(photoPreview))
   )
-  const [customText, setCustomText] = useState(content)
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
@@ -256,7 +253,7 @@ export default function AppreciationCardGenerator({
   )
 
   const handleGenerateAIImage = async () => {
-    if (!customText.trim()) return
+    if (!content.trim()) return
 
     setIsGeneratingAI(true)
     try {
@@ -265,7 +262,7 @@ export default function AppreciationCardGenerator({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: customText,
+          content,
           photoPaletteHint,
           hasPhotoReference: Boolean(photoPreview),
         }),
@@ -329,7 +326,7 @@ export default function AppreciationCardGenerator({
             await navigator.share({
               files: [file],
               title: 'My Appreciation',
-              text: customText,
+              text: content,
             })
           } catch (error) {
             console.error('Failed to share:', error)
@@ -515,7 +512,7 @@ export default function AppreciationCardGenerator({
                           className="text-[28px] font-semibold leading-[1.22] sm:text-[31px]"
                           style={{ color: previewCard.textColor }}
                         >
-                          &ldquo;{customText || 'Your appreciation message will appear here.'}&rdquo;
+                          &ldquo;{content || 'Your appreciation message will appear here.'}&rdquo;
                         </p>
                       </div>
 
@@ -549,30 +546,13 @@ export default function AppreciationCardGenerator({
 
             <div className="px-5 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-8">
               <div className="mx-auto flex max-w-[460px] flex-col gap-5">
-                <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
-                  <div className="flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
-                        Card Message
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                        Keep it short, specific, and easy to read on a share card.
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
-                      {customText.length}/200
-                    </span>
-                  </div>
-                  <textarea
-                    value={customText}
-                    onChange={(event) => {
-                      setCustomText(event.target.value)
-                      onContentChange?.(event.target.value)
-                    }}
-                    className="mt-4 h-36 w-full resize-none rounded-2xl border border-brand-border bg-brand-surface/35 px-4 py-4 text-sm leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                    placeholder="Your gratitude message..."
-                    maxLength={200}
-                  />
+                <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                    Current Message
+                  </p>
+                  <p className="mt-3 rounded-2xl border border-brand-border bg-white px-4 py-4 text-sm leading-6 text-brand-text-primary">
+                    {content || 'Add your appreciation in step 1 to preview it here.'}
+                  </p>
                 </div>
 
                 {backgroundSource === 'photo' && (
@@ -661,7 +641,7 @@ export default function AppreciationCardGenerator({
                     <div className="mt-5 flex gap-3">
                       <button
                         onClick={isPro ? handleGenerateAIImage : () => setShowUpgrade(true)}
-                        disabled={isPro && (isGeneratingAI || !customText.trim())}
+                        disabled={isPro && (isGeneratingAI || !content.trim())}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-4 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                       >
                         <SparkleIcon />
@@ -683,11 +663,11 @@ export default function AppreciationCardGenerator({
                   {onApply && !embedded && (
                     <button
                       onClick={() => onApply({
-                        content: customText,
+                        content,
                         feeling: '',
                         cardTemplateId: resolvedCardTemplateId,
                       })}
-                      disabled={!customText.trim()}
+                      disabled={!content.trim()}
                       className="w-full rounded-xl bg-brand-primary py-3 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     >
                       Use This Card
@@ -696,7 +676,7 @@ export default function AppreciationCardGenerator({
 
                   <button
                     onClick={handleExport}
-                    disabled={isExporting || !customText.trim()}
+                    disabled={isExporting || !content.trim()}
                     className="flex-1 rounded-2xl border border-brand-border py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                   >
                     {isExporting ? 'Exporting...' : 'Download PNG'}
@@ -705,7 +685,7 @@ export default function AppreciationCardGenerator({
                   {typeof navigator !== 'undefined' && 'share' in navigator && (
                     <button
                       onClick={handleShare}
-                      disabled={isExporting || !customText.trim()}
+                      disabled={isExporting || !content.trim()}
                       className="flex-1 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
                     >
                       Share

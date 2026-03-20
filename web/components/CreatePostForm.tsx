@@ -31,7 +31,7 @@ interface Props {
 export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [step, setStep] = useState(1)
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
+  const [category, setCategory] = useState<GratitudeCategory | null>(null)
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
   const [cardTemplateId, setCardTemplateId] = useState<string>('minimal')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +48,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
-  const canProceedStep1 = content.trim().length > 0
+  const canProceedStep1 = category !== null
+  const canProceedStep2 = content.trim().length > 0
   const progress = (step / 3) * 100
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +69,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   }
 
   const handleSubmit = async () => {
-    if (isSubmitting) return
+    if (isSubmitting || !category) return
     setIsSubmitting(true)
     setSubmitError(null)
     try {
@@ -115,7 +116,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     setShowConfirmation(false)
     setSharePromptPostId(null)
     setContent('')
-    setCategory('SMALL_JOYS')
+    setCategory(null)
     setVisibility('PRIVATE')
     setCardTemplateId('minimal')
     setPhotoPreview(null)
@@ -124,7 +125,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     onClose?.()
   }
 
-  const selectedCategory = getCategoryMeta(category)
+  const selectedCategory = category ? getCategoryMeta(category) : null
 
   return (
     <div className="flex flex-col h-full">
@@ -154,11 +155,15 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       {/* Step Content */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {step === 1 && (
-          <Step1Content
-            content={content}
-            setContent={setContent}
+          <Step1Category
             category={category}
             setCategory={setCategory}
+          />
+        )}
+        {step === 2 && (
+          <Step2CardDesigner
+            content={content}
+            setContent={setContent}
             photoPreview={photoPreview}
             onRemovePhoto={() => {
               setPhotoPreview(null)
@@ -167,16 +172,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             }}
             fileInputRef={fileInputRef}
             handlePhotoChange={handlePhotoChange}
-          />
-        )}
-        {step === 2 && (
-          <AppreciationCardGenerator
-            content={content}
-            photoPreview={photoPreview}
             isPro={isPro}
-            embedded
-            initialCardTemplateId={cardTemplateId}
-            onContentChange={setContent}
+            cardTemplateId={cardTemplateId}
             onCardTemplateIdChange={setCardTemplateId}
           />
         )}
@@ -209,10 +206,10 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         {step < 3 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
-            disabled={step === 1 && !canProceedStep1}
+            disabled={(step === 1 && !canProceedStep1) || (step === 2 && !canProceedStep2)}
             className={cn(
               'flex-1 py-4 rounded-xl text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98]',
-              step === 1 && !canProceedStep1
+              (step === 1 && !canProceedStep1) || (step === 2 && !canProceedStep2)
                 ? 'bg-brand-border cursor-not-allowed'
                 : 'bg-brand-primary'
             )}
@@ -250,95 +247,108 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   )
 }
 
-function Step1Content({
-  content,
-  setContent,
+function Step1Category({
   category,
   setCategory,
-  photoPreview,
-  onRemovePhoto,
-  fileInputRef,
-  handlePhotoChange,
 }: {
-  content: string
-  setContent: (v: string) => void
-  category: GratitudeCategory
+  category: GratitudeCategory | null
   setCategory: (v: GratitudeCategory) => void
-  photoPreview: string | null
-  onRemovePhoto: () => void
-  fileInputRef: React.RefObject<HTMLInputElement | null>
-  handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
   return (
     <div className="space-y-6">
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 1</p>
-        <label className="text-title-3 text-brand-text-primary block mb-3 font-semibold tracking-tight">
+        <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
+          Choose a category
+        </label>
+        <p className="text-sm text-brand-text-secondary mb-4">
+          Set the tone for your gratitude moment.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setCategory(cat.value)}
+            className={cn(
+              'flex flex-col items-center justify-center gap-3 rounded-2xl border px-5 py-6 text-center transition-all',
+              category === cat.value
+                ? 'border-brand-primary bg-white shadow-[0_10px_24px_rgba(17,17,17,0.08)]'
+                : 'border-brand-border bg-white hover:border-brand-primary hover:shadow-sm'
+            )}
+          >
+            <div
+              className={cn(
+                'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-2xl',
+                category === cat.value ? 'border-brand-primary bg-brand-primary/10' : 'border-brand-border bg-brand-surface'
+              )}
+            >
+              {cat.emoji}
+            </div>
+            <p className="text-sm font-semibold text-brand-text-primary">
+              {cat.label}
+            </p>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Step2CardDesigner({
+  content,
+  setContent,
+  photoPreview,
+  onRemovePhoto,
+  fileInputRef,
+  handlePhotoChange,
+  isPro,
+  cardTemplateId,
+  onCardTemplateIdChange,
+}: {
+  content: string
+  setContent: (v: string) => void
+  photoPreview: string | null
+  onRemovePhoto: () => void
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+  handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  isPro: boolean
+  cardTemplateId: string
+  onCardTemplateIdChange: (v: string) => void
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 2</p>
+        <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
+          Write & design your card
+        </label>
+        <p className="text-sm text-brand-text-secondary">
+          Express your gratitude and customize how it looks.
+        </p>
+      </div>
+
+      {/* Content Input */}
+      <div>
+        <label className="text-headline text-brand-text-primary block mb-2 font-medium">
           What are you grateful for?
         </label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="w-full h-36 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-          maxLength={500}
+          className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+          maxLength={200}
         />
-        <p className="text-caption text-brand-text-secondary text-right mt-2">
-          {content.length}/500
+        <p className="text-caption text-brand-text-secondary text-right mt-1">
+          {content.length}/200
         </p>
       </div>
 
+      {/* Photo Upload */}
       <div>
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <div>
-            <label className="text-headline text-brand-text-primary block font-medium">
-              Choose a category
-            </label>
-            <p className="mt-1 text-sm text-brand-text-secondary">
-              Set the tone before you design the share card.
-            </p>
-          </div>
-          <span className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
-            {CATEGORIES.find((cat) => cat.value === category)?.label}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setCategory(cat.value)}
-              className={cn(
-                'flex items-center gap-3 rounded-2xl border px-4 py-4 text-left transition-all',
-                category === cat.value
-                  ? 'border-brand-primary bg-white shadow-[0_10px_24px_rgba(17,17,17,0.05)]'
-                  : 'border-brand-border bg-white hover:border-brand-primary'
-              )}
-            >
-              <div
-                className={cn(
-                  'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border',
-                  category === cat.value ? 'border-brand-primary text-brand-primary' : 'border-brand-border text-brand-text-muted'
-                )}
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill={category === cat.value ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              </div>
-              <div>
-                <p className={cn('text-sm font-semibold', category === cat.value ? 'text-brand-text-primary' : 'text-brand-text-primary')}>
-                  {cat.label}
-                </p>
-                <p className="mt-1 text-xs text-brand-text-muted">
-                  Shape the card style and feed context.
-                </p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
+        <label className="text-headline text-brand-text-primary block mb-2 font-medium">
           Add a photo (optional)
         </label>
         <input
@@ -353,11 +363,11 @@ function Step1Content({
             <img
               src={photoPreview}
               alt="Preview"
-              className="w-full h-44 object-cover"
+              className="w-full h-36 object-cover"
             />
             <button
               onClick={onRemovePhoto}
-              className="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm"
+              className="absolute top-2 right-2 w-7 h-7 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm text-sm"
             >
               ✕
             </button>
@@ -365,10 +375,10 @@ function Step1Content({
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full py-10 border border-dashed border-brand-border rounded-xl text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-all"
+            className="w-full py-8 border border-dashed border-brand-border rounded-xl text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-all"
           >
             <div className="flex flex-col items-center gap-2">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -377,6 +387,16 @@ function Step1Content({
           </button>
         )}
       </div>
+
+      {/* Card Designer */}
+      <AppreciationCardGenerator
+        content={content}
+        photoPreview={photoPreview}
+        isPro={isPro}
+        embedded
+        initialCardTemplateId={cardTemplateId}
+        onCardTemplateIdChange={onCardTemplateIdChange}
+      />
     </div>
   )
 }
@@ -394,7 +414,7 @@ function Step3Visibility({
   content: string
   cardTemplateId: string
   photoPreview: string | null
-  category: { emoji: string; label: string; color: string }
+  category: { emoji: string; label: string; color: string } | null
 }) {
   const preview = resolveCardPresentation(cardTemplateId, photoPreview)
 
@@ -448,9 +468,11 @@ function Step3Visibility({
         >
           {preview.overlayClassName && <div className={cn('absolute inset-0', preview.overlayClassName)} />}
           <p className="relative z-10 text-body mb-3" style={{ color: preview.textColor }}>{content}</p>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-widest uppercase font-medium border border-brand-border text-brand-text-muted">
-            {category.label}
-          </span>
+          {category && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-widest uppercase font-medium border border-brand-border text-brand-text-muted">
+              {category.label}
+            </span>
+          )}
         </div>
       </div>
     </div>
