@@ -15,30 +15,29 @@ import AppreciationCardGenerator, {
   PHOTO_CARD_TEMPLATE_ID,
   resolveCardPresentation,
 } from './AppreciationCardGenerator'
+import PostSharePrompt from './PostSharePrompt'
 
 interface Props {
   onSubmit: (data: {
     content: string
-    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     photoUrl?: string
     cardTemplateId?: string
-  }) => Promise<void>
+  }) => Promise<{ id: string }>
   onClose?: () => void
 }
 
 export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [step, setStep] = useState(1)
   const [content, setContent] = useState('')
-  const [feeling, setFeeling] = useState('')
   const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
   const [cardTemplateId, setCardTemplateId] = useState<string>('minimal')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [sharePromptPostId, setSharePromptPostId] = useState<string | null>(null)
   const [confirmationMessage, setConfirmationMessage] = useState('')
-  const [showCardGenerator, setShowCardGenerator] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -93,9 +92,14 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       const resolvedCardTemplateId = cardTemplateId === PHOTO_CARD_TEMPLATE_ID && !photoUrl
         ? 'minimal'
         : cardTemplateId
-      await onSubmit({ content, feeling, category, visibility, photoUrl, cardTemplateId: resolvedCardTemplateId })
-      setConfirmationMessage(randomFrom(CONFIRMATIONS))
-      setShowConfirmation(true)
+      const createdPost = await onSubmit({ content, category, visibility, photoUrl, cardTemplateId: resolvedCardTemplateId })
+      const nextMessage = randomFrom(CONFIRMATIONS)
+      setConfirmationMessage(nextMessage)
+      if (visibility === 'PRIVATE') {
+        setShowConfirmation(true)
+      } else {
+        setSharePromptPostId(createdPost.id)
+      }
     } catch (error) {
       setSubmitError(
         error instanceof Error && error.message
@@ -109,8 +113,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 
   const handleConfirmationDismiss = () => {
     setShowConfirmation(false)
+    setSharePromptPostId(null)
     setContent('')
-    setFeeling('')
     setCategory('SMALL_JOYS')
     setVisibility('PRIVATE')
     setCardTemplateId('minimal')
@@ -153,8 +157,6 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <Step1Content
             content={content}
             setContent={setContent}
-            feeling={feeling}
-            setFeeling={setFeeling}
             photoPreview={photoPreview}
             onRemovePhoto={() => {
               setPhotoPreview(null)
@@ -172,20 +174,23 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           />
         )}
         {step === 3 && (
-          <Step3Card
+          <AppreciationCardGenerator
             content={content}
-            feeling={feeling}
-            cardTemplateId={cardTemplateId}
             photoPreview={photoPreview}
-            onOpenGenerator={() => setShowCardGenerator(true)}
+            isPro={isPro}
+            embedded
+            initialCardTemplateId={cardTemplateId}
+            onContentChange={setContent}
+            onCardTemplateIdChange={setCardTemplateId}
           />
         )}
         {step === 4 && (
-          <Step3Visibility
+          <Step4Visibility
             visibility={visibility}
             setVisibility={setVisibility}
             content={content}
-            feeling={feeling}
+            cardTemplateId={cardTemplateId}
+            photoPreview={photoPreview}
             category={selectedCategory}
           />
         )}
@@ -236,26 +241,15 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         onDismiss={handleConfirmationDismiss}
       />
 
-      {showCardGenerator && (
-        <AppreciationCardGenerator
-          content={content}
-          feeling={feeling}
-          photoPreview={photoPreview}
-          isPro={isPro}
-          initialCardTemplateId={cardTemplateId}
-          onContentChange={setContent}
-          onFeelingChange={setFeeling}
-          onApply={({ content: nextContent, feeling: nextFeeling, cardTemplateId: nextCardTemplateId }) => {
-            setContent(nextContent)
-            setFeeling(nextFeeling)
-            setCardTemplateId(nextCardTemplateId)
-            setShowCardGenerator(false)
-          }}
-          onClose={() => {
-            setShowCardGenerator(false)
-          }}
+      {sharePromptPostId && (
+        <PostSharePrompt
+          isVisible={Boolean(sharePromptPostId)}
+          message={confirmationMessage}
+          postId={sharePromptPostId}
+          onDismiss={handleConfirmationDismiss}
         />
       )}
+
     </div>
   )
 }
@@ -263,8 +257,6 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 function Step1Content({
   content,
   setContent,
-  feeling,
-  setFeeling,
   photoPreview,
   onRemovePhoto,
   fileInputRef,
@@ -272,8 +264,6 @@ function Step1Content({
 }: {
   content: string
   setContent: (v: string) => void
-  feeling: string
-  setFeeling: (v: string) => void
   photoPreview: string | null
   onRemovePhoto: () => void
   fileInputRef: React.RefObject<HTMLInputElement | null>
@@ -296,19 +286,6 @@ function Step1Content({
         <p className="text-caption text-brand-text-secondary text-right mt-2">
           {content.length}/500
         </p>
-      </div>
-
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-          How did it make you feel?
-        </label>
-        <input
-          type="text"
-          value={feeling}
-          onChange={(e) => setFeeling(e.target.value)}
-          placeholder="Happy, grateful, peaceful..."
-          className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-        />
       </div>
 
       <div>
@@ -393,108 +370,23 @@ function Step2Category({
   )
 }
 
-function Step3Card({
-  content,
-  feeling,
-  cardTemplateId,
-  photoPreview,
-  onOpenGenerator,
-}: {
-  content: string
-  feeling: string
-  cardTemplateId: string
-  photoPreview: string | null
-  onOpenGenerator: () => void
-}) {
-  const preview = resolveCardPresentation(cardTemplateId, photoPreview)
-  const isTemplate = preview.source === 'template'
-  const sourceSummary = preview.source === 'photo'
-    ? 'Your uploaded photo is driving the whole card.'
-    : preview.source === 'ai'
-      ? 'AI generated a new background from your words and photo vibe.'
-      : 'A curated background keeps the card polished and readable.'
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 3</p>
-        <h2 className="text-title-3 text-brand-text-primary font-semibold tracking-tight">
-          Create Beautiful Card
-        </h2>
-        <p className="mt-2 text-sm text-brand-text-secondary">
-          Pick the background source that makes this appreciation feel right before you publish it.
-        </p>
-      </div>
-
-      <div
-        className="relative overflow-hidden rounded-[28px] border border-brand-border p-6 min-h-[280px] flex flex-col justify-between shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
-        style={{ background: preview.background }}
-      >
-        {preview.overlayClassName && <div className={cn('absolute inset-0', preview.overlayClassName)} />}
-        {isTemplate && (
-          <>
-            <div
-              className="absolute right-0 top-0 h-28 w-28 rounded-full opacity-20"
-              style={{ background: preview.accentColor, transform: 'translate(30%, -30%)' }}
-            />
-            <div
-              className="absolute bottom-0 left-0 h-24 w-24 rounded-full opacity-20"
-              style={{ background: preview.accentColor, transform: 'translate(-30%, 30%)' }}
-            />
-          </>
-        )}
-        <div className="relative z-10">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="text-2xl">✨</span>
-            <span className="text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: preview.accentColor }}>
-              {preview.label}
-            </span>
-          </div>
-          <p className="text-xl font-semibold leading-relaxed" style={{ color: preview.textColor }}>
-            &ldquo;{content || 'Your gratitude message will appear here.'}&rdquo;
-          </p>
-          {feeling && (
-            <p className="mt-4 text-sm italic opacity-80" style={{ color: preview.textColor }}>
-              Feeling: {feeling}
-            </p>
-          )}
-        </div>
-        <div className="relative z-10 flex items-center justify-between">
-          <span className="text-sm font-medium" style={{ color: preview.textColor }}>
-            {preview.label}
-          </span>
-          <span className="text-2xl">🙏</span>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-brand-border bg-brand-surface/60 p-4 text-sm leading-6 text-brand-text-secondary">
-        {sourceSummary}
-        {cardTemplateId === PHOTO_CARD_TEMPLATE_ID && !photoPreview && ' Add a photo in step 1 to use this mode.'}
-      </div>
-
-      <button
-        onClick={onOpenGenerator}
-        className="w-full py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary hover:text-brand-primary transition-all active:scale-[0.98]"
-      >
-        Open Card Designer
-      </button>
-    </div>
-  )
-}
-
-function Step3Visibility({
+function Step4Visibility({
   visibility,
   setVisibility,
   content,
-  feeling,
+  cardTemplateId,
+  photoPreview,
   category,
 }: {
   visibility: PostVisibility
   setVisibility: (v: PostVisibility) => void
   content: string
-  feeling: string
+  cardTemplateId: string
+  photoPreview: string | null
   category: { emoji: string; label: string; color: string }
 }) {
+  const preview = resolveCardPresentation(cardTemplateId, photoPreview)
+
   return (
     <div className="space-y-6">
       <div>
@@ -539,11 +431,12 @@ function Step3Visibility({
       {/* Preview */}
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-3">Preview</p>
-        <div className="rounded-xl p-4 border border-brand-border">
-          <p className="text-body text-brand-text-primary mb-2">{content}</p>
-          {feeling && (
-            <p className="text-subheadline text-brand-text-muted italic mb-3">Feeling: {feeling}</p>
-          )}
+        <div
+          className="relative overflow-hidden rounded-xl border border-brand-border p-4"
+          style={{ background: preview.background }}
+        >
+          {preview.overlayClassName && <div className={cn('absolute inset-0', preview.overlayClassName)} />}
+          <p className="relative z-10 text-body mb-3" style={{ color: preview.textColor }}>{content}</p>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-widest uppercase font-medium border border-brand-border text-brand-text-muted">
             {category.label}
           </span>

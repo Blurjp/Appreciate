@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import html2canvas from 'html2canvas'
 import UpgradeModal from './UpgradeModal'
@@ -91,9 +91,10 @@ interface Props {
   authorName?: string
   photoPreview?: string | null
   isPro?: boolean
+  embedded?: boolean
   initialCardTemplateId?: string | null
   onContentChange?: (value: string) => void
-  onFeelingChange?: (value: string) => void
+  onCardTemplateIdChange?: (value: string) => void
   onApply?: (data: { content: string; feeling: string; cardTemplateId: string }) => void
   onClose?: () => void
 }
@@ -209,9 +210,10 @@ export default function AppreciationCardGenerator({
   authorName = 'Anonymous',
   photoPreview,
   isPro = false,
+  embedded = false,
   initialCardTemplateId,
   onContentChange,
-  onFeelingChange,
+  onCardTemplateIdChange,
   onApply,
   onClose,
 }: Props) {
@@ -238,6 +240,10 @@ export default function AppreciationCardGenerator({
     if (backgroundSource === 'ai' && aiImageUrl) return `ai:${aiImageUrl}`
     return selectedTemplate.id
   }, [aiImageUrl, backgroundSource, hasPhotoPreview, selectedTemplate.id])
+
+  useEffect(() => {
+    onCardTemplateIdChange?.(resolvedCardTemplateId)
+  }, [onCardTemplateIdChange, resolvedCardTemplateId])
 
   const previewCard = useMemo(
     () => resolveCardPresentation(
@@ -372,8 +378,17 @@ export default function AppreciationCardGenerator({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-        <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] border border-brand-border bg-white shadow-[0_30px_80px_rgba(17,17,17,0.18)]">
+      <div className={cn(
+        embedded
+          ? 'w-full'
+          : 'fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm'
+      )}>
+        <div className={cn(
+          'flex w-full flex-col overflow-hidden rounded-[32px] border border-brand-border bg-white',
+          embedded
+            ? 'shadow-[0_20px_50px_rgba(17,17,17,0.08)]'
+            : 'max-h-[92vh] max-w-6xl shadow-[0_30px_80px_rgba(17,17,17,0.18)]'
+        )}>
           <div className="flex items-start justify-between gap-4 border-b border-brand-border px-6 py-5">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">Create Card</p>
@@ -384,7 +399,7 @@ export default function AppreciationCardGenerator({
                 You can build the card from your uploaded photo, a curated template, or an AI remix that follows your message and feeling.
               </p>
             </div>
-            {onClose && (
+            {!embedded && onClose && (
               <button
                 onClick={onClose}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-border text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
@@ -538,20 +553,6 @@ export default function AppreciationCardGenerator({
                       />
                       <p className="mt-1 text-right text-xs text-brand-text-muted">{customText.length}/200</p>
                     </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-brand-text-primary">Feeling</label>
-                      <input
-                        type="text"
-                        value={customFeeling}
-                        onChange={(event) => {
-                          setCustomFeeling(event.target.value)
-                          onFeelingChange?.(event.target.value)
-                        }}
-                        placeholder="Happy, grateful, peaceful..."
-                        className="w-full rounded-2xl border border-brand-border bg-white px-4 py-3 text-body text-brand-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -623,7 +624,7 @@ export default function AppreciationCardGenerator({
                           AI Remix
                         </p>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                          Generate a fresh background from the appreciation text and feeling.
+                          Generate a fresh background from the appreciation text.
                           {photoPreview ? ' Your uploaded photo also contributes palette and mood hints.' : ''}
                         </p>
                       </div>
@@ -662,8 +663,8 @@ export default function AppreciationCardGenerator({
                   </div>
                 )}
 
-                <div className={cn('flex gap-3', onApply && 'flex-wrap')}>
-                  {onApply && (
+                <div className={cn('flex gap-3', onApply && !embedded && 'flex-wrap')}>
+                  {onApply && !embedded && (
                     <button
                       onClick={() => onApply({
                         content: customText,
