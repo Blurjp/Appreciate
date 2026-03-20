@@ -318,85 +318,102 @@ function Step2CardDesigner({
   onCardTemplateIdChange: (v: string) => void
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 2</p>
         <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
           Write & design your card
         </label>
         <p className="text-sm text-brand-text-secondary">
-          Express your gratitude and customize how it looks.
+          Write once, then tune the visual style without everything competing for the same space.
         </p>
       </div>
 
-      {/* Content Input */}
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-2 font-medium">
-          What are you grateful for?
-        </label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Today I'm grateful for..."
-          className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-          maxLength={200}
-        />
-        <p className="text-caption text-brand-text-secondary text-right mt-1">
-          {content.length}/200
-        </p>
-      </div>
-
-      {/* Photo Upload */}
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-2 font-medium">
-          Add a photo (optional)
-        </label>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          className="hidden"
-        />
-        {photoPreview ? (
-          <div className="relative rounded-xl overflow-hidden">
-            <img
-              src={photoPreview}
-              alt="Preview"
-              className="w-full h-36 object-cover"
-            />
-            <button
-              onClick={onRemovePhoto}
-              className="absolute top-2 right-2 w-7 h-7 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm text-sm"
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full py-8 border border-dashed border-brand-border rounded-xl text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-all"
-          >
-            <div className="flex flex-col items-center gap-2">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-[10px] tracking-widest uppercase">Add a photo</span>
+      <div className="grid gap-6 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] xl:items-start">
+        <div className="space-y-5 xl:sticky xl:top-0">
+          <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_16px_36px_rgba(17,17,17,0.05)]">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <label className="text-headline text-brand-text-primary block font-medium">
+                  What are you grateful for?
+                </label>
+                <p className="mt-1 text-sm text-brand-text-secondary">
+                  This text appears on the card preview and on shared posts.
+                </p>
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
+                {content.length}/200
+              </span>
             </div>
-          </button>
-        )}
-      </div>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Today I'm grateful for..."
+              className="mt-4 h-40 w-full resize-none rounded-2xl border border-brand-border bg-brand-surface/35 px-4 py-4 text-body leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
+              maxLength={200}
+            />
+          </div>
 
-      {/* Card Designer */}
-      <AppreciationCardGenerator
-        content={content}
-        photoPreview={photoPreview}
-        isPro={isPro}
-        embedded
-        initialCardTemplateId={cardTemplateId}
-        onCardTemplateIdChange={onCardTemplateIdChange}
-      />
+          <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_16px_36px_rgba(17,17,17,0.05)]">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <label className="text-headline text-brand-text-primary block font-medium">
+                  Add a photo
+                </label>
+                <p className="mt-1 text-sm text-brand-text-secondary">
+                  Optional. Use it directly as the card background or let AI borrow its palette.
+                </p>
+              </div>
+              {photoPreview && (
+                <button
+                  onClick={onRemovePhoto}
+                  className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+            {photoPreview ? (
+              <div className="mt-4 overflow-hidden rounded-[24px] border border-brand-border">
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  className="h-56 w-full object-cover"
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-4 w-full rounded-[24px] border border-dashed border-brand-border bg-brand-surface/35 py-12 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="text-[10px] tracking-widest uppercase">Upload Photo</span>
+                </div>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <AppreciationCardGenerator
+          content={content}
+          photoPreview={photoPreview}
+          isPro={isPro}
+          embedded
+          initialCardTemplateId={cardTemplateId}
+          onCardTemplateIdChange={onCardTemplateIdChange}
+        />
+      </div>
     </div>
   )
 }

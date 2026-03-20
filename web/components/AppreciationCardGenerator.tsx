@@ -546,14 +546,16 @@ export default function AppreciationCardGenerator({
 
             <div className="px-5 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-8">
               <div className="mx-auto flex max-w-[460px] flex-col gap-5">
-                <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
-                    Current Message
-                  </p>
-                  <p className="mt-3 rounded-2xl border border-brand-border bg-white px-4 py-4 text-sm leading-6 text-brand-text-primary">
-                    {content || 'Add your appreciation in step 1 to preview it here.'}
-                  </p>
-                </div>
+                {!embedded && (
+                  <div className="rounded-[28px] border border-brand-border bg-brand-surface/55 p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                      Current Message
+                    </p>
+                    <p className="mt-3 rounded-2xl border border-brand-border bg-white px-4 py-4 text-sm leading-6 text-brand-text-primary">
+                      {content || 'Add your appreciation in step 1 to preview it here.'}
+                    </p>
+                  </div>
+                )}
 
                 {backgroundSource === 'photo' && (
                   <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
