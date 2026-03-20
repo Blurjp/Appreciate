@@ -132,7 +132,8 @@ export function resolveCardPresentation(cardTemplateId?: string | null, photoUrl
   }
 }
 
-function getInitialSource(initialCardTemplateId?: string | null, hasPhotoPreview?: boolean): CardBackgroundSource {
+function getInitialSource(initialCardTemplateId?: string | null, hasPhotoPreview?: boolean): CardBackgroundSource | null {
+  if (!initialCardTemplateId) return null
   if (initialCardTemplateId === PHOTO_CARD_TEMPLATE_ID && hasPhotoPreview) return 'photo'
   if (initialCardTemplateId?.startsWith('ai:')) return 'ai'
   return 'template'
@@ -220,7 +221,7 @@ export default function AppreciationCardGenerator({
     : CARD_TEMPLATES[0]
 
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(initialTemplate)
-  const [backgroundSource, setBackgroundSource] = useState<CardBackgroundSource>(
+  const [backgroundSource, setBackgroundSource] = useState<CardBackgroundSource | null>(
     getInitialSource(initialCardTemplateId, Boolean(photoPreview))
   )
   const [isExporting, setIsExporting] = useState(false)
@@ -233,8 +234,9 @@ export default function AppreciationCardGenerator({
   const resolvedCardTemplateId = useMemo(() => {
     if (backgroundSource === 'photo' && hasPhotoPreview) return PHOTO_CARD_TEMPLATE_ID
     if (backgroundSource === 'ai' && aiImageUrl) return `ai:${aiImageUrl}`
-    return selectedTemplate.id
-  }, [aiImageUrl, backgroundSource, hasPhotoPreview, selectedTemplate.id])
+    if (backgroundSource === 'template') return selectedTemplate.id
+    return initialCardTemplateId ?? ''
+  }, [aiImageUrl, backgroundSource, hasPhotoPreview, initialCardTemplateId, selectedTemplate.id])
 
   useEffect(() => {
     onCardTemplateIdChange?.(resolvedCardTemplateId)
@@ -246,11 +248,14 @@ export default function AppreciationCardGenerator({
         ? PHOTO_CARD_TEMPLATE_ID
         : backgroundSource === 'ai' && aiImageUrl
           ? `ai:${aiImageUrl}`
-          : selectedTemplate.id,
+          : backgroundSource === 'template'
+            ? selectedTemplate.id
+            : initialCardTemplateId || selectedTemplate.id,
       photoPreview
     ),
-    [aiImageUrl, backgroundSource, hasPhotoPreview, photoPreview, selectedTemplate.id]
+    [aiImageUrl, backgroundSource, hasPhotoPreview, initialCardTemplateId, photoPreview, selectedTemplate.id]
   )
+  const hasChosenSource = backgroundSource !== null
 
   const handleGenerateAIImage = async () => {
     if (!content.trim()) return
@@ -419,7 +424,7 @@ export default function AppreciationCardGenerator({
                       </p>
                     </div>
                     <span className="inline-flex items-center self-start rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-text-muted">
-                      {previewCard.label}
+                      {hasChosenSource ? previewCard.label : 'Choose One'}
                     </span>
                   </div>
                   <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -433,6 +438,9 @@ export default function AppreciationCardGenerator({
                             if (source.id === 'ai' && !isPro) {
                               setShowUpgrade(true)
                               return
+                            }
+                            if (source.id === 'template' && !backgroundSource) {
+                              setSelectedTemplate(initialTemplate)
                             }
                             setBackgroundSource(source.id)
                           }}
@@ -557,6 +565,20 @@ export default function AppreciationCardGenerator({
                   </div>
                 )}
 
+                {!hasChosenSource && (
+                  <div className="rounded-[28px] border border-dashed border-brand-border bg-brand-surface/35 p-6">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
+                      Next Step
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-brand-text-primary">
+                      Pick how the background should be created.
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                      Choose `AI Remix`, `Your Photo`, or `Template Library`. After you choose, the matching controls will appear here.
+                    </p>
+                  </div>
+                )}
+
                 {backgroundSource === 'photo' && (
                   <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_18px_40px_rgba(17,17,17,0.05)]">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
@@ -570,10 +592,16 @@ export default function AppreciationCardGenerator({
                         <div className="mt-4 overflow-hidden rounded-3xl border border-brand-border">
                           <img src={photoPreview} alt="Preview" className="h-44 w-full object-cover" />
                         </div>
+                        <button
+                          onClick={() => setBackgroundSource('photo')}
+                          className="mt-4 w-full rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-all hover:opacity-90"
+                        >
+                          Use Photo Background
+                        </button>
                       </>
                     ) : (
                       <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                        Add a photo in step 1 to use it as the background.
+                        Add a photo in step 2 to use it as the background.
                       </p>
                     )}
                   </div>
@@ -678,7 +706,7 @@ export default function AppreciationCardGenerator({
 
                   <button
                     onClick={handleExport}
-                    disabled={isExporting || !content.trim()}
+                    disabled={isExporting || !content.trim() || !hasChosenSource}
                     className="flex-1 rounded-2xl border border-brand-border py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                   >
                     {isExporting ? 'Exporting...' : 'Download PNG'}
@@ -687,7 +715,7 @@ export default function AppreciationCardGenerator({
                   {typeof navigator !== 'undefined' && 'share' in navigator && (
                     <button
                       onClick={handleShare}
-                      disabled={isExporting || !content.trim()}
+                      disabled={isExporting || !content.trim() || !hasChosenSource}
                       className="flex-1 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
                     >
                       Share
