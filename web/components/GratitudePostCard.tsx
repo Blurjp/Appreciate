@@ -6,6 +6,7 @@ import {
   GratitudePost,
   getCategoryMeta,
   timeAgo,
+  KAWAII_DECORATIONS,
 } from '@/types'
 import { cn } from '@/lib/utils'
 import { PHOTO_CARD_TEMPLATE_ID, resolveCardPresentation } from './AppreciationCardGenerator'
@@ -20,6 +21,12 @@ interface Props {
   onToggleVisibility?: (post: GratitudePost) => void
 }
 
+// 🎀 Random cute decoration
+function getRandomSparkle() {
+  const sparkles = [...KAWAII_DECORATIONS.sparkles, ...KAWAII_DECORATIONS.hearts.slice(0, 3)]
+  return sparkles[Math.floor(Math.random() * sparkles.length)]
+}
+
 function GratitudePostCard({
   post,
   showActions = false,
@@ -30,8 +37,9 @@ function GratitudePostCard({
 }: Props) {
   const [isHeartAnimating, setIsHeartAnimating] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
+  const [sparkle] = useState(() => getRandomSparkle())
 
-  // Memoize computed values to prevent recalculation
+  // Memoize computed values
   const category = useMemo(() => getCategoryMeta(post.category), [post.category])
   const isAnonymous = useMemo(() => post.visibility === 'ANONYMOUS', [post.visibility])
   const authorName = useMemo(() => isAnonymous ? 'Anonymous' : post.author.name, [isAnonymous, post.author.name])
@@ -50,11 +58,10 @@ function GratitudePostCard({
   )
 
   const shareText = useMemo(
-    () => `${authorName} shared a gratitude moment on Appreciate.`,
+    () => `${authorName} shared a gratitude moment on Appreciate. 💖`,
     [authorName]
   )
 
-  // Use useCallback to prevent function recreation on each render
   const handleHeart = useCallback(() => {
     setIsHeartAnimating(true)
     onHeart?.(post.id)
@@ -77,142 +84,188 @@ function GratitudePostCard({
     onDelete?.(post.id)
   }, [onDelete, post.id])
 
-  const handleClearFilter = useCallback(() => {
-    // This would need to be passed in as a prop if you want to clear category filter
-  }, [])
-
   return (
-    <div className="bg-brand-card rounded-2xl p-5 border border-brand-border transition-all">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-headline border border-brand-border text-brand-text-primary">
-          {initial}
+    <div className="relative">
+      {/* 🎀 Decorative sparkle */}
+      <span className="absolute -top-2 -right-2 text-xl animate-sparkle z-10">
+        {sparkle}
+      </span>
+      
+      {/* 🎀 Main Card - Super rounded and cute */}
+      <div className="bg-white rounded-[32px] p-5 border-2 border-pink-100 shadow-lg shadow-pink-100/50 transition-all hover:shadow-xl hover:shadow-pink-200/50 hover:-translate-y-1 hover:border-pink-200">
+        
+        {/* 🎀 Header with cute avatar */}
+        <div className="flex items-center gap-3 mb-4">
+          {/* Cute gradient avatar */}
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center font-bold text-pink-600 text-lg shadow-md shadow-pink-100">
+              {initial}
+            </div>
+            {/* Cute status dot */}
+            <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[8px]">
+              ✨
+            </span>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-700 truncate flex items-center gap-1.5">
+              {authorName}
+              {post.heartCount > 5 && <span className="text-xs">💖</span>}
+            </p>
+            <p className="text-sm text-gray-400 flex items-center gap-1">
+              <span className="text-xs">🕐</span>
+              {timeAgo(post.createdAt)}
+            </p>
+          </div>
+          
+          {/* 🎀 Visibility badge - cute style */}
+          <VisibilityBadge visibility={post.visibility} />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-headline text-brand-text-primary truncate">
-            {authorName}
+
+        {/* 🎀 Content with cute quote styling */}
+        <div className="relative mb-4">
+          <span className="absolute -left-1 -top-1 text-3xl text-pink-300 opacity-50">&ldquo;</span>
+          <p className="text-gray-700 text-[15px] leading-relaxed pl-4 pr-2 whitespace-pre-wrap">
+            {post.content}
           </p>
-          <p className="text-caption text-brand-text-secondary">
-            {timeAgo(post.createdAt)}
-          </p>
-        </div>
-        <VisibilityIcon visibility={post.visibility} />
-      </div>
-
-      {/* Content */}
-      <p className="text-body text-brand-text-primary mb-3 whitespace-pre-wrap leading-relaxed">
-        {post.content}
-      </p>
-
-      {/* Feeling */}
-      {post.feeling && (
-        <p className="text-subheadline text-brand-text-secondary italic mb-3">
-          Feeling: {post.feeling}
-        </p>
-      )}
-
-      {/* Card Background */}
-      <CardBackground post={post} />
-
-      {/* Photo */}
-      {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
-        <div className="mb-4 rounded-xl overflow-hidden relative h-48">
-          <Image
-            src={post.photoUrl}
-            alt="Post photo"
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </div>
-      )}
-
-      {/* Category Badge */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium border border-brand-border text-brand-text-secondary tracking-wide uppercase">
-          {category.label}
-        </span>
-      </div>
-
-      {/* Actions */}
-      <div className="pt-3 border-t border-brand-border">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleHeart}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline font-medium transition-all border',
-              post.heartCount > 0
-                ? 'border-brand-primary bg-brand-primary text-white'
-                : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
-            )}
-          >
-            <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
-            {post.heartCount > 0 && <span>{post.heartCount}</span>}
-          </button>
-
-          <button
-            onClick={handleShareToggle}
-            title="Share post"
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-2 rounded-full text-subheadline transition-all border',
-              isShareOpen
-                ? 'border-brand-primary text-brand-primary'
-                : 'border-brand-border text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary'
-            )}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-            </svg>
-            <span>{isShareOpen ? 'Close' : 'Share'}</span>
-          </button>
-
-          {showActions && (
-          <>
-            {onEdit && (
-              <button
-                onClick={handleEdit}
-                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-brand-primary hover:text-brand-primary transition-all"
-              >
-                Edit
-              </button>
-            )}
-            {onToggleVisibility && (
-              <button
-                onClick={handleToggleVisibility}
-                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-brand-primary hover:text-brand-primary transition-all"
-              >
-                {post.visibility === 'PRIVATE' ? 'Share' : 'Privatise'}
-              </button>
-            )}
-            {onDelete && (
-              <button
-                onClick={handleDelete}
-                className="px-3 py-2 rounded-full text-subheadline text-brand-text-muted border border-brand-border hover:border-red-400 hover:text-red-500 transition-all ml-auto"
-              >
-                Delete
-              </button>
-            )}
-          </>
-          )}
+          <span className="absolute -right-1 -bottom-3 text-3xl text-pink-300 opacity-50">&rdquo;</span>
         </div>
 
-        {isShareOpen && (
-          <div className="mt-3">
-            <ShareLinkActions
-              url={shareUrl}
-              title="Share this gratitude moment"
-              text={shareText}
-              imageUrl={shareImageUrl}
-              compact
-            />
+        {/* 🎀 Feeling tag */}
+        {post.feeling && (
+          <div className="mb-4 pl-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-gradient-to-r from-pink-50 to-purple-50 text-purple-600 border border-purple-100">
+              <span>💭</span>
+              <span className="italic">{post.feeling}</span>
+            </span>
           </div>
         )}
+
+        {/* 🎀 Card Background */}
+        <CardBackground post={post} />
+
+        {/* 🎀 Photo with rounded corners */}
+        {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
+          <div className="mb-4 rounded-3xl overflow-hidden relative h-52 shadow-md shadow-pink-100">
+            <Image
+              src={post.photoUrl}
+              alt="Post photo"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            {/* Cute photo overlay */}
+            <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-sm rounded-full text-xs flex items-center gap-1">
+              <span>📸</span>
+            </div>
+          </div>
+        )}
+
+        {/* 🎀 Category Badge - Sticker style */}
+        <div className="flex items-center gap-2 mb-4">
+          <span 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md transform -rotate-1 hover:rotate-0 transition-transform"
+            style={{ 
+              background: category.gradient,
+              color: 'white',
+              textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span className="text-base">{category.emoji}</span>
+            <span>{category.label}</span>
+          </span>
+        </div>
+
+        {/* 🎀 Actions - Super cute buttons */}
+        <div className="pt-3 border-t-2 border-pink-50">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Heart button */}
+            <button
+              onClick={handleHeart}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all transform hover:scale-105 active:scale-95',
+                post.heartCount > 0
+                  ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white shadow-lg shadow-pink-200'
+                  : 'bg-pink-50 text-pink-500 hover:bg-pink-100 border-2 border-pink-100 hover:border-pink-200'
+              )}
+            >
+              <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
+              {post.heartCount > 0 && (
+                <span className="font-bold">{post.heartCount}</span>
+              )}
+            </button>
+
+            {/* Share button */}
+            <button
+              onClick={handleShareToggle}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all transform hover:scale-105 active:scale-95',
+                isShareOpen
+                  ? 'bg-gradient-to-r from-purple-400 to-violet-400 text-white shadow-lg shadow-purple-200'
+                  : 'bg-purple-50 text-purple-500 hover:bg-purple-100 border-2 border-purple-100 hover:border-purple-200'
+              )}
+            >
+              <span>🔗</span>
+              <span>{isShareOpen ? 'Close' : 'Share'}</span>
+            </button>
+
+            {showActions && (
+              <>
+                {/* Edit button */}
+                {onEdit && (
+                  <button
+                    onClick={handleEdit}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-teal-50 text-teal-500 hover:bg-teal-100 border-2 border-teal-100 hover:border-teal-200 transition-all transform hover:scale-105 active:scale-95"
+                  >
+                    <span>✏️</span>
+                    <span>Edit</span>
+                  </button>
+                )}
+                
+                {/* Visibility toggle */}
+                {onToggleVisibility && (
+                  <button
+                    onClick={handleToggleVisibility}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 border-2 border-amber-100 hover:border-amber-200 transition-all transform hover:scale-105 active:scale-95"
+                  >
+                    <span>{post.visibility === 'PRIVATE' ? '🌸' : '🔒'}</span>
+                    <span>{post.visibility === 'PRIVATE' ? 'Share' : 'Privatise'}</span>
+                  </button>
+                )}
+                
+                {/* Delete button */}
+                {onDelete && (
+                  <button
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-red-50 text-red-400 hover:bg-red-100 border-2 border-red-100 hover:border-red-200 transition-all transform hover:scale-105 active:scale-95 ml-auto"
+                  >
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Share actions */}
+          {isShareOpen && (
+            <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 border-2 border-pink-100">
+              <ShareLinkActions
+                url={shareUrl}
+                title="Share this gratitude moment ✨"
+                text={shareText}
+                imageUrl={shareImageUrl}
+                compact
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-// Extract card background to separate memoized component
+// 🎀 Card Background Component
 const CardBackground = ({ post }: { post: GratitudePost }) => {
   const cardStyle = useMemo(() => {
     if (!post.cardTemplateId || post.cardTemplateId === 'minimal') return null
@@ -223,64 +276,71 @@ const CardBackground = ({ post }: { post: GratitudePost }) => {
 
   return (
     <div
-      className="mb-4 rounded-xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between"
+      className="mb-4 rounded-3xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between shadow-lg"
       style={{ background: cardStyle.background }}
     >
-      {cardStyle.overlayClassName && <div className={cn('absolute inset-0 rounded-xl', cardStyle.overlayClassName)} />}
+      {cardStyle.overlayClassName && (
+        <div className={cn('absolute inset-0 rounded-3xl', cardStyle.overlayClassName)} />
+      )}
+      
+      {/* Decorative corner sparkle */}
+      <span className="absolute top-2 right-2 text-xl opacity-60">✨</span>
+      
       <p
-        className="relative z-10 text-body font-medium leading-relaxed line-clamp-4"
+        className="relative z-10 text-[15px] font-medium leading-relaxed line-clamp-4"
         style={{ color: cardStyle.textColor }}
       >
         &ldquo;{post.content}&rdquo;
       </p>
       {post.feeling && (
         <p
-          className="relative z-10 text-caption italic mt-2 opacity-80"
+          className="relative z-10 text-sm italic mt-2 opacity-80 flex items-center gap-1"
           style={{ color: cardStyle.textColor }}
         >
-          Feeling: {post.feeling}
+          <span>💭</span> {post.feeling}
         </p>
       )}
     </div>
   )
 }
 
-// Memoize sub-components to prevent unnecessary re-renders
+// 🎀 Heart Icon - Cute animated heart
 const HeartIcon = memo(function HeartIcon({ filled, animating }: { filled: boolean; animating: boolean }) {
   return (
-    <svg
-      className={cn('w-4 h-4 transition-transform', animating && 'animate-heart-bounce')}
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <span 
+      className={cn(
+        'text-lg transition-transform',
+        animating && 'animate-bounce'
+      )}
     >
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
+      {filled ? '💖' : '🤍'}
+    </span>
   )
 })
 
-const VisibilityIcon = memo(function VisibilityIcon({ visibility }: { visibility: string }) {
-  const label = useMemo(() => {
+// 🎀 Visibility Badge - Cute pill style
+const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibility: string }) {
+  const { icon, label, bgClass } = useMemo(() => {
     switch (visibility) {
-      case 'PRIVATE': return 'Private'
-      case 'ANONYMOUS': return 'Anon'
-      default: return 'Public'
+      case 'PRIVATE':
+        return { icon: '🔒', label: 'Private', bgClass: 'bg-amber-50 text-amber-600 border-amber-200' }
+      case 'ANONYMOUS':
+        return { icon: '🦋', label: 'Anon', bgClass: 'bg-purple-50 text-purple-600 border-purple-200' }
+      default:
+        return { icon: '🌸', label: 'Public', bgClass: 'bg-pink-50 text-pink-600 border-pink-200' }
     }
   }, [visibility])
 
   return (
-    <span className="text-[10px] font-medium tracking-widest uppercase text-brand-text-muted border border-brand-border px-2 py-0.5 rounded-full">
-      {label}
+    <span className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border-2 ${bgClass}`}>
+      <span>{icon}</span>
+      <span>{label}</span>
     </span>
   )
 })
 
 // Memoize the main card component
 export default memo(GratitudePostCard, (prevProps, nextProps) => {
-  // Only re-render if post content or key props change
   return (
     prevProps.post.id === nextProps.post.id &&
     prevProps.post.content === nextProps.post.content &&
