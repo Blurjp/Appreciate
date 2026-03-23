@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 // GET /api/user — Get current user profile from Supabase
 export async function GET() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -36,7 +36,7 @@ export async function GET() {
 
 // PATCH /api/user — Update user profile
 export async function PATCH(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

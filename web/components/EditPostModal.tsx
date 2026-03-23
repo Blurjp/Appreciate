@@ -20,6 +20,7 @@ interface Props {
   onSave: (data: {
     id: string
     content: string
+    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     cardTemplateId: string
@@ -28,17 +29,19 @@ interface Props {
 
 export default function EditPostModal({ post, isOpen, isPro = false, onClose, onSave }: Props) {
   const [content, setContent] = useState(post.content)
+  const [feeling, setFeeling] = useState(post.feeling ?? '')
   const [category, setCategory] = useState<GratitudeCategory>(post.category)
   const [visibility, setVisibility] = useState<PostVisibility>(post.visibility)
+  const existingAiUrl = post.cardTemplateId?.startsWith('ai:') ? post.cardTemplateId.slice(3) : null
   const [cardTemplateId, setCardTemplateId] = useState(post.cardTemplateId ?? 'minimal')
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
-  const [aiImageUrl, setAiImageUrl] = useState<string | null>(null)
+  const [aiImageUrl, setAiImageUrl] = useState<string | null>(existingAiUrl)
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   if (!isOpen) return null
 
   const handleSave = () => {
-    onSave({ id: post.id, content, category, visibility, cardTemplateId })
+    onSave({ id: post.id, content, feeling, category, visibility, cardTemplateId })
     onClose()
   }
 
@@ -48,7 +51,7 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
       const res = await fetch('/api/ai/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, feeling: post.feeling }),
+        body: JSON.stringify({ content, feeling }),
       })
       const result = await res.json()
       if (result.data?.imageURL) {

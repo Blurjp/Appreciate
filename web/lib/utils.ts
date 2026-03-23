@@ -15,3 +15,9 @@ export function formatDate(date: Date | string): string {
 export function randomFrom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
+
+export function normalizeInternalPath(path: string | null | undefined, fallback = '/feed'): string {
+  if (!path || !path.startsWith('/')) return fallback
+  if (path.startsWith('//')) return fallback
+  return path
+}

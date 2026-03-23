@@ -1,14 +1,24 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import dynamic from 'next/dynamic'
 import { GratitudePost, PostVisibility, StreakData } from '@/types'
 import { cn } from '@/lib/utils'
 import GratitudePostCard from '@/components/GratitudePostCard'
-import StreakCardComponent from '@/components/StreakCard'
-import EditPostModal from '@/components/EditPostModal'
 import Toast from '@/components/Toast'
 import { GratitudeCategory } from '@/types'
+
+// Lazy load heavy components for better initial load performance
+const StreakCardComponent = dynamic(
+  () => import('@/components/StreakCard').then(mod => ({ default: mod.default })),
+  { loading: () => <div className="h-24 bg-brand-card rounded-2xl border border-brand-border animate-pulse" /> }
+)
+
+const EditPostModal = dynamic(
+  () => import('@/components/EditPostModal').then(mod => ({ default: mod.default })),
+  { ssr: false }
+)
 
 const FILTER_OPTIONS: { value: PostVisibility | null; label: string }[] = [
   { value: null, label: 'All' },
@@ -32,6 +42,9 @@ export default function MyWallPage() {
       const data = await res.json()
       return Array.isArray(data) ? data : []
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   })
 
   const { data: userProfile } = useQuery<{ isPro: boolean }>({
@@ -40,6 +53,8 @@ export default function MyWallPage() {
       const res = await fetch('/api/user')
       return res.json()
     },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   })
 
   const { data: streak } = useQuery<StreakData>({
@@ -48,6 +63,8 @@ export default function MyWallPage() {
       const res = await fetch('/api/streak')
       return res.json()
     },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   })
 
   const deleteMutation = useMutation({
@@ -61,10 +78,25 @@ export default function MyWallPage() {
     },
   })
 
+  const heartMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heartToggle: true }),
+      })
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+    },
+  })
+
   const updateMutation = useMutation({
     mutationFn: async (data: {
       id: string
       content?: string
+      feeling?: string
       category?: GratitudeCategory
       visibility?: PostVisibility
       cardTemplateId?: string
@@ -87,36 +119,37 @@ export default function MyWallPage() {
     setToast({ visible: true, message, icon, isError })
   }, [])
 
-  const handleToggleVisibility = (post: GratitudePost) => {
+  const handleToggleVisibility = useCallback((post: GratitudePost) => {
     const newVisibility = post.visibility === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE'
     updateMutation.mutate({ id: post.id, visibility: newVisibility })
     showToast(
       newVisibility === 'PRIVATE' ? 'Post is now private' : 'Post is now public',
       newVisibility === 'PRIVATE' ? '🔒' : '🌐'
     )
-  }
+  }, [updateMutation, showToast])
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     setDeleteConfirm(id)
-  }
+  }, [])
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (deleteConfirm) {
       deleteMutation.mutate(deleteConfirm)
       setDeleteConfirm(null)
     }
-  }
+  }, [deleteConfirm, deleteMutation])
 
-  const handleEditSave = (data: {
+  const handleEditSave = useCallback((data: {
     id: string
     content: string
+    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     cardTemplateId: string
   }) => {
     updateMutation.mutate(data)
     showToast('Post updated', '✅')
-  }
+  }, [updateMutation, showToast])
 
   return (
     <div className="px-4 pt-6">
@@ -173,9 +206,7 @@ export default function MyWallPage() {
               key={post.id}
               post={post}
               showActions
-              onHeart={(id) =>
-                updateMutation.mutate({ id, visibility: post.visibility })
-              }
+              onHeart={(id) => heartMutation.mutate(id)}
               onEdit={setEditingPost}
               onDelete={handleDelete}
               onToggleVisibility={handleToggleVisibility}

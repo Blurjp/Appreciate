@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   GratitudeCategory,
   PostVisibility,
@@ -11,33 +11,35 @@ import {
 } from '@/types'
 import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
-import AppreciationCardGenerator from './AppreciationCardGenerator'
-import { createClient } from '@/lib/supabase/client'
+import AppreciationCardGenerator, {
+  PHOTO_CARD_TEMPLATE_ID,
+  resolveCardPresentation,
+} from './AppreciationCardGenerator'
+import PostSharePrompt from './PostSharePrompt'
 
 interface Props {
   onSubmit: (data: {
     content: string
-    feeling: string
     category: GratitudeCategory
     visibility: PostVisibility
     photoUrl?: string
-  }) => Promise<void>
+    cardTemplateId?: string
+  }) => Promise<{ id: string }>
   onClose?: () => void
 }
 
 export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [step, setStep] = useState(1)
   const [content, setContent] = useState('')
-  const [feeling, setFeeling] = useState('')
   const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
+  const [cardTemplateId, setCardTemplateId] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [sharePromptPostId, setSharePromptPostId] = useState<string | null>(null)
   const [confirmationMessage, setConfirmationMessage] = useState('')
-  const [showCardGenerator, setShowCardGenerator] = useState(false)
-  const [savedContent, setSavedContent] = useState('')
-  const [savedFeeling, setSavedFeeling] = useState('')
   const [isPro, setIsPro] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/user').then(r => r.json()).then(u => setIsPro(u.isPro ?? false)).catch(() => {})
@@ -47,11 +49,17 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
   const canProceedStep1 = content.trim().length > 0
-  const progress = (step / 3) * 100
+  const progress = (step / 4) * 100
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSubmitError(null)
     const file = e.target.files?.[0]
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        setSubmitError('Please choose an image file.')
+        return
+      }
+
       setPhotoFile(file)
       const reader = new FileReader()
       reader.onloadend = () => setPhotoPreview(reader.result as string)
@@ -62,30 +70,42 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const handleSubmit = async () => {
     if (isSubmitting) return
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
       let photoUrl: string | undefined
       if (photoFile) {
-        const supabase = createClient()
-        const ext = photoFile.name.split('.').pop()
-        const path = `${Date.now()}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('photos')
-          .upload(path, photoFile, { upsert: true })
-        if (!uploadError) {
-          const { data } = supabase.storage.from('photos').getPublicUrl(path)
-          photoUrl = data.publicUrl
+        const formData = new FormData()
+        formData.append('file', photoFile)
+
+        const uploadRes = await fetch('/api/uploads/post-image', {
+          method: 'POST',
+          body: formData,
+        })
+
+        const uploadBody = await uploadRes.json().catch(() => null)
+        if (!uploadRes.ok) {
+          throw new Error(uploadBody?.error || 'Photo upload failed.')
         }
+
+        photoUrl = uploadBody?.url
       }
-      await onSubmit({ content, feeling, category, visibility, photoUrl })
-      
-      // Save content for card generator
-      setSavedContent(content)
-      setSavedFeeling(feeling)
-      
-      setConfirmationMessage(randomFrom(CONFIRMATIONS))
-      setShowConfirmation(true)
-    } catch {
-      // Error handling
+      const resolvedCardTemplateId = cardTemplateId === PHOTO_CARD_TEMPLATE_ID && !photoUrl
+        ? 'minimal'
+        : cardTemplateId || 'minimal'
+      const createdPost = await onSubmit({ content, category, visibility, photoUrl, cardTemplateId: resolvedCardTemplateId })
+      const nextMessage = randomFrom(CONFIRMATIONS)
+      setConfirmationMessage(nextMessage)
+      if (visibility === 'PRIVATE') {
+        setShowConfirmation(true)
+      } else {
+        setSharePromptPostId(createdPost.id)
+      }
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'We could not attach your photo. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -93,10 +113,11 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
 
   const handleConfirmationDismiss = () => {
     setShowConfirmation(false)
+    setSharePromptPostId(null)
     setContent('')
-    setFeeling('')
     setCategory('SMALL_JOYS')
     setVisibility('PRIVATE')
+    setCardTemplateId('')
     setPhotoPreview(null)
     setPhotoFile(null)
     setStep(1)
@@ -111,7 +132,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] tracking-widest uppercase text-brand-text-muted">
-            {step} / 3
+            {step} / 4
           </span>
           {onClose && (
             <button
@@ -133,50 +154,66 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       {/* Step Content */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {step === 1 && (
-          <Step1Content
+          <Step1Message
             content={content}
             setContent={setContent}
-            feeling={feeling}
-            setFeeling={setFeeling}
-            photoPreview={photoPreview}
-            setPhotoPreview={setPhotoPreview}
-            fileInputRef={fileInputRef}
-            handlePhotoChange={handlePhotoChange}
-          />
-        )}
-        {step === 2 && (
-          <Step2Category
             category={category}
             setCategory={setCategory}
           />
         )}
+        {step === 2 && (
+          <Step2Photo
+            photoPreview={photoPreview}
+            onRemovePhoto={() => {
+              setPhotoPreview(null)
+              setPhotoFile(null)
+              setCardTemplateId((current) => current === PHOTO_CARD_TEMPLATE_ID ? '' : current)
+            }}
+            fileInputRef={fileInputRef}
+            handlePhotoChange={handlePhotoChange}
+          />
+        )}
         {step === 3 && (
-          <Step3Visibility
+          <Step3CardDesigner
+            content={content}
+            photoPreview={photoPreview}
+            isPro={isPro}
+            cardTemplateId={cardTemplateId}
+            onCardTemplateIdChange={setCardTemplateId}
+          />
+        )}
+        {step === 4 && (
+          <Step4Visibility
             visibility={visibility}
             setVisibility={setVisibility}
             content={content}
-            feeling={feeling}
+            cardTemplateId={cardTemplateId}
+            photoPreview={photoPreview}
             category={selectedCategory}
           />
         )}
       </div>
 
       {/* Navigation Buttons */}
-      <div className="p-5 flex gap-3 border-t border-brand-border bg-white">
+      <div className="p-5 border-t border-brand-border bg-white">
+        {submitError && (
+          <p className="mb-3 text-sm text-red-500">{submitError}</p>
+        )}
+        <div className="flex gap-3">
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-4 rounded-full border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
+            className="flex-1 py-4 rounded-xl border border-brand-border text-subheadline tracking-wide text-brand-text-primary hover:border-brand-primary transition-all active:scale-[0.98]"
           >
             Back
           </button>
         )}
-        {step < 3 ? (
+        {step < 4 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
             className={cn(
-              'flex-1 py-4 rounded-full text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98]',
+              'flex-1 py-4 rounded-xl text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98]',
               step === 1 && !canProceedStep1
                 ? 'bg-brand-border cursor-not-allowed'
                 : 'bg-brand-primary'
@@ -188,95 +225,154 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-4 rounded-full bg-brand-primary text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-40"
+            className="flex-1 py-4 rounded-xl bg-brand-primary text-subheadline tracking-wide text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-40"
           >
             {isSubmitting ? 'Sharing...' : 'Share'}
           </button>
         )}
+        </div>
       </div>
 
       <ConfirmationOverlay
         isVisible={showConfirmation}
         message={confirmationMessage}
         onDismiss={handleConfirmationDismiss}
-        onCreateCard={() => {
-          setShowConfirmation(false)
-          setShowCardGenerator(true)
-        }}
-        content={savedContent}
-        feeling={savedFeeling}
       />
 
-      {showCardGenerator && (
-        <AppreciationCardGenerator
-          content={savedContent}
-          feeling={savedFeeling}
-          isPro={isPro}
-          onClose={() => {
-            setShowCardGenerator(false)
-            handleConfirmationDismiss()
-          }}
+      {sharePromptPostId && (
+        <PostSharePrompt
+          isVisible={Boolean(sharePromptPostId)}
+          message={confirmationMessage}
+          postId={sharePromptPostId}
+          onDismiss={handleConfirmationDismiss}
         />
       )}
+
     </div>
   )
 }
 
-function Step1Content({
+function Step1Message({
   content,
   setContent,
-  feeling,
-  setFeeling,
-  photoPreview,
-  setPhotoPreview,
-  fileInputRef,
-  handlePhotoChange,
+  category,
+  setCategory,
 }: {
   content: string
   setContent: (v: string) => void
-  feeling: string
-  setFeeling: (v: string) => void
-  photoPreview: string | null
-  setPhotoPreview: (v: string | null) => void
-  fileInputRef: React.RefObject<HTMLInputElement>
-  handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  category: GratitudeCategory
+  setCategory: (v: GratitudeCategory) => void
 }) {
   return (
     <div className="space-y-6">
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 1</p>
-        <label className="text-title-3 text-brand-text-primary block mb-3 font-semibold tracking-tight">
+        <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
           What are you grateful for?
         </label>
+        <p className="text-sm text-brand-text-secondary mb-4">
+          Start with the appreciation itself, then shape how it looks in the next steps.
+        </p>
+      </div>
+
+      <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_14px_34px_rgba(17,17,17,0.05)]">
+        <div className="flex items-end justify-between gap-3">
+          <label className="text-headline text-brand-text-primary block font-medium">
+            Your appreciation
+          </label>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted">
+            {content.length}/200
+          </span>
+        </div>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="w-full h-36 px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-          maxLength={500}
+          className="mt-4 h-40 w-full resize-none rounded-2xl border border-brand-border bg-brand-surface/35 px-4 py-4 text-body leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          maxLength={200}
         />
-        <p className="text-caption text-brand-text-secondary text-right mt-2">
-          {content.length}/500
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <p className="text-headline font-medium text-brand-text-primary">Choose a category</p>
+          <p className="mt-1 text-sm text-brand-text-secondary">
+            This tags the moment without interrupting the main writing step.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setCategory(cat.value)}
+            className={cn(
+              'flex flex-col items-center justify-center gap-3 rounded-2xl border px-5 py-6 text-center transition-all',
+              category === cat.value
+                ? 'border-brand-primary bg-white shadow-[0_10px_24px_rgba(17,17,17,0.08)]'
+                : 'border-brand-border bg-white hover:border-brand-primary hover:shadow-sm'
+            )}
+          >
+            <div
+              className={cn(
+                'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-2xl',
+                category === cat.value ? 'border-brand-primary bg-brand-primary/10' : 'border-brand-border bg-brand-surface'
+              )}
+            >
+              {cat.emoji}
+            </div>
+            <p className="text-sm font-semibold text-brand-text-primary">
+              {cat.label}
+            </p>
+          </button>
+        ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Step2Photo({
+  photoPreview,
+  onRemovePhoto,
+  fileInputRef,
+  handlePhotoChange,
+}: {
+  photoPreview: string | null
+  onRemovePhoto: () => void
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+  handlePhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 2</p>
+        <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
+          Add a photo
+        </label>
+        <p className="text-sm text-brand-text-secondary">
+          Optional, but useful if you want to use the photo directly or feed it into AI remix.
         </p>
       </div>
 
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-          How did it make you feel?
-        </label>
-        <input
-          type="text"
-          value={feeling}
-          onChange={(e) => setFeeling(e.target.value)}
-          placeholder="Happy, grateful, peaceful..."
-          className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
-        />
-      </div>
-
-      <div>
-        <label className="text-headline text-brand-text-primary block mb-3 font-medium">
-          Add a photo (optional)
-        </label>
+      <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_16px_36px_rgba(17,17,17,0.05)]">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <label className="text-headline text-brand-text-primary block font-medium">
+              Upload image
+            </label>
+            <p className="mt-1 text-sm text-brand-text-secondary">
+              If you skip this, the designer will still offer templates and AI remix from text alone.
+            </p>
+          </div>
+          {photoPreview && (
+            <button
+              onClick={onRemovePhoto}
+              className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+            >
+              Remove
+            </button>
+          )}
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -285,30 +381,24 @@ function Step1Content({
           className="hidden"
         />
         {photoPreview ? (
-          <div className="relative rounded-xl overflow-hidden">
+          <div className="mt-5 overflow-hidden rounded-[24px] border border-brand-border">
             <img
               src={photoPreview}
               alt="Preview"
-              className="w-full h-44 object-cover"
+              className="h-72 w-full object-cover"
             />
-            <button
-              onClick={() => setPhotoPreview(null)}
-              className="absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-lg flex items-center justify-center backdrop-blur-sm"
-            >
-              ✕
-            </button>
           </div>
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full py-10 border border-dashed border-brand-border rounded-xl text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-all"
+            className="mt-5 w-full rounded-[24px] border border-dashed border-brand-border bg-brand-surface/35 py-16 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
           >
-            <div className="flex flex-col items-center gap-2">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <div className="flex flex-col items-center gap-3">
+              <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-[10px] tracking-widest uppercase">Add a photo</span>
+              <span className="text-[10px] tracking-widest uppercase">Upload Photo</span>
             </div>
           </button>
         )}
@@ -317,64 +407,67 @@ function Step1Content({
   )
 }
 
-function Step2Category({
-  category,
-  setCategory,
-}: {
-  category: GratitudeCategory
-  setCategory: (v: GratitudeCategory) => void
-}) {
-  return (
-    <div>
-      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 2</p>
-      <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
-        Choose a category
-      </h2>
-      <div className="grid grid-cols-2 gap-3">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.value}
-            onClick={() => setCategory(cat.value)}
-            className={cn(
-              'flex flex-col items-center gap-3 p-5 rounded-xl border transition-all',
-              category === cat.value
-                ? 'border-brand-primary bg-white'
-                : 'border-brand-border bg-white hover:border-brand-primary'
-            )}
-          >
-            <svg className={cn('w-8 h-8', category === cat.value ? 'text-brand-primary' : 'text-brand-border')} viewBox="0 0 24 24" fill={category === cat.value ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span className={cn('text-[10px] tracking-widest uppercase font-medium', category === cat.value ? 'text-brand-primary' : 'text-brand-text-muted')}>
-              {cat.label}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function Step3Visibility({
-  visibility,
-  setVisibility,
+function Step3CardDesigner({
   content,
-  feeling,
-  category,
+  photoPreview,
+  isPro,
+  cardTemplateId,
+  onCardTemplateIdChange,
 }: {
-  visibility: PostVisibility
-  setVisibility: (v: PostVisibility) => void
   content: string
-  feeling: string
-  category: { emoji: string; label: string; color: string }
+  photoPreview: string | null
+  isPro: boolean
+  cardTemplateId: string
+  onCardTemplateIdChange: (v: string) => void
 }) {
   return (
     <div className="space-y-6">
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 3</p>
-        <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
-          Who can see this?
-        </h2>
+        <label className="text-title-3 text-brand-text-primary block mb-2 font-semibold tracking-tight">
+          Design your card
+        </label>
+        <p className="text-sm text-brand-text-secondary">
+          First choose a background type. The next controls appear based on that selection.
+        </p>
+      </div>
+
+      <AppreciationCardGenerator
+        content={content}
+        photoPreview={photoPreview}
+        isPro={isPro}
+        embedded
+        initialCardTemplateId={cardTemplateId || null}
+        onCardTemplateIdChange={onCardTemplateIdChange}
+      />
+    </div>
+  )
+}
+
+function Step4Visibility({
+  visibility,
+  setVisibility,
+  content,
+  cardTemplateId,
+  photoPreview,
+  category,
+}: {
+  visibility: PostVisibility
+  setVisibility: (v: PostVisibility) => void
+  content: string
+  cardTemplateId: string
+  photoPreview: string | null
+  category: { emoji: string; label: string; color: string }
+}) {
+  const preview = resolveCardPresentation(cardTemplateId, photoPreview)
+
+  return (
+    <div className="space-y-6">
+      <div>
+      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 4</p>
+      <h2 className="text-title-3 text-brand-text-primary mb-5 font-semibold tracking-tight">
+        Who can see this?
+      </h2>
         <div className="space-y-3">
           {VISIBILITY_OPTIONS.map((opt) => (
             <button
@@ -412,11 +505,12 @@ function Step3Visibility({
       {/* Preview */}
       <div>
         <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-3">Preview</p>
-        <div className="rounded-xl p-4 border border-brand-border">
-          <p className="text-body text-brand-text-primary mb-2">{content}</p>
-          {feeling && (
-            <p className="text-subheadline text-brand-text-muted italic mb-3">Feeling: {feeling}</p>
-          )}
+        <div
+          className="relative overflow-hidden rounded-xl border border-brand-border p-4"
+          style={{ background: preview.background }}
+        >
+          {preview.overlayClassName && <div className={cn('absolute inset-0', preview.overlayClassName)} />}
+          <p className="relative z-10 text-body mb-3" style={{ color: preview.textColor }}>{content}</p>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-widest uppercase font-medium border border-brand-border text-brand-text-muted">
             {category.label}
           </span>

@@ -80,6 +80,7 @@ export async function createPost(
     category: string
     visibility: string
     photoUrl?: string
+    cardTemplateId?: string
     authorId: string
   }
 ) {
@@ -91,6 +92,7 @@ export async function createPost(
       category: data.category,
       visibility: data.visibility,
       photo_url: data.photoUrl || null,
+      card_template_id: data.cardTemplateId || 'minimal',
       author_id: data.authorId,
     })
     .select(POST_SELECT)
@@ -103,10 +105,11 @@ export async function createPost(
 export async function updatePost(
   supabase: SupabaseClient,
   id: string,
-  data: { content?: string; category?: string; visibility?: string; cardTemplateId?: string }
+  data: { content?: string; feeling?: string; category?: string; visibility?: string; cardTemplateId?: string }
 ) {
   const updateData: Record<string, unknown> = {}
   if (data.content !== undefined) updateData.content = data.content
+  if (data.feeling !== undefined) updateData.feeling = data.feeling
   if (data.category !== undefined) updateData.category = data.category
   if (data.visibility !== undefined) updateData.visibility = data.visibility
   if (data.cardTemplateId !== undefined) updateData.card_template_id = data.cardTemplateId
@@ -131,8 +134,36 @@ export async function deletePost(supabase: SupabaseClient, id: string) {
   if (error) throw error
 }
 
-/// Toggle heart: inserts or deletes from the hearts table.
-/// The heart_count on gratitude_posts should be updated via a trigger or RPC.
+/// Toggle heart: uses a single RPC call for better performance
+/// TODO: Create a database function 'toggle_heart' that combines all operations atomically:
+/// CREATE OR REPLACE FUNCTION toggle_heart(post_id_param UUID, user_id_param UUID)
+/// RETURNS BOOLEAN AS $$
+/// DECLARE
+///   already_hearted BOOLEAN;
+/// BEGIN
+///   SELECT EXISTS(SELECT 1 FROM hearts WHERE post_id = post_id_param AND user_id = user_id_param)
+///   INTO already_hearted;
+///
+///   IF already_hearted THEN
+///     DELETE FROM hearts WHERE post_id = post_id_param AND user_id = user_id_param;
+///     UPDATE gratitude_posts SET heart_count = GREATEST(heart_count - 1, 0) WHERE id = post_id_param;
+///     RETURN FALSE;
+///   ELSE
+///     INSERT INTO hearts (post_id, user_id) VALUES (post_id_param, user_id_param)
+///     ON CONFLICT (post_id, user_id) DO NOTHING;
+///     UPDATE gratitude_posts SET heart_count = heart_count + 1 WHERE id = post_id_param;
+///     RETURN TRUE;
+///   END IF;
+/// END;
+/// $$ LANGUAGE plpgsql;
+///
+/// Once created, replace the implementation below with:
+/// const { data, error } = await supabase.rpc('toggle_heart', {
+///   post_id_param: postId,
+///   user_id_param: userId
+/// })
+/// if (error) throw error
+/// return data as boolean
 export async function toggleHeart(
   supabase: SupabaseClient,
   postId: string,

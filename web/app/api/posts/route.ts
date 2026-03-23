@@ -4,7 +4,7 @@ import { fetchPosts, createPost } from '@/lib/db/posts'
 
 // GET /api/posts — Fetch public feed (with optional category filter)
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { searchParams } = new URL(req.url)
   const category = searchParams.get('category') || undefined
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/posts — Create a new gratitude post
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { content, feeling, category, visibility, photoUrl } = body
+  const { content, feeling, category, visibility, photoUrl, cardTemplateId } = body
 
   if (!content?.trim()) {
     return NextResponse.json({ error: 'Content is required' }, { status: 400 })
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       category: category || 'SMALL_JOYS',
       visibility: visibility || 'PRIVATE',
       photoUrl: photoUrl || undefined,
+      cardTemplateId: cardTemplateId || 'minimal',
       authorId: user.id,
     })
     return NextResponse.json(post, { status: 201 })

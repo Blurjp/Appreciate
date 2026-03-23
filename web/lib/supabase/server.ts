@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 
 /// Server-side Supabase client for use in API routes and Server Components.
 /// Reads/writes auth cookies to maintain the user session.
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
