@@ -6,7 +6,6 @@ import {
   GratitudePost,
   getCategoryMeta,
   timeAgo,
-  KAWAII_DECORATIONS,
 } from '@/types'
 import { cn } from '@/lib/utils'
 import { PHOTO_CARD_TEMPLATE_ID, resolveCardPresentation } from './AppreciationCardGenerator'
@@ -21,10 +20,13 @@ interface Props {
   onToggleVisibility?: (post: GratitudePost) => void
 }
 
-// 🎀 Random cute decoration
-function getRandomSparkle() {
-  const sparkles = [...KAWAII_DECORATIONS.sparkles, ...KAWAII_DECORATIONS.hearts.slice(0, 3)]
-  return sparkles[Math.floor(Math.random() * sparkles.length)]
+const CATEGORY_ACCENT_COLORS: Record<string, string> = {
+  FAMILY: '#C4704B',
+  WORK: '#8B3A2A',
+  SMALL_JOYS: '#C4A35A',
+  NATURE: '#7D8C6E',
+  HEALTH: '#9B8AA0',
+  OTHER: '#A09080',
 }
 
 function GratitudePostCard({
@@ -37,13 +39,12 @@ function GratitudePostCard({
 }: Props) {
   const [isHeartAnimating, setIsHeartAnimating] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
-  const [sparkle] = useState(() => getRandomSparkle())
 
-  // Memoize computed values
   const category = useMemo(() => getCategoryMeta(post.category), [post.category])
   const isAnonymous = useMemo(() => post.visibility === 'ANONYMOUS', [post.visibility])
   const authorName = useMemo(() => isAnonymous ? 'Anonymous' : post.author.name, [isAnonymous, post.author.name])
   const initial = useMemo(() => isAnonymous ? '?' : authorName[0]?.toUpperCase() || '?', [isAnonymous, authorName])
+  const accentColor = CATEGORY_ACCENT_COLORS[post.category] ?? '#A09080'
 
   const shareUrl = useMemo(
     () => typeof window === 'undefined' ? `/share/${post.id}` : `${window.location.origin}/share/${post.id}`,
@@ -58,7 +59,7 @@ function GratitudePostCard({
   )
 
   const shareText = useMemo(
-    () => `${authorName} shared a gratitude moment on Appreciate. 💖`,
+    () => `${authorName} shared a gratitude moment on Appreciate.`,
     [authorName]
   )
 
@@ -85,68 +86,60 @@ function GratitudePostCard({
   }, [onDelete, post.id])
 
   return (
-    <div className="relative">
-      {/* 🎀 Decorative sparkle */}
-      <span className="absolute -top-2 -right-2 text-xl animate-sparkle z-10">
-        {sparkle}
-      </span>
-      
-      {/* 🎀 Main Card - Super rounded and cute */}
-      <div className="bg-white rounded-[32px] p-5 border-2 border-pink-100 shadow-lg shadow-pink-100/50 transition-all hover:shadow-xl hover:shadow-pink-200/50 hover:-translate-y-1 hover:border-pink-200">
-        
-        {/* 🎀 Header with cute avatar */}
+    <div
+      className="bg-white rounded-2xl border border-brand-border shadow-warm transition-shadow hover:shadow-warm-lg overflow-hidden"
+      style={{ borderLeft: `3px solid ${accentColor}` }}
+    >
+      <div className="p-5">
+        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          {/* Cute gradient avatar */}
-          <div className="relative">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center font-bold text-pink-600 text-lg shadow-md shadow-pink-100">
-              {initial}
-            </div>
-            {/* Cute status dot */}
-            <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[8px]">
-              ✨
-            </span>
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center font-medium text-white text-sm flex-shrink-0"
+            style={{ backgroundColor: accentColor }}
+          >
+            {initial}
           </div>
-          
+
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-700 truncate flex items-center gap-1.5">
+            <p className="font-medium text-brand-text-primary truncate text-sm">
               {authorName}
-              {post.heartCount > 5 && <span className="text-xs">💖</span>}
             </p>
-            <p className="text-sm text-gray-400 flex items-center gap-1">
-              <span className="text-xs">🕐</span>
+            <p className="text-xs text-brand-text-muted">
               {timeAgo(post.createdAt)}
             </p>
           </div>
-          
-          {/* 🎀 Visibility badge - cute style */}
+
           <VisibilityBadge visibility={post.visibility} />
         </div>
 
-        {/* 🎀 Content with cute quote styling */}
+        {/* Content */}
         <div className="relative mb-4">
-          <span className="absolute -left-1 -top-1 text-3xl text-pink-300 opacity-50">&ldquo;</span>
-          <p className="text-gray-700 text-[15px] leading-relaxed pl-4 pr-2 whitespace-pre-wrap">
+          <span
+            className="absolute -left-0.5 -top-1 text-2xl text-brand-border opacity-70"
+            style={{ fontFamily: 'var(--font-serif), Georgia, serif', lineHeight: 1 }}
+          >
+            &ldquo;
+          </span>
+          <p className="text-brand-text-primary text-[15px] leading-relaxed pl-4 pr-2 whitespace-pre-wrap">
             {post.content}
           </p>
-          <span className="absolute -right-1 -bottom-3 text-3xl text-pink-300 opacity-50">&rdquo;</span>
         </div>
 
-        {/* 🎀 Feeling tag */}
+        {/* Feeling */}
         {post.feeling && (
           <div className="mb-4 pl-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-gradient-to-r from-pink-50 to-purple-50 text-purple-600 border border-purple-100">
-              <span>💭</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-brand-surface text-brand-text-secondary border border-brand-divider">
               <span className="italic">{post.feeling}</span>
             </span>
           </div>
         )}
 
-        {/* 🎀 Card Background */}
+        {/* Card Background */}
         <CardBackground post={post} />
 
-        {/* 🎀 Photo with rounded corners */}
+        {/* Photo */}
         {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
-          <div className="mb-4 rounded-3xl overflow-hidden relative h-52 shadow-md shadow-pink-100">
+          <div className="mb-4 rounded-xl overflow-hidden relative h-52">
             <Image
               src={post.photoUrl}
               alt="Post photo"
@@ -154,92 +147,81 @@ function GratitudePostCard({
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            {/* Cute photo overlay */}
-            <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-sm rounded-full text-xs flex items-center gap-1">
-              <span>📸</span>
-            </div>
           </div>
         )}
 
-        {/* 🎀 Category Badge - Sticker style */}
+        {/* Category Badge */}
         <div className="flex items-center gap-2 mb-4">
-          <span 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium shadow-md transform -rotate-1 hover:rotate-0 transition-transform"
-            style={{ 
-              background: category.gradient,
-              color: 'white',
-              textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
+            style={{
+              backgroundColor: `${accentColor}18`,
+              color: accentColor,
+              borderColor: `${accentColor}35`,
             }}
           >
-            <span className="text-base">{category.emoji}</span>
-            <span>{category.label}</span>
+            {category.label}
           </span>
         </div>
 
-        {/* 🎀 Actions - Super cute buttons */}
-        <div className="pt-3 border-t-2 border-pink-50">
+        {/* Actions */}
+        <div className="pt-3 border-t border-brand-divider">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Heart button */}
             <button
               onClick={handleHeart}
               className={cn(
-                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all transform hover:scale-105 active:scale-95',
+                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
                 post.heartCount > 0
-                  ? 'bg-gradient-to-r from-pink-400 to-rose-400 text-white shadow-lg shadow-pink-200'
-                  : 'bg-pink-50 text-pink-500 hover:bg-pink-100 border-2 border-pink-100 hover:border-pink-200'
+                  ? 'text-white'
+                  : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider'
               )}
+              style={post.heartCount > 0 ? { backgroundColor: accentColor } : {}}
             >
               <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
               {post.heartCount > 0 && (
-                <span className="font-bold">{post.heartCount}</span>
+                <span>{post.heartCount}</span>
               )}
             </button>
 
-            {/* Share button */}
             <button
               onClick={handleShareToggle}
               className={cn(
-                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all transform hover:scale-105 active:scale-95',
+                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
                 isShareOpen
-                  ? 'bg-gradient-to-r from-purple-400 to-violet-400 text-white shadow-lg shadow-purple-200'
-                  : 'bg-purple-50 text-purple-500 hover:bg-purple-100 border-2 border-purple-100 hover:border-purple-200'
+                  ? 'bg-brand-accent text-white'
+                  : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider'
               )}
             >
-              <span>🔗</span>
+              <ShareIcon />
               <span>{isShareOpen ? 'Close' : 'Share'}</span>
             </button>
 
             {showActions && (
               <>
-                {/* Edit button */}
                 {onEdit && (
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-teal-50 text-teal-500 hover:bg-teal-100 border-2 border-teal-100 hover:border-teal-200 transition-all transform hover:scale-105 active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider transition-all"
                   >
-                    <span>✏️</span>
+                    <EditIcon />
                     <span>Edit</span>
                   </button>
                 )}
-                
-                {/* Visibility toggle */}
+
                 {onToggleVisibility && (
                   <button
                     onClick={handleToggleVisibility}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 border-2 border-amber-100 hover:border-amber-200 transition-all transform hover:scale-105 active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider transition-all"
                   >
-                    <span>{post.visibility === 'PRIVATE' ? '🌸' : '🔒'}</span>
-                    <span>{post.visibility === 'PRIVATE' ? 'Share' : 'Privatise'}</span>
+                    <span>{post.visibility === 'PRIVATE' ? 'Make Public' : 'Make Private'}</span>
                   </button>
                 )}
-                
-                {/* Delete button */}
+
                 {onDelete && (
                   <button
                     onClick={handleDelete}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-red-50 text-red-400 hover:bg-red-100 border-2 border-red-100 hover:border-red-200 transition-all transform hover:scale-105 active:scale-95 ml-auto"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-all ml-auto"
                   >
-                    <span>🗑️</span>
                     <span>Delete</span>
                   </button>
                 )}
@@ -247,12 +229,11 @@ function GratitudePostCard({
             )}
           </div>
 
-          {/* Share actions */}
           {isShareOpen && (
-            <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 border-2 border-pink-100">
+            <div className="mt-4 p-3 rounded-xl bg-brand-surface border border-brand-divider">
               <ShareLinkActions
                 url={shareUrl}
-                title="Share this gratitude moment ✨"
+                title="Share this gratitude moment"
                 text={shareText}
                 imageUrl={shareImageUrl}
                 compact
@@ -265,7 +246,6 @@ function GratitudePostCard({
   )
 }
 
-// 🎀 Card Background Component
 const CardBackground = ({ post }: { post: GratitudePost }) => {
   const cardStyle = useMemo(() => {
     if (!post.cardTemplateId || post.cardTemplateId === 'minimal') return null
@@ -276,16 +256,13 @@ const CardBackground = ({ post }: { post: GratitudePost }) => {
 
   return (
     <div
-      className="mb-4 rounded-3xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between shadow-lg"
+      className="mb-4 rounded-xl overflow-hidden relative p-5 min-h-[140px] flex flex-col justify-between"
       style={{ background: cardStyle.background }}
     >
       {cardStyle.overlayClassName && (
-        <div className={cn('absolute inset-0 rounded-3xl', cardStyle.overlayClassName)} />
+        <div className={cn('absolute inset-0 rounded-xl', cardStyle.overlayClassName)} />
       )}
-      
-      {/* Decorative corner sparkle */}
-      <span className="absolute top-2 right-2 text-xl opacity-60">✨</span>
-      
+
       <p
         className="relative z-10 text-[15px] font-medium leading-relaxed line-clamp-4"
         style={{ color: cardStyle.textColor }}
@@ -294,52 +271,63 @@ const CardBackground = ({ post }: { post: GratitudePost }) => {
       </p>
       {post.feeling && (
         <p
-          className="relative z-10 text-sm italic mt-2 opacity-80 flex items-center gap-1"
+          className="relative z-10 text-sm italic mt-2 opacity-80"
           style={{ color: cardStyle.textColor }}
         >
-          <span>💭</span> {post.feeling}
+          {post.feeling}
         </p>
       )}
     </div>
   )
 }
 
-// 🎀 Heart Icon - Cute animated heart
 const HeartIcon = memo(function HeartIcon({ filled, animating }: { filled: boolean; animating: boolean }) {
   return (
-    <span 
-      className={cn(
-        'text-lg transition-transform',
-        animating && 'animate-bounce'
-      )}
+    <svg
+      className={cn('w-4 h-4 transition-transform', animating && 'scale-125')}
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth={1.5}
     >
-      {filled ? '💖' : '🤍'}
-    </span>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
   )
 })
 
-// 🎀 Visibility Badge - Cute pill style
+function ShareIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.69a4.5 4.5 0 0 1 1.24 7.24l-4.5 4.5a4.5 4.5 0 0 1-6.37-6.36l1.76-1.77" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.81 15.31a4.5 4.5 0 0 1-1.24-7.24l4.5-4.5a4.5 4.5 0 1 1 6.37 6.36l-1.76 1.77" />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+    </svg>
+  )
+}
+
 const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibility: string }) {
-  const { icon, label, bgClass } = useMemo(() => {
+  const label = useMemo(() => {
     switch (visibility) {
-      case 'PRIVATE':
-        return { icon: '🔒', label: 'Private', bgClass: 'bg-amber-50 text-amber-600 border-amber-200' }
-      case 'ANONYMOUS':
-        return { icon: '🦋', label: 'Anon', bgClass: 'bg-purple-50 text-purple-600 border-purple-200' }
-      default:
-        return { icon: '🌸', label: 'Public', bgClass: 'bg-pink-50 text-pink-600 border-pink-200' }
+      case 'PRIVATE': return 'Private'
+      case 'ANONYMOUS': return 'Anon'
+      default: return 'Public'
     }
   }, [visibility])
 
   return (
-    <span className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border-2 ${bgClass}`}>
-      <span>{icon}</span>
-      <span>{label}</span>
+    <span className="flex items-center text-xs font-medium px-2.5 py-1 rounded-full border bg-brand-surface text-brand-text-muted border-brand-divider">
+      {label}
     </span>
   )
 })
 
-// Memoize the main card component
 export default memo(GratitudePostCard, (prevProps, nextProps) => {
   return (
     prevProps.post.id === nextProps.post.id &&

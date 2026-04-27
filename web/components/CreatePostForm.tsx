@@ -195,7 +195,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="p-5 border-t border-brand-border bg-white">
+      <div className="p-5 border-t border-brand-border bg-brand-background">
         {submitError && (
           <p className="mb-3 text-sm text-red-500">{submitError}</p>
         )}
@@ -203,7 +203,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-4 rounded-full border-2 border-pink-100 text-subheadline font-semibold tracking-wide text-gray-600 hover:border-pink-300 hover:text-pink-500 bg-white transition-all active:scale-95 shadow-md shadow-pink-50"
+            className="flex-1 py-3.5 rounded-xl border border-brand-border text-subheadline font-medium tracking-wide text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary bg-brand-surface transition-all active:scale-95"
           >
             ← Back
           </button>
@@ -213,10 +213,10 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 1 && !canProceedStep1}
             className={cn(
-              'flex-1 py-4 rounded-full text-subheadline tracking-wide font-semibold transition-all active:scale-95 shadow-lg',
+              'flex-1 py-3.5 rounded-xl text-subheadline tracking-wide font-medium transition-all active:scale-95',
               step === 1 && !canProceedStep1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                : 'bg-gradient-to-r from-pink-400 to-rose-400 text-white shadow-pink-200 hover:shadow-xl hover:shadow-pink-300'
+                ? 'bg-brand-surface text-brand-text-muted cursor-not-allowed border border-brand-border'
+                : 'bg-brand-primary text-white shadow-button hover:bg-brand-accent-dark'
             )}
           >
             Next →
@@ -225,9 +225,9 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-4 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 text-subheadline tracking-wide text-white font-semibold transition-all active:scale-95 disabled:opacity-60 shadow-lg shadow-pink-200 hover:shadow-xl hover:shadow-pink-300"
+            className="flex-1 py-3.5 rounded-xl bg-brand-primary text-subheadline tracking-wide text-white font-medium transition-all active:scale-95 disabled:opacity-60 shadow-button hover:bg-brand-accent-dark"
           >
-            {isSubmitting ? '✨ Sharing...' : '💖 Share'}
+            {isSubmitting ? 'Saving...' : 'Save entry'}
           </button>
         )}
         </div>
@@ -265,28 +265,20 @@ function Step1Message({
 }) {
   return (
     <div className="space-y-6">
-      {/* 🎀 Kawaii Step Header */}
       <div>
-        <p className="text-sm text-pink-400 mb-1 flex items-center gap-1.5">
-          <span className="animate-sparkle">✨</span>
-          Step 1
-          <span className="animate-sparkle">✨</span>
-        </p>
-        <label className="text-title-3 text-gray-700 block mb-2 font-bold tracking-tight">
-          What are you grateful for? 💖
+        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Step 1</p>
+        <label className="font-serif text-title-3 text-brand-text-primary block mb-2">
+          What are you grateful for?
         </label>
-        <p className="text-sm text-gray-500 mb-4">
-          Start with the appreciation itself, then shape how it looks in the next steps. 🌸
+        <p className="text-sm text-brand-text-secondary mb-4">
+          Start with the appreciation itself, then shape how it looks in the next steps.
         </p>
       </div>
 
-      {/* 🎀 Kawaii Card */}
-      <div className="rounded-[32px] border-2 border-pink-100 bg-white p-5 shadow-lg shadow-pink-100/50 hover:shadow-xl transition-shadow">
+      <div className="rounded-2xl border border-brand-border bg-white p-5 shadow-warm">
         <div className="flex items-end justify-between gap-3">
-          <label className="text-headline text-gray-700 block font-semibold flex items-center gap-2">
-            <span>📝</span> Your appreciation
-          </label>
-          <span className="text-xs font-bold px-3 py-1 rounded-full bg-pink-50 text-pink-500 border-2 border-pink-100">
+          <label className="text-sm text-brand-text-secondary font-medium">Your appreciation</label>
+          <span className="text-xs px-2.5 py-1 rounded-full bg-brand-surface text-brand-text-muted border border-brand-divider">
             {content.length}/200
           </span>
         </div>
@@ -294,53 +286,38 @@ function Step1Message({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="mt-4 h-40 w-full resize-none rounded-3xl border-2 border-pink-100 bg-gradient-to-b from-pink-50/30 to-white px-5 py-4 text-body leading-6 text-gray-700 placeholder:text-pink-300 focus:outline-none focus:border-pink-300 focus:ring-4 focus:ring-pink-100 transition-all"
+          className="mt-4 h-40 w-full resize-none rounded-xl border border-brand-border bg-brand-surface/40 px-4 py-3 text-body leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
           maxLength={200}
         />
       </div>
 
-      {/* 🎀 Kawaii Category Selection */}
       <div>
         <div className="mb-4">
-          <p className="text-headline font-semibold text-gray-700 flex items-center gap-2">
-            <span>🏷️</span> Choose a category
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            This tags the moment without interrupting the main writing step. ✨
+          <p className="text-sm font-medium text-brand-text-primary">Category</p>
+          <p className="mt-0.5 text-sm text-brand-text-muted">
+            Tag this moment without interrupting your writing.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.value}
             onClick={() => setCategory(cat.value)}
             className={cn(
-              'relative flex flex-col items-center justify-center gap-2 rounded-3xl border-2 px-4 py-5 text-center transition-all transform hover:scale-105 active:scale-95',
+              'flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all',
               category === cat.value
-                ? 'border-transparent shadow-lg scale-105'
-                : 'border-pink-100 bg-white hover:border-pink-200 hover:shadow-md'
+                ? 'border-transparent text-white shadow-warm'
+                : 'border-brand-border bg-white text-brand-text-primary hover:border-brand-primary hover:shadow-warm'
             )}
-            style={category === cat.value ? { background: cat.gradient } : {}}
+            style={category === cat.value ? { backgroundColor: cat.color } : {}}
           >
-            {category === cat.value && (
-              <span className="absolute -top-1.5 -right-1.5 text-lg animate-sparkle">✨</span>
-            )}
-            <div
-              className={cn(
-                'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md transition-all',
-                category === cat.value 
-                  ? 'bg-white/90 scale-110' 
-                  : 'bg-gradient-to-br from-pink-50 to-purple-50'
-              )}
-            >
-              {cat.emoji}
-            </div>
-            <p className={cn(
-              'text-sm font-semibold transition-colors',
-              category === cat.value ? 'text-white' : 'text-gray-700'
+            <span className="text-base">{cat.emoji}</span>
+            <span className={cn(
+              'text-sm font-medium',
+              category === cat.value ? 'text-white' : 'text-brand-text-primary'
             )}>
               {cat.label}
-            </p>
+            </span>
           </button>
         ))}
         </div>

@@ -152,8 +152,8 @@ export default function ShareLinkActions({
       hint: 'Copy the caption and open Instagram for a manual paste.',
       icon: <InstagramIcon />,
       onClick: handleInstagramShare,
-      accentClass: 'text-fuchsia-700',
-      bgClass: 'bg-pink-50 border-pink-200 hover:border-pink-300',
+      accentClass: 'text-warm-ink-400',
+      bgClass: 'bg-warm-cream-200 border-warm-cream-400 hover:border-brand-border',
     },
   ]
 

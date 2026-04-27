@@ -46,7 +46,6 @@ export interface UserProfile {
   createdAt: string
 }
 
-// 🎀 Kawaii Category metadata with cute colors and emojis
 export const CATEGORIES: {
   value: GratitudeCategory
   label: string
@@ -54,47 +53,47 @@ export const CATEGORIES: {
   color: string
   gradient: string
 }[] = [
-  { 
-    value: 'FAMILY', 
-    label: 'Family', 
-    emoji: '💕', 
-    color: '#FF6B8A',
-    gradient: 'linear-gradient(135deg, #FFB3C6 0%, #FF8FAB 100%)'
+  {
+    value: 'FAMILY',
+    label: 'Family',
+    emoji: '♡',
+    color: '#C4704B',
+    gradient: 'linear-gradient(135deg, #D4917A 0%, #C4704B 100%)',
   },
-  { 
-    value: 'WORK', 
-    label: 'Work', 
-    emoji: '💜', 
-    color: '#A855F7',
-    gradient: 'linear-gradient(135deg, #D8B4FE 0%, #C084FC 100%)'
+  {
+    value: 'WORK',
+    label: 'Work',
+    emoji: '◆',
+    color: '#8B3A2A',
+    gradient: 'linear-gradient(135deg, #A85040 0%, #8B3A2A 100%)',
   },
-  { 
-    value: 'SMALL_JOYS', 
-    label: 'Small Joys', 
-    emoji: '✨', 
-    color: '#F59E0B',
-    gradient: 'linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%)'
+  {
+    value: 'SMALL_JOYS',
+    label: 'Small Joys',
+    emoji: '◇',
+    color: '#C4A35A',
+    gradient: 'linear-gradient(135deg, #D4B87A 0%, #C4A35A 100%)',
   },
-  { 
-    value: 'NATURE', 
-    label: 'Nature', 
-    emoji: '🌿', 
-    color: '#14B8A6',
-    gradient: 'linear-gradient(135deg, #99F6E4 0%, #5EEAD4 100%)'
+  {
+    value: 'NATURE',
+    label: 'Nature',
+    emoji: '◉',
+    color: '#7D8C6E',
+    gradient: 'linear-gradient(135deg, #A3B08F 0%, #7D8C6E 100%)',
   },
-  { 
-    value: 'HEALTH', 
-    label: 'Health', 
-    emoji: '💙', 
-    color: '#3B82F6',
-    gradient: 'linear-gradient(135deg, #BFDBFE 0%, #93C5FD 100%)'
+  {
+    value: 'HEALTH',
+    label: 'Health',
+    emoji: '○',
+    color: '#9B8AA0',
+    gradient: 'linear-gradient(135deg, #B5A5BA 0%, #9B8AA0 100%)',
   },
-  { 
-    value: 'OTHER', 
-    label: 'Other', 
-    emoji: '💖', 
-    color: '#EC4899',
-    gradient: 'linear-gradient(135deg, #FBCFE8 0%, #F9A8D4 100%)'
+  {
+    value: 'OTHER',
+    label: 'Other',
+    emoji: '·',
+    color: '#A09080',
+    gradient: 'linear-gradient(135deg, #BBA898 0%, #A09080 100%)',
   },
 ]
 
@@ -107,60 +106,58 @@ export const VISIBILITY_OPTIONS: {
   {
     value: 'PRIVATE',
     label: 'Private',
-    icon: '🎀',
-    description: 'Only you can see this — your secret garden',
+    icon: '○',
+    description: 'Only visible to you — your personal journal',
   },
   {
     value: 'PUBLIC',
     label: 'Public',
-    icon: '🌸',
-    description: 'Share your joy with everyone',
+    icon: '◎',
+    description: 'Share with the community',
   },
   {
     value: 'ANONYMOUS',
     label: 'Anonymous',
-    icon: '🦋',
-    description: 'Share publicly, but stay mysterious',
+    icon: '◌',
+    description: 'Share publicly, without your name',
   },
 ]
 
-// 🎀 Cute confirmation messages with kawaii style
 export const CONFIRMATIONS = [
-  'Your gratitude sparkles! ✨',
-  'Spreading love like confetti! 🎊',
-  'Your heart is glowing! 💖',
-  'Thanks for sharing your light! 🌟',
-  'The world smiles with you! 😊',
-  'You just made today brighter! ☀️',
-  'Gratitude looks beautiful on you! 🌸',
-  'Your positivity is contagious! 🦋',
-  'Keep shining, superstar! ⭐',
-  'Your words warm hearts! 💕',
-  'One grateful moment at a time! 🌱',
-  'You\'re building something beautiful! 🏗️✨',
+  'Gratitude recorded.',
+  'A moment worth keeping.',
+  'Well noted.',
+  'Your reflection is saved.',
+  'Appreciation documented.',
+  'A small act of noticing.',
+  'Saved to your journal.',
+  'Gratitude takes root.',
+  'One moment captured.',
+  'Your words are kept.',
+  'A grateful day.',
+  'Something to return to.',
 ]
 
-// 🎀 Streak celebrations
 export function getStreakEmoji(streak: number): string {
-  if (streak >= 365) return '👑'      // Crown for a year!
-  if (streak >= 100) return '🏆'      // Trophy for 100 days
-  if (streak >= 30) return '💎'       // Diamond for 30 days
-  if (streak >= 14) return '⭐'       // Star for 2 weeks
-  if (streak >= 7) return '🔥'        // Fire for a week
-  if (streak >= 3) return '🌟'        // Sparkle for 3 days
-  if (streak >= 1) return '🌱'        // Seedling for starting
-  return '🌱'
+  if (streak >= 365) return '◉'
+  if (streak >= 100) return '◆'
+  if (streak >= 30) return '◇'
+  if (streak >= 14) return '○'
+  if (streak >= 7) return '▲'
+  if (streak >= 3) return '△'
+  if (streak >= 1) return '·'
+  return '·'
 }
 
 export function getStreakMessage(streak: number): string {
-  if (streak >= 365) return 'One whole year! You\'re a gratitude royalty! 👑'
-  if (streak >= 100) return 'Century club! 100 days of gratitude! 🏆'
-  if (streak >= 30) return 'One month strong! You\'re unstoppable! 💎'
-  if (streak >= 14) return 'Two weeks of gratitude magic! ⭐'
-  if (streak >= 7) return 'One week streak! You\'re on fire! 🔥'
-  if (streak >= 3) return 'Building a beautiful habit! 🌟'
-  if (streak >= 1) return 'Every moment of gratitude counts! 🌱'
-  return 'Start your gratitude journey today! 💖'
+  if (streak >= 365) return 'A full year of gratitude.'
+  if (streak >= 100) return '100 days of reflection.'
+  if (streak >= 30) return 'A month of practice.'
+  if (streak >= 14) return 'Two weeks of noticing.'
+  if (streak >= 7) return 'One week of gratitude.'
+  if (streak >= 3) return 'A habit taking shape.'
+  if (streak >= 1) return 'Every entry counts.'
+  return 'Begin your gratitude practice.'
 }
 
 export function getCategoryMeta(category: GratitudeCategory) {
@@ -172,30 +169,17 @@ export function timeAgo(dateStr: string): string {
   const now = new Date()
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-  if (seconds < 60) return 'Just now ✨'
+  if (seconds < 60) return 'Just now'
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-// 🎀 Decorative elements for UI
-export const KAWAII_DECORATIONS = {
-  sparkles: ['✨', '⭐', '🌟', '💫', '✦'],
-  hearts: ['💖', '💕', '💗', '💓', '💝', '❤️', '🧡', '💛', '💚', '💙', '💜'],
-  flowers: ['🌸', '🌺', '🌻', '🌼', '🌷', '💐', '🏵️', '🎀'],
-  cute: ['🥰', '😊', '🥺', '🤗', '😄', '🦋', '🌈', '☁️'],
-  celebrations: ['🎉', '🎊', '🎈', '🎁', '🏆', '👑'],
+export const WARM_ACCENTS = {
+  marks: ['·', '○', '◇', '◆', '△', '▲', '◉'],
+  punctuation: ['"', '"', '—', '…'],
 }
 
-// 🎀 Mascot expressions
-export const KAWAII_MASCOT = {
-  happy: '(◕‿◕)',
-  excited: '(≧▽≦)',
-  love: '(♥‿♥)',
-  proud: '(￣▽￣)ノ',
-  thinking: '(・_・)',
-  celebrate: '٩(◕‿◕)۶',
-  hug: '(づ｡◕‿‿◕｡)づ',
-  sparkle: '(✧ω✧)',
-}
+// Kept for backwards compatibility with any component that imports it
+export const KAWAII_DECORATIONS = WARM_ACCENTS
