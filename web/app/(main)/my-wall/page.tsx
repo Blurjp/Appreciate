@@ -47,7 +47,7 @@ export default function MyWallPage() {
     refetchOnWindowFocus: false,
   })
 
-  const { data: userProfile } = useQuery<{ isPro: boolean }>({
+  const { data: userProfile } = useQuery<{ isPro: boolean; id: string }>({
     queryKey: ['user'],
     queryFn: async () => {
       const res = await fetch('/api/user')
@@ -162,6 +162,27 @@ export default function MyWallPage() {
         <div className="mb-5">
           <StreakCardComponent streak={streak} />
         </div>
+      )}
+
+      {/* My Tree link */}
+      {userProfile?.id && (
+        <a
+          href={`/tree/${userProfile.id}`}
+          className="block mb-5 p-4 rounded-2xl bg-white border border-brand-border shadow-card hover:shadow-card-hover transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
+                🌳
+              </div>
+              <div>
+                <p className="text-headline text-brand-text-primary">My Gratitude Tree</p>
+                <p className="text-caption text-brand-text-secondary">Every appreciation is a leaf</p>
+              </div>
+            </div>
+            <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors">→</span>
+          </div>
+        </a>
       )}
 
       {/* Filter pills */}
