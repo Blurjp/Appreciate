@@ -11,7 +11,7 @@ export async function GET(
   // Fetch user profile
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, name, avatar_url, created_at')
+    .select('id, name, avatar_url, created_at, wall_theme')
     .eq('id', userId)
     .single()
 
@@ -47,6 +47,7 @@ export async function GET(
       name: profile.name,
       avatarUrl: profile.avatar_url,
       joinedAt: profile.created_at,
+      wallTheme: profile.wall_theme || 'starry',
     },
     posts: (posts || []).map((p: any) => ({
       id: p.id,

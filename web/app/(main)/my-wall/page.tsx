@@ -47,7 +47,7 @@ export default function MyWallPage() {
     refetchOnWindowFocus: false,
   })
 
-  const { data: userProfile } = useQuery<{ isPro: boolean; id: string }>({
+  const { data: userProfile } = useQuery<{ isPro: boolean; id: string; wallTheme: string }>({
     queryKey: ['user'],
     queryFn: async () => {
       const res = await fetch('/api/user')
@@ -164,7 +164,7 @@ export default function MyWallPage() {
         </div>
       )}
 
-      {/* My Tree link */}
+      {/* My Wall link */}
       {userProfile?.id && (
         <a
           href={`/tree/${userProfile.id}`}
@@ -173,11 +173,13 @@ export default function MyWallPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
-                ✨
+                {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '🧊' }[userProfile.wallTheme || 'starry'] || '✨'}
               </div>
               <div>
-                <p className="text-headline text-brand-text-primary">My Gratitude Sky</p>
-                <p className="text-caption text-brand-text-secondary">Every appreciation is a star</p>
+                <p className="text-headline text-brand-text-primary">My Gratitude Wall</p>
+                <p className="text-caption text-brand-text-secondary">
+                  {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Glassmorphism' }[userProfile.wallTheme || 'starry'] || 'Starry Night'}
+                </p>
               </div>
             </div>
             <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors">→</span>

@@ -28,6 +28,8 @@ interface Props {
   user: TreeUser
   posts: TreePost[]
   stats: TreeStats
+  isOwner?: boolean
+  currentTheme?: string
 }
 
 // Warm palette leaf colors with richer gradients
@@ -157,7 +159,7 @@ function LeafShape({ x, y, size, rotation, color, isHovered, isSelected, onClick
   )
 }
 
-export default function TreeClient({ user, posts, stats }: Props) {
+export default function TreeClient({ user, posts, stats, isOwner, currentTheme }: Props) {
   const [selectedLeaf, setSelectedLeaf] = useState<number | null>(null)
   const [hoveredLeaf, setHoveredLeaf] = useState<number | null>(null)
   const [showShareTip, setShowShareTip] = useState(false)

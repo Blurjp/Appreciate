@@ -28,6 +28,8 @@ interface Props {
   user: StarUser
   posts: StarPost[]
   stats: StarStats
+  isOwner?: boolean
+  currentTheme?: string
 }
 
 // Star colors by category — warm celestial palette
@@ -219,7 +221,7 @@ const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   OTHER: { label: 'Other', color: '#96B4FF' },
 }
 
-export default function SkyClient({ user, posts, stats }: Props) {
+export default function SkyClient({ user, posts, stats, isOwner, currentTheme }: Props) {
   const [selectedStar, setSelectedStar] = useState<number | null>(null)
   const [hoveredStar, setHoveredStar] = useState<number | null>(null)
   const [showShareTip, setShowShareTip] = useState(false)

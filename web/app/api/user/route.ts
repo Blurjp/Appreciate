@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id')
+    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id, wall_theme')
     .eq('id', user.id)
     .single()
 
@@ -31,6 +31,7 @@ export async function GET() {
     createdAt: profile.created_at,
     isPro: profile.is_pro ?? false,
     hasStripeCustomer: !!profile.stripe_customer_id,
+    wallTheme: profile.wall_theme || 'starry',
   })
 }
 
@@ -46,6 +47,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const updateData: Record<string, unknown> = {}
   if (body.name) updateData.name = body.name
+  if (body.wallTheme) updateData.wall_theme = body.wallTheme
 
   const { data: profile, error } = await supabase
     .from('profiles')
