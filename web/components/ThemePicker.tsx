@@ -54,9 +54,12 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
   const [selected, setSelected] = useState(currentTheme)
   const [saving, setSaving] = useState(false)
 
+  const [error, setError] = useState('')
+
   const handleSelect = async (themeId: string) => {
     setSelected(themeId)
     setSaving(true)
+    setError('')
 
     try {
       const res = await fetch('/api/user', {
@@ -64,12 +67,17 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallTheme: themeId }),
       })
+      const data = await res.json()
       if (res.ok) {
         // Reload the page to show the new theme
         window.location.reload()
+      } else {
+        setError(data.error || 'Failed to save theme')
+        setSelected(currentTheme) // revert
       }
     } catch {
-      // Silently fail — user can try again
+      setError('Network error — please try again')
+      setSelected(currentTheme) // revert
     } finally {
       setSaving(false)
     }
@@ -102,6 +110,9 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
           <p className="text-caption text-warm-ink-300">
             Pick how your gratitude wall looks to others
           </p>
+          {error && (
+            <p className="text-caption text-red-500 mt-1">{error}</p>
+          )}
         </div>
 
         {/* Theme list */}
