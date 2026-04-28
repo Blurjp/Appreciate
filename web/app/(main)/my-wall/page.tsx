@@ -173,11 +173,11 @@ export default function MyWallPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
-                🌳
+                ✨
               </div>
               <div>
-                <p className="text-headline text-brand-text-primary">My Gratitude Tree</p>
-                <p className="text-caption text-brand-text-secondary">Every appreciation is a leaf</p>
+                <p className="text-headline text-brand-text-primary">My Gratitude Sky</p>
+                <p className="text-caption text-brand-text-secondary">Every appreciation is a star</p>
               </div>
             </div>
             <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors">→</span>
