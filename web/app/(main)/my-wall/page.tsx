@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { GratitudePost, PostVisibility, StreakData } from '@/types'
 import { cn } from '@/lib/utils'
 import GratitudePostCard from '@/components/GratitudePostCard'
+import ThemePicker from '@/components/ThemePicker'
 import Toast from '@/components/Toast'
 import { GratitudeCategory } from '@/types'
 
@@ -31,6 +32,7 @@ export default function MyWallPage() {
   const [editingPost, setEditingPost] = useState<GratitudePost | null>(null)
   const [toast, setToast] = useState({ visible: false, message: '', icon: '✓', isError: false })
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [showThemePicker, setShowThemePicker] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: posts = [], isLoading: postsLoading } = useQuery<GratitudePost[]>({
@@ -164,28 +166,42 @@ export default function MyWallPage() {
         </div>
       )}
 
-      {/* My Wall link */}
+      {/* My Wall card — tap theme emoji to change theme, tap rest to view wall */}
       {userProfile?.id && (
-        <a
-          href={`/tree/${userProfile.id}`}
-          className="block mb-5 p-4 rounded-2xl bg-white border border-brand-border shadow-card hover:shadow-card-hover transition-all group"
-        >
+        <div className="block mb-5 p-4 rounded-2xl bg-white border border-brand-border shadow-card group">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <a
+              href={`/tree/${userProfile.id}`}
+              className="flex items-center gap-3 flex-1 min-w-0"
+            >
               <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
                 {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '🧊' }[userProfile.wallTheme || 'starry'] || '✨'}
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-headline text-brand-text-primary">My Gratitude Wall</p>
                 <p className="text-caption text-brand-text-secondary">
                   {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Glassmorphism' }[userProfile.wallTheme || 'starry'] || 'Starry Night'}
                 </p>
               </div>
+            </a>
+            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              <button
+                onClick={() => setShowThemePicker(true)}
+                className="text-[9px] tracking-widest uppercase text-brand-text-muted hover:text-brand-primary transition-colors border border-brand-border rounded-full px-3 py-1 hover:border-brand-primary"
+                title="Change theme"
+              >
+                Theme
+              </button>
+              <a
+                href={`/tree/${userProfile.id}`}
+                className="text-brand-text-muted hover:text-brand-primary transition-colors"
+              >
+                →
+              </a>
             </div>
-            <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors">→</span>
           </div>
-        </a>
-      )}
+        </div>
+      )
 
       {/* Filter pills */}
       <div className="flex gap-2 mb-5">
@@ -274,6 +290,14 @@ export default function MyWallPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Theme Picker Modal */}
+      {showThemePicker && (
+        <ThemePicker
+          currentTheme={userProfile?.wallTheme || 'starry'}
+          onClose={() => setShowThemePicker(false)}
+        />
       )}
 
       <Toast
