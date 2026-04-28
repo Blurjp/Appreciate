@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserProfile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import ThemePicker from '@/components/ThemePicker'
 
 export default function SettingsPage() {
   const [showNameEdit, setShowNameEdit] = useState(false)
@@ -12,6 +13,7 @@ export default function SettingsPage() {
   const [isManaging, setIsManaging] = useState(false)
   const [newName, setNewName] = useState('')
   const [showUpgradedBanner, setShowUpgradedBanner] = useState(false)
+  const [showThemePicker, setShowThemePicker] = useState(false)
   const queryClient = useQueryClient()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -124,6 +126,29 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Theme Selection Card */}
+      {!isLoading && user && (
+        <button
+          onClick={() => setShowThemePicker(true)}
+          className="w-full text-left rounded-2xl p-5 mb-4 border border-brand-border hover:border-brand-primary transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
+                {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '🧊' }[user.wallTheme || 'starry'] || '✨'}
+              </div>
+              <div>
+                <p className="text-headline text-brand-text-primary">Wall Theme</p>
+                <p className="text-caption text-brand-text-secondary">
+                  {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Glassmorphism' }[user.wallTheme || 'starry'] || 'Starry Night'}
+                </p>
+              </div>
+            </div>
+            <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors text-lg">›</span>
+          </div>
+        </button>
+      )}
+
       {/* Subscription Card */}
       {isLoading ? (
         <div className="rounded-2xl p-5 mb-4 border border-brand-border animate-pulse">
@@ -223,6 +248,14 @@ export default function SettingsPage() {
       >
         Sign Out
       </button>
+
+      {/* Theme Picker Modal */}
+      {showThemePicker && (
+        <ThemePicker
+          currentTheme={user?.wallTheme || 'starry'}
+          onClose={() => setShowThemePicker(false)}
+        />
+      )}
 
       {/* Edit Name Modal */}
       {showNameEdit && (

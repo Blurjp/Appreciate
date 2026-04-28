@@ -44,6 +44,7 @@ export interface UserProfile {
   email: string
   avatarUrl: string | null
   createdAt: string
+  wallTheme?: string
 }
 
 export const CATEGORIES: {
