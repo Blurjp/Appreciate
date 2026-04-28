@@ -201,7 +201,7 @@ export default function MyWallPage() {
             </div>
           </div>
         </div>
-      )
+      )}
 
       {/* Filter pills */}
       <div className="flex gap-2 mb-5">
