@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTheme, ThemeId } from '@/contexts/ThemeContext'
 
 interface Props {
   currentTheme: string
@@ -53,13 +54,16 @@ const THEMES = [
 export default function ThemePicker({ currentTheme, onClose }: Props) {
   const [selected, setSelected] = useState(currentTheme)
   const [saving, setSaving] = useState(false)
-
   const [error, setError] = useState('')
+  const { setTheme } = useTheme()
 
   const handleSelect = async (themeId: string) => {
     setSelected(themeId)
     setSaving(true)
     setError('')
+
+    // Apply theme immediately for instant feedback
+    setTheme(themeId as ThemeId)
 
     try {
       const res = await fetch('/api/user', {
@@ -69,15 +73,16 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
       })
       const data = await res.json()
       if (res.ok) {
-        // Reload the page to show the new theme
-        window.location.reload()
+        onClose()
       } else {
         setError(data.error || 'Failed to save theme')
-        setSelected(currentTheme) // revert
+        setSelected(currentTheme)
+        setTheme(currentTheme as ThemeId) // revert
       }
     } catch {
       setError('Network error — please try again')
-      setSelected(currentTheme) // revert
+      setSelected(currentTheme)
+      setTheme(currentTheme as ThemeId) // revert
     } finally {
       setSaving(false)
     }

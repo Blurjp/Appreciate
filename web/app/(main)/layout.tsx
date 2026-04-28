@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 
 const TABS = [
   { href: '/feed', label: 'Feed', icon: 'HomeIcon' },
@@ -81,7 +82,7 @@ export default function MainLayout({
 
   if (user === undefined || user === null) {
     return (
-      <div className="min-h-screen bg-brand-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--theme-page-bg)' }}>
         <svg className="w-10 h-10 animate-pulse text-brand-border" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
@@ -90,36 +91,46 @@ export default function MainLayout({
   }
 
   return (
-    <div className="min-h-screen bg-brand-background flex flex-col">
-      <main className="flex-1 pb-24 max-w-2xl mx-auto w-full">
-        {children}
-      </main>
+    <ThemeProvider>
+      <div className="min-h-screen flex flex-col" style={{ background: 'var(--theme-page-bg)' }}>
+        <main className="flex-1 pb-24 max-w-2xl mx-auto w-full">
+          {children}
+        </main>
 
-      {/* Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-brand-background border-t border-brand-border z-40">
-        <div className="max-w-2xl mx-auto flex items-end px-4 pt-2 pb-6">
-          {TABS.map((tab) => {
-            const isActive = pathname === tab.href
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className="flex-1 flex flex-col items-center py-1 transition-all"
-              >
-                <TabIcon name={tab.icon} isActive={isActive} />
-                <span
-                  className={cn(
-                    'text-[9px] mt-1 tracking-widest uppercase font-medium',
-                    isActive ? 'text-brand-primary' : 'text-brand-text-muted'
-                  )}
+        {/* Bottom Tab Bar */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 border-t z-40"
+          style={{
+            background: 'var(--theme-nav-bg)',
+            borderColor: 'var(--theme-nav-border)',
+            backdropFilter: 'var(--theme-backdrop-blur)',
+            WebkitBackdropFilter: 'var(--theme-backdrop-blur)',
+          }}
+        >
+          <div className="max-w-2xl mx-auto flex items-end px-4 pt-2 pb-6">
+            {TABS.map((tab) => {
+              const isActive = pathname === tab.href
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className="flex-1 flex flex-col items-center py-1 transition-all"
                 >
-                  {tab.label}
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-      </nav>
-    </div>
+                  <TabIcon name={tab.icon} isActive={isActive} />
+                  <span
+                    className={cn(
+                      'text-[9px] mt-1 tracking-widest uppercase font-medium',
+                      isActive ? 'text-brand-primary' : 'text-brand-text-muted'
+                    )}
+                  >
+                    {tab.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
+      </div>
+    </ThemeProvider>
   )
 }

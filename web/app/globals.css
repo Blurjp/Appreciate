@@ -2,6 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Theme CSS variables (default = tree / warm earth) ─────────────────── */
+:root,
+[data-theme="tree"] {
+  --color-brand-background: #FAF6EE;
+  --color-brand-surface: #F5EFE3;
+  --color-brand-card: #FFFFFF;
+  --color-brand-primary: #C4704B;
+  --color-brand-accent: #7D8C6E;
+  --color-brand-accent-light: #EDE8DF;
+  --color-brand-accent-dark: #8B3A2A;
+  --color-brand-text-primary: #3A2E2A;
+  --color-brand-text-secondary: #6B5E57;
+  --color-brand-text-muted: #9A8880;
+  --color-brand-border: #E2D8CE;
+  --color-brand-divider: #EDE8DF;
+  --theme-page-bg: #FAF6EE;
+  --theme-nav-bg: #FAF6EE;
+  --theme-nav-border: #E2D8CE;
+  --theme-card-bg: #FFFFFF;
+  --theme-card-border: #E2D8CE;
+  --theme-shadow-color: rgba(58, 46, 42, 0.08);
+  --theme-shadow-color-lg: rgba(58, 46, 42, 0.12);
+  --theme-backdrop-blur: none;
+}
+
+[data-theme="starry"] {
+  --color-brand-background: #0a0a2e;
+  --color-brand-surface: #151050;
+  --color-brand-card: #1a1660;
+  --color-brand-primary: #B8A0FF;
+  --color-brand-accent: #9B8EC4;
+  --color-brand-accent-light: #1e1a5e;
+  --color-brand-accent-dark: #D4C0FF;
+  --color-brand-text-primary: #E8E0F0;
+  --color-brand-text-secondary: #A89BC2;
+  --color-brand-text-muted: #6B5E80;
+  --color-brand-border: #2a2560;
+  --color-brand-divider: #1e1a5e;
+  --theme-page-bg: #0a0a2e;
+  --theme-nav-bg: rgba(10, 10, 46, 0.95);
+  --theme-nav-border: #2a2560;
+  --theme-card-bg: #1a1660;
+  --theme-card-border: #2a2560;
+  --theme-shadow-color: rgba(0, 0, 0, 0.3);
+  --theme-shadow-color-lg: rgba(0, 0, 0, 0.4);
+  --theme-backdrop-blur: none;
+}
+
+[data-theme="zen"] {
+  --color-brand-background: #E8E4D8;
+  --color-brand-surface: #D4CCB8;
+  --color-brand-card: #F0ECE0;
+  --color-brand-primary: #9CAF88;
+  --color-brand-accent: #7D8C6E;
+  --color-brand-accent-light: #DCD8C8;
+  --color-brand-accent-dark: #5C7A50;
+  --color-brand-text-primary: #4A4638;
+  --color-brand-text-secondary: #8A8474;
+  --color-brand-text-muted: #AAA090;
+  --color-brand-border: #C8C0A8;
+  --color-brand-divider: #DCD8C8;
+  --theme-page-bg: #E8E4D8;
+  --theme-nav-bg: #E0DCD0;
+  --theme-nav-border: #C8C0A8;
+  --theme-card-bg: #F0ECE0;
+  --theme-card-border: #C8C0A8;
+  --theme-shadow-color: rgba(74, 70, 56, 0.08);
+  --theme-shadow-color-lg: rgba(74, 70, 56, 0.12);
+  --theme-backdrop-blur: none;
+}
+
+[data-theme="polaroid"] {
+  --color-brand-background: #F5F0E8;
+  --color-brand-surface: #E8E0D4;
+  --color-brand-card: #FFFFFF;
+  --color-brand-primary: #C4704B;
+  --color-brand-accent: #A07048;
+  --color-brand-accent-light: #EDE0D4;
+  --color-brand-accent-dark: #8B4828;
+  --color-brand-text-primary: #4A3F35;
+  --color-brand-text-secondary: #8A7E72;
+  --color-brand-text-muted: #B0A494;
+  --color-brand-border: #D4CCC0;
+  --color-brand-divider: #E0D8CC;
+  --theme-page-bg: #F5F0E8;
+  --theme-nav-bg: #F0EBE3;
+  --theme-nav-border: #D4CCC0;
+  --theme-card-bg: #FFFFFF;
+  --theme-card-border: #D4CCC0;
+  --theme-shadow-color: rgba(74, 63, 53, 0.08);
+  --theme-shadow-color-lg: rgba(74, 63, 53, 0.12);
+  --theme-backdrop-blur: none;
+}
+
+[data-theme="glass"] {
+  --color-brand-background: #B8C4FF;
+  --color-brand-surface: #D0B8F8;
+  --color-brand-card: rgba(255, 255, 255, 0.25);
+  --color-brand-primary: #8B6EC4;
+  --color-brand-accent: #7060B0;
+  --color-brand-accent-light: rgba(255, 255, 255, 0.3);
+  --color-brand-accent-dark: #5040A0;
+  --color-brand-text-primary: #2A2050;
+  --color-brand-text-secondary: #6A5E80;
+  --color-brand-text-muted: #8A80A0;
+  --color-brand-border: rgba(255, 255, 255, 0.35);
+  --color-brand-divider: rgba(255, 255, 255, 0.2);
+  --theme-page-bg: linear-gradient(135deg, #A8B8FF 0%, #D4A0FF 50%, #FFB0C8 100%);
+  --theme-nav-bg: rgba(255, 255, 255, 0.2);
+  --theme-nav-border: rgba(255, 255, 255, 0.35);
+  --theme-card-bg: rgba(255, 255, 255, 0.25);
+  --theme-card-border: rgba(255, 255, 255, 0.35);
+  --theme-shadow-color: rgba(42, 32, 80, 0.12);
+  --theme-shadow-color-lg: rgba(42, 32, 80, 0.18);
+  --theme-backdrop-blur: blur(12px);
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -9,8 +126,8 @@
   }
 
   body {
-    background-color: #FAF6EE;
-    color: #3A2E2A;
+    background-color: var(--color-brand-background);
+    color: var(--color-brand-text-primary);
     font-family: var(--font-sans), system-ui, sans-serif;
   }
 
@@ -19,8 +136,8 @@
   }
 
   ::selection {
-    background-color: #E2D8CE;
-    color: #3A2E2A;
+    background-color: var(--color-brand-accent-light);
+    color: var(--color-brand-text-primary);
   }
 }
 
@@ -31,34 +148,36 @@
     border-radius: 12px;
     padding: 12px 24px;
     font-weight: 500;
-    background-color: #C4704B;
+    background-color: var(--color-brand-primary);
     color: white;
-    box-shadow: 0 4px 12px rgba(196, 112, 75, 0.25);
+    box-shadow: 0 4px 12px var(--theme-shadow-color);
     transition: all 0.2s ease;
   }
 
   .warm-button:hover {
-    background-color: #B85C38;
-    box-shadow: 0 6px 16px rgba(196, 112, 75, 0.3);
+    opacity: 0.9;
+    box-shadow: 0 6px 16px var(--theme-shadow-color-lg);
   }
 
   .warm-button:active {
-    background-color: #8B3A2A;
-    box-shadow: 0 2px 8px rgba(196, 112, 75, 0.2);
+    opacity: 0.8;
+    box-shadow: 0 2px 8px var(--theme-shadow-color);
   }
 
   /* Warm Card */
   .warm-card {
     @apply relative;
     border-radius: 16px;
-    background: #FFFFFF;
-    box-shadow: 0 4px 20px rgba(58, 46, 42, 0.08);
-    border: 1px solid #E2D8CE;
+    background: var(--theme-card-bg);
+    backdrop-filter: var(--theme-backdrop-blur);
+    -webkit-backdrop-filter: var(--theme-backdrop-blur);
+    box-shadow: 0 4px 20px var(--theme-shadow-color);
+    border: 1px solid var(--theme-card-border);
     transition: all 0.2s ease;
   }
 
   .warm-card:hover {
-    box-shadow: 0 8px 32px rgba(58, 46, 42, 0.12);
+    box-shadow: 0 8px 32px var(--theme-shadow-color-lg);
   }
 
   /* Warm Input */
@@ -66,22 +185,22 @@
     @apply w-full;
     border-radius: 12px;
     padding: 14px 16px;
-    background: #FFFFFF;
-    border: 1.5px solid #E2D8CE;
+    background: var(--theme-card-bg);
+    border: 1.5px solid var(--color-brand-border);
     font-size: 15px;
-    color: #3A2E2A;
+    color: var(--color-brand-text-primary);
     transition: all 0.2s ease;
   }
 
   .warm-input:focus {
     outline: none;
-    border-color: #C4704B;
-    box-shadow: 0 0 0 3px rgba(196, 112, 75, 0.12);
-    background: #FDFAF5;
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-primary) 15%, transparent);
+    background: var(--color-brand-surface);
   }
 
   .warm-input::placeholder {
-    color: #9A8880;
+    color: var(--color-brand-text-muted);
   }
 
   /* Warm Badge */
@@ -91,8 +210,8 @@
     padding: 4px 12px;
     font-size: 12px;
     font-weight: 500;
-    background: #EDE8DF;
-    color: #6B5E57;
+    background: var(--color-brand-accent-light);
+    color: var(--color-brand-text-secondary);
   }
 
   /* Warm FAB */
@@ -101,16 +220,16 @@
     width: 56px;
     height: 56px;
     border-radius: 16px;
-    background-color: #C4704B;
-    box-shadow: 0 8px 24px rgba(196, 112, 75, 0.3);
+    background-color: var(--color-brand-primary);
+    box-shadow: 0 8px 24px var(--theme-shadow-color-lg);
     color: white;
     transition: all 0.2s ease;
     z-index: 50;
   }
 
   .warm-fab:hover {
-    background-color: #B85C38;
-    box-shadow: 0 12px 32px rgba(196, 112, 75, 0.35);
+    opacity: 0.9;
+    box-shadow: 0 12px 32px var(--theme-shadow-color-lg);
   }
 
   /* Warm Tag */
@@ -120,18 +239,18 @@
     padding: 6px 12px;
     font-size: 13px;
     font-weight: 500;
-    background: #EDE8DF;
-    color: #6B5E57;
-    border: 1px solid #E2D8CE;
+    background: var(--color-brand-accent-light);
+    color: var(--color-brand-text-secondary);
+    border: 1px solid var(--color-brand-border);
     transition: all 0.2s ease;
   }
 
   .warm-tag:hover {
-    background: #E2D8CE;
+    background: var(--color-brand-border);
   }
 
   .warm-tag.selected {
-    background: #C4704B;
+    background: var(--color-brand-primary);
     color: white;
     border-color: transparent;
   }
@@ -140,24 +259,26 @@
   .warm-toast {
     border-radius: 16px;
     padding: 16px 24px;
-    background: #FFFFFF;
-    box-shadow: 0 8px 32px rgba(58, 46, 42, 0.12);
-    border: 1px solid #E2D8CE;
+    background: var(--theme-card-bg);
+    backdrop-filter: var(--theme-backdrop-blur);
+    -webkit-backdrop-filter: var(--theme-backdrop-blur);
+    box-shadow: 0 8px 32px var(--theme-shadow-color-lg);
+    border: 1px solid var(--theme-card-border);
   }
 
   /* Warm Avatar */
   .warm-avatar {
     @apply relative overflow-hidden;
     border-radius: 50%;
-    background: #EDE8DF;
+    background: var(--color-brand-accent-light);
   }
 
   /* Glass */
   .glass {
-    background: rgba(250, 246, 238, 0.85);
+    background: color-mix(in srgb, var(--color-brand-background) 85%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(226, 216, 206, 0.5);
+    border: 1px solid var(--color-brand-border);
   }
 
   /* Category pills — warm earth tones */
@@ -214,11 +335,11 @@
   }
 
   .shadow-warm {
-    box-shadow: 0 4px 20px rgba(58, 46, 42, 0.08);
+    box-shadow: 0 4px 20px var(--theme-shadow-color);
   }
 
   .shadow-warm-lg {
-    box-shadow: 0 8px 32px rgba(58, 46, 42, 0.12);
+    box-shadow: 0 8px 32px var(--theme-shadow-color-lg);
   }
 
   .rounded-warm {
