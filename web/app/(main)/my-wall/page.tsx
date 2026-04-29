@@ -162,7 +162,7 @@ export default function MyWallPage() {
       {/* Streak Card */}
       {streak && (
         <div className="mb-5">
-          <StreakCardComponent streak={streak} />
+          <StreakCardComponent streak={streak} currentTheme={userProfile?.wallTheme || 'starry'} />
         </div>
       )}
 

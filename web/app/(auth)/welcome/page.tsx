@@ -103,7 +103,7 @@ function WelcomePageContent() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Display Name"
-                className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+                className="w-full px-4 py-3 bg-white rounded-xl text-body text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
                 required
               />
             )}
@@ -112,7 +112,7 @@ function WelcomePageContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+              className="w-full px-4 py-3 bg-white rounded-xl text-body text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
               required
             />
             <input
@@ -120,7 +120,7 @@ function WelcomePageContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password (min 6 characters)"
-              className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+              className="w-full px-4 py-3 bg-white rounded-xl text-body text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
               required
               minLength={6}
             />

@@ -267,7 +267,7 @@ export default function SettingsPage() {
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="w-full px-4 py-3 bg-white rounded-xl text-body text-brand-text-primary focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border mb-4"
+              className="w-full px-4 py-3 bg-white rounded-xl text-body text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border mb-4"
               placeholder="Your name"
               autoFocus
             />
