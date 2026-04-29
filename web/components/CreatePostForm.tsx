@@ -286,7 +286,7 @@ function Step1Message({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="mt-4 h-40 w-full resize-none rounded-xl border border-brand-border bg-brand-surface/40 px-4 py-3 text-body leading-6 text-brand-text-primary placeholder:text-brand-text-muted focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+          className="mt-4 h-40 w-full resize-none rounded-xl border border-brand-border bg-white px-4 py-3 text-body leading-6 text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
           maxLength={200}
         />
       </div>
