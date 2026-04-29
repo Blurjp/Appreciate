@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 interface StarPost {
   id: string
@@ -226,6 +229,7 @@ export default function SkyClient({ user, posts, stats, isOwner, currentTheme }:
   const [hoveredStar, setHoveredStar] = useState<number | null>(null)
   const [showShareTip, setShowShareTip] = useState(false)
   const [showLegend, setShowLegend] = useState(false)
+  const [showThemePicker, setShowThemePicker] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -245,9 +249,14 @@ export default function SkyClient({ user, posts, stats, isOwner, currentTheme }:
     try {
       await navigator.clipboard.writeText(window.location.href)
       setShowShareTip(true)
-      setTimeout(() => setShowShareTip(false), 2000)
     } catch {}
   }, [])
+
+  useEffect(() => {
+    if (!showShareTip) return
+    const timer = setTimeout(() => setShowShareTip(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showShareTip])
 
   // Sky description based on count
   const skyDescription = useMemo(() => {
@@ -262,7 +271,25 @@ export default function SkyClient({ user, posts, stats, isOwner, currentTheme }:
   }, [posts.length])
 
   return (
-    <div className="min-h-screen relative overflow-hidden select-none" style={{ background: 'linear-gradient(180deg, #050520 0%, #0a0a35 25%, #151050 50%, #1a1260 75%, #0d0d30 100%)' }}>
+    <div className="min-h-screen relative overflow-hidden select-none" style={{ background: 'linear-gradient(180deg, #040414 0%, #080A28 24%, #14113B 58%, #221447 100%)' }}>
+      {/* Owner theme switcher */}
+      {isOwner && (
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={() => setShowThemePicker(true)}
+            className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.45)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            Change theme
+          </button>
+        </div>
+      )}
+
       {/* Ambient nebula glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-[0.03]"
@@ -275,20 +302,23 @@ export default function SkyClient({ user, posts, stats, isOwner, currentTheme }:
 
       <div className="max-w-3xl mx-auto px-4 pt-6 pb-12 relative z-10">
         {/* Header */}
-        <div className="text-center mb-4">
+        <div className="mb-4">
           <p className="text-[10px] tracking-[0.4em] uppercase text-indigo-300/40 mb-2">
             {skyDescription}
           </p>
           <h1 className="text-large-title tracking-tight text-white/90" style={{ fontFamily: 'Georgia, serif', textShadow: '0 0 40px rgba(180,160,255,0.15)' }}>
-            {user.name}&apos;s Gratitude Sky
+            My Gratitude Sky
           </h1>
+          <p className="text-caption mt-1 max-w-md text-indigo-100/35">
+            {user.name}&apos;s moments are mapped as constellations of joy, connection, and care
+          </p>
         </div>
 
         {/* Sky container */}
         <div className="relative rounded-2xl overflow-hidden" style={{
-          background: 'linear-gradient(180deg, #080830 0%, #101050 40%, #181260 70%, #0c0c35 100%)',
-          boxShadow: '0 0 60px rgba(100,80,180,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 0 80px rgba(100,80,180,0.03)',
-          border: '1px solid rgba(255,255,255,0.04)',
+          background: 'radial-gradient(circle at 32% 78%, rgba(108,64,128,0.32) 0%, transparent 32%), linear-gradient(180deg, #070824 0%, #11153F 42%, #17114B 72%, #0A0A2B 100%)',
+          boxShadow: '0 22px 70px rgba(5,5,22,0.45), 0 0 80px rgba(125,110,220,0.10), inset 0 0 90px rgba(190,175,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
         }}>
           <svg
             viewBox="0 0 1200 800"
@@ -633,6 +663,27 @@ export default function SkyClient({ user, posts, stats, isOwner, currentTheme }:
           100% { transform: translateY(0); opacity: 1; }
         }
       `}</style>
+
+      {/* Theme Picker overlay */}
+      {showThemePicker && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(5,5,20,0.65)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setShowThemePicker(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl p-6"
+            style={{
+              background: 'rgba(20,20,50,0.95)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              backdropFilter: 'blur(24px)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ThemePicker currentTheme={currentTheme || 'starry'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

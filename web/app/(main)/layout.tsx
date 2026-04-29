@@ -10,7 +10,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 const TABS = [
   { href: '/feed', label: 'Feed', icon: 'HomeIcon' },
   { href: '/create', label: 'Create', icon: 'PlusIcon' },
-  { href: '/my-wall', label: 'My Wall', icon: 'LockIcon' },
+  { href: '/my-wall', label: 'My Wall', icon: 'UserIcon' },
   { href: '/settings', label: 'Settings', icon: 'SettingsIcon' },
 ]
 
@@ -36,10 +36,10 @@ function TabIcon({ name, isActive }: { name: string; isActive: boolean }) {
           </svg>
         </div>
       )
-    case 'LockIcon':
+    case 'UserIcon':
       return (
         <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={sw}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
         </svg>
       )
     case 'SettingsIcon':
@@ -67,6 +67,8 @@ export default function MainLayout({
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null)
+    }).catch(() => {
+      setUser(null)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)

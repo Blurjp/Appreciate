@@ -49,7 +49,7 @@ function WelcomePageContent() {
         }
 
         if (data.session) {
-          router.push(nextPath)
+          await router.push(nextPath)
         } else {
           setError('Check your email to confirm your account!')
           setIsLoading(false)
@@ -63,7 +63,7 @@ function WelcomePageContent() {
           return
         }
 
-        router.push(nextPath)
+        await router.push(nextPath)
       }
     } catch (err) {
       console.error('Auth error:', err)
@@ -169,16 +169,16 @@ function WelcomePageSkeleton() {
           <svg className="w-12 h-12 mx-auto mb-4 text-brand-border animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <div className="h-8 bg-gray-100 rounded-xl w-32 mx-auto mb-3" />
-          <div className="h-4 bg-gray-100 rounded-xl w-40 mx-auto" />
+          <div className="h-8 bg-brand-border rounded-xl w-32 mx-auto mb-3" />
+          <div className="h-4 bg-brand-border rounded-xl w-40 mx-auto" />
         </div>
         <div className="p-6 border border-brand-border rounded-2xl space-y-3">
-          <div className="h-12 bg-gray-100 rounded-xl" />
+          <div className="h-12 bg-brand-border rounded-xl" />
           <div className="h-px bg-brand-border my-5" />
-          <div className="h-12 bg-gray-100 rounded-xl" />
-          <div className="h-12 bg-gray-100 rounded-xl" />
-          <div className="h-12 bg-gray-100 rounded-xl" />
-          <div className="h-12 bg-gray-100 rounded-xl" />
+          <div className="h-12 bg-brand-border rounded-xl" />
+          <div className="h-12 bg-brand-border rounded-xl" />
+          <div className="h-12 bg-brand-border rounded-xl" />
+          <div className="h-12 bg-brand-border rounded-xl" />
         </div>
       </div>
     </div>

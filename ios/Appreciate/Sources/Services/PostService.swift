@@ -15,6 +15,7 @@ final class PostService {
         category: GratitudeCategory,
         visibility: PostVisibility,
         photoData: Data?,
+        cardTemplateId: String?,
         authorId: String,
         authorName: String
     ) async throws -> GratitudePost {
@@ -29,10 +30,10 @@ final class PostService {
             try await supabase.storage
                 .from("photos")
                 .upload(fileName, data: data, options: .init(contentType: "image/jpeg"))
-            photoUrl = supabase.storage
+            let publicUrl = try supabase.storage
                 .from("photos")
                 .getPublicURL(path: fileName)
-                .absoluteString
+            photoUrl = publicUrl.absoluteString
         }
 
         let dto = CreatePostDTO(
@@ -41,6 +42,7 @@ final class PostService {
             category: category,
             visibility: visibility,
             photoUrl: photoUrl,
+            cardTemplateId: cardTemplateId,
             authorId: userId
         )
 
@@ -59,18 +61,29 @@ final class PostService {
 
     /// Fetches public and anonymous posts, optionally filtered by category.
     func fetchPublicFeed(category: GratitudeCategory? = nil, limit: Int = 50, offset: Int = 0) async throws -> [GratitudePost] {
-        var query = supabase
-            .from("gratitude_posts")
-            .select("*, profiles(*)")
-            .or("visibility.eq.PUBLIC,visibility.eq.ANONYMOUS")
-            .order("created_at", ascending: false)
-            .range(from: offset, to: offset + limit - 1)
+        let posts: [SupabasePost]
 
         if let category {
-            query = query.eq("category", value: category.rawValue)
+            posts = try await supabase
+                .from("gratitude_posts")
+                .select("*, profiles(*)")
+                .eq("category", value: category.rawValue)
+                .or("visibility.eq.PUBLIC,visibility.eq.ANONYMOUS")
+                .order("created_at", ascending: false)
+                .range(from: offset, to: offset + limit - 1)
+                .execute()
+                .value
+        } else {
+            posts = try await supabase
+                .from("gratitude_posts")
+                .select("*, profiles(*)")
+                .or("visibility.eq.PUBLIC,visibility.eq.ANONYMOUS")
+                .order("created_at", ascending: false)
+                .range(from: offset, to: offset + limit - 1)
+                .execute()
+                .value
         }
 
-        let posts: [SupabasePost] = try await query.execute().value
         return posts.map { $0.toLocal() }
     }
 

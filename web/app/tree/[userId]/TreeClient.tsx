@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 interface TreePost {
   id: string
@@ -163,6 +166,7 @@ export default function TreeClient({ user, posts, stats, isOwner, currentTheme }
   const [selectedLeaf, setSelectedLeaf] = useState<number | null>(null)
   const [hoveredLeaf, setHoveredLeaf] = useState<number | null>(null)
   const [showShareTip, setShowShareTip] = useState(false)
+  const [showThemePicker, setShowThemePicker] = useState(false)
 
   const leafPositions = useMemo(() => generateLeafPositions(posts.length), [posts.length])
   const selectedPost = selectedLeaf !== null ? posts[selectedLeaf] : null
@@ -171,9 +175,14 @@ export default function TreeClient({ user, posts, stats, isOwner, currentTheme }
     try {
       await navigator.clipboard.writeText(window.location.href)
       setShowShareTip(true)
-      setTimeout(() => setShowShareTip(false), 2000)
     } catch {}
   }, [])
+
+  useEffect(() => {
+    if (!showShareTip) return
+    const timer = setTimeout(() => setShowShareTip(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showShareTip])
 
   // Tree growth stage
   const treeStage = useMemo(() => {
@@ -210,6 +219,24 @@ export default function TreeClient({ user, posts, stats, isOwner, currentTheme }
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #F5EFE3 0%, #EDE8DF 30%, #E2D8CE 100%)' }}>
+      {/* Owner theme switcher */}
+      {isOwner && (
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={() => setShowThemePicker(true)}
+            className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.7)',
+              border: '1px solid rgba(160,140,120,0.3)',
+              color: '#7A6A5A',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            Change theme
+          </button>
+        </div>
+      )}
+
       {/* Floating particles — golden motes */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {posts.length > 0 && Array.from({ length: Math.min(Math.max(posts.length * 2, 15), 50) }).map((_, i) => {
@@ -640,6 +667,23 @@ export default function TreeClient({ user, posts, stats, isOwner, currentTheme }
           </div>
         </div>
       </div>
+
+      {/* Theme Picker overlay */}
+      {showThemePicker && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(30,20,10,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowThemePicker(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl p-6"
+            style={{ background: '#FAF6F0', border: '1px solid rgba(160,140,120,0.3)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

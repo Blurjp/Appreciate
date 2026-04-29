@@ -229,6 +229,7 @@ export default function AppreciationCardGenerator({
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const hasPhotoPreview = Boolean(photoPreview)
   const resolvedCardTemplateId = useMemo(() => {
@@ -257,8 +258,18 @@ export default function AppreciationCardGenerator({
   )
   const hasChosenSource = backgroundSource !== null
 
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort()
+    }
+  }, [])
+
   const handleGenerateAIImage = async () => {
     if (!content.trim()) return
+
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
 
     setIsGeneratingAI(true)
     try {
@@ -271,6 +282,7 @@ export default function AppreciationCardGenerator({
           photoPaletteHint,
           hasPhotoReference: Boolean(photoPreview),
         }),
+        signal: controller.signal,
       })
 
       if (!response.ok) {
@@ -282,12 +294,17 @@ export default function AppreciationCardGenerator({
         throw new Error('No image returned')
       }
 
-      setAiImageUrl(result.data.imageURL)
-      setBackgroundSource('ai')
+      if (!controller.signal.aborted) {
+        setAiImageUrl(result.data.imageURL)
+        setBackgroundSource('ai')
+      }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
       console.error('Failed to generate AI image:', error)
     } finally {
-      setIsGeneratingAI(false)
+      if (!controller.signal.aborted) {
+        setIsGeneratingAI(false)
+      }
     }
   }
 
@@ -716,7 +733,7 @@ export default function AppreciationCardGenerator({
                     <button
                       onClick={handleShare}
                       disabled={isExporting || !content.trim() || !hasChosenSource}
-                      className="flex-1 rounded-2xl bg-gray-900 py-4 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+                      className="flex-1 rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-colors hover:bg-brand-accent-dark disabled:opacity-50"
                     >
                       Share
                     </button>

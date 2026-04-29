@@ -89,14 +89,14 @@ export default async function VisualizationPage({ params }: Props) {
     .eq('user_id', userId)
     .single()
 
-  const totalHearts = (posts || []).reduce((sum: number, p: any) => sum + (p.heart_count || 0), 0)
+  const totalHearts = (posts || []).reduce((sum: number, p: { heart_count?: number | null }) => sum + (p.heart_count || 0), 0)
   const isOwner = authUser?.id === userId
   const theme = profile.wall_theme || 'starry'
 
-  const mappedPosts = (posts || []).map((p: any) => ({
+  const mappedPosts = (posts || []).map((p: { id: string; content: string; feeling?: string | null; category: string; created_at: string; heart_count?: number | null }) => ({
     id: p.id,
     content: p.content,
-    feeling: p.feeling,
+    feeling: p.feeling ?? null,
     category: p.category,
     createdAt: p.created_at,
     heartCount: p.heart_count || 0,
@@ -119,17 +119,21 @@ export default async function VisualizationPage({ params }: Props) {
     currentTheme: theme,
   }
 
-  switch (theme) {
-    case 'tree':
-      return <TreeClient {...commonProps} />
-    case 'zen':
-      return <ZenClient {...commonProps} />
-    case 'polaroid':
-      return <PolaroidClient {...commonProps} />
-    case 'glass':
-      return <GlassClient {...commonProps} />
-    case 'starry':
-    default:
-      return <SkyClient {...commonProps} />
-  }
+  const client = (() => {
+    switch (theme) {
+      case 'tree':
+        return <TreeClient {...commonProps} />
+      case 'zen':
+        return <ZenClient {...commonProps} />
+      case 'polaroid':
+        return <PolaroidClient {...commonProps} />
+      case 'glass':
+        return <GlassClient {...commonProps} />
+      case 'starry':
+      default:
+        return <SkyClient {...commonProps} />
+    }
+  })()
+
+  return <div data-theme={theme}>{client}</div>
 }

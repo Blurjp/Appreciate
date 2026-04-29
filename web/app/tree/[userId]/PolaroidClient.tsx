@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import type { VisualizationProps } from './ZenClient'
 
@@ -20,6 +20,8 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
 const CATEGORY_EMOJIS: Record<string, string> = {
   FAMILY: '👨‍👩‍👧', WORK: '✨', SMALL_JOYS: '💛', NATURE: '🌿', HEALTH: '💫', OTHER: '🤍',
 }
+
+const HANDWRITING_STACK = '"Comic Sans MS", "Bradley Hand", "Segoe Print", cursive'
 
 function seededRandom(seed: number) {
   let s = seed
@@ -46,21 +48,26 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
     try {
       await navigator.clipboard.writeText(window.location.href)
       setShowShareTip(true)
-      setTimeout(() => setShowShareTip(false), 2000)
     } catch {}
   }, [])
+
+  useEffect(() => {
+    if (!showShareTip) return
+    const timer = setTimeout(() => setShowShareTip(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showShareTip])
 
   return (
     <div
       className="min-h-screen relative overflow-hidden"
-      style={{ background: 'linear-gradient(145deg, #F0E8D8 0%, #E8DEC8 40%, #DDD4C0 100%)' }}
+      style={{ background: 'linear-gradient(145deg, #FFF8EC 0%, #F1E7D5 48%, #DED5C6 100%)' }}
     >
       {/* Subtle cork/linen texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.035]"
         style={{
-          backgroundImage: 'radial-gradient(circle, #7A6040 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+          backgroundImage: 'radial-gradient(circle, #7A6040 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)',
+          backgroundSize: '20px 20px, 96px 96px',
         }}
       />
 
@@ -84,7 +91,7 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
 
       <div className="max-w-4xl mx-auto px-4 pt-6 pb-12 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="mb-8">
           <p
             className="text-[10px] tracking-[0.4em] uppercase mb-2"
             style={{ color: '#9E8E7A', fontFamily: 'Georgia, serif' }}
@@ -93,15 +100,15 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
           </p>
           <h1
             className="text-large-title tracking-tight"
-            style={{ fontFamily: 'Georgia, serif', color: '#3D2E26' }}
+            style={{ fontFamily: HANDWRITING_STACK, color: '#25201B', lineHeight: 0.92 }}
           >
-            {user.name}&apos;s Gallery
+            Moments of Gratitude
           </h1>
           <p
-            className="text-caption mt-1"
+            className="text-caption mt-3 max-w-md"
             style={{ color: '#B0A090', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}
           >
-            Every photo is a moment of gratitude
+            {user.name}&apos;s snapshots, notes, and quiet daily keepsakes
           </p>
         </div>
 
@@ -126,7 +133,21 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
 
         {/* Polaroid masonry grid */}
         {posts.length > 0 && (
-          <div className="columns-2 sm:columns-3 lg:columns-4 gap-5">
+          <div
+            className="relative rounded-2xl px-3 py-5 sm:px-5 sm:py-7"
+            style={{
+              background: 'rgba(255,252,245,0.42)',
+              border: '1px solid rgba(185,170,148,0.20)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.65)',
+            }}
+          >
+            <div
+              className="absolute top-4 right-5 hidden sm:block rotate-3 px-4 py-3 shadow-sm"
+              style={{ background: '#F7EFD4', color: '#4A3A2A', fontFamily: HANDWRITING_STACK, fontSize: 17, maxWidth: 160 }}
+            >
+              The small things stayed.
+            </div>
+            <div className="columns-2 sm:columns-3 lg:columns-4 gap-5">
             {posts.map((post, i) => {
               const rotation = getPolaroidTransform(i)
               const gradient = CATEGORY_GRADIENTS[post.category] || CATEGORY_GRADIENTS.OTHER
@@ -199,9 +220,9 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
                     <p
                       className="text-center mt-2 leading-relaxed"
                       style={{
-                        fontFamily: 'Georgia, serif',
+                        fontFamily: HANDWRITING_STACK,
                         color: '#5A4A3A',
-                        fontSize: '11px',
+                        fontSize: '13px',
                         maxHeight: '48px',
                         overflow: 'hidden',
                       }}
@@ -220,6 +241,7 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
                 </div>
               )
             })}
+            </div>
           </div>
         )}
 
@@ -388,7 +410,7 @@ export default function PolaroidClient({ user, posts, stats, isOwner, currentThe
             style={{ background: '#FAF6F0', border: '1px solid rgba(160,140,120,0.3)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ThemePicker currentTheme={currentTheme || 'polaroid'} onClose={() => setShowThemePicker(false)} />
+            <ThemePicker currentTheme={currentTheme || 'polaroid'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
           </div>
         </div>
       )}

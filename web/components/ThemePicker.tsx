@@ -6,6 +6,7 @@ import { useTheme, ThemeId } from '@/contexts/ThemeContext'
 interface Props {
   currentTheme: string
   onClose: () => void
+  onSaved?: (themeId: string) => void
 }
 
 const THEMES = [
@@ -14,8 +15,8 @@ const THEMES = [
     name: 'Starry Night',
     emoji: '✨',
     description: 'Constellations of gratitude in the night sky',
-    preview: 'linear-gradient(135deg, #0a0a35 0%, #151050 50%, #1a1260 100%)',
-    starColor: '#FFF4B8',
+    preview: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0a0a2e 100%)',
+    starColor: '#FFFFFF',
   },
   {
     id: 'tree',
@@ -30,34 +31,35 @@ const THEMES = [
     name: 'Zen Garden',
     emoji: '🪨',
     description: 'Seeds of gratitude growing in peaceful harmony',
-    preview: 'linear-gradient(135deg, #E8E4D8 0%, #D4CCB8 50%, #C8C0A8 100%)',
-    starColor: '#7D8C6E',
+    preview: 'linear-gradient(135deg, #DCEAD8 0%, #F2E8D5 46%, #D8C6A8 100%)',
+    starColor: '#6B8F5B',
   },
   {
     id: 'polaroid',
     name: 'Polaroid Gallery',
     emoji: '📸',
     description: 'Snapshot memories scattered like instant photos',
-    preview: 'linear-gradient(135deg, #F5F0E8 0%, #E8E0D4 50%, #DCCCB8 100%)',
-    starColor: '#C4704B',
+    preview: 'linear-gradient(135deg, #F8F4E9 0%, #F0E6D2 50%, #D8D0C4 100%)',
+    starColor: '#8B7355',
   },
   {
     id: 'glass',
     name: 'Glassmorphism',
     emoji: '🧊',
     description: 'Frosted glass panels floating over shifting colors',
-    preview: 'linear-gradient(135deg, #A8B8FF 0%, #D4A0FF 50%, #FFB0C8 100%)',
-    starColor: '#B8A0FF',
+    preview: 'linear-gradient(135deg, #ECF8FF 0%, #F9F2FA 46%, #DDEBFF 100%)',
+    starColor: '#4A90D9',
   },
 ]
 
-export default function ThemePicker({ currentTheme, onClose }: Props) {
+export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
   const [selected, setSelected] = useState(currentTheme)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const { setTheme } = useTheme()
 
   const handleSelect = async (themeId: string) => {
+    if (saving) return
     setSelected(themeId)
     setSaving(true)
     setError('')
@@ -74,6 +76,7 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
       const data = await res.json()
       if (res.ok) {
         onClose()
+        onSaved?.(themeId)
       } else {
         setError(data.error || 'Failed to save theme')
         setSelected(currentTheme)
@@ -95,7 +98,7 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
 
       {/* Picker panel */}
       <div
-        className="relative w-full max-w-lg mx-4 mb-4 bg-white rounded-3xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg mx-4 mb-4 bg-white rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '85vh' }}
       >
@@ -129,7 +132,7 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
                 key={theme.id}
                 onClick={() => handleSelect(theme.id)}
                 disabled={saving}
-                className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${
+                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
                   isActive
                     ? 'border-brand-primary bg-brand-primary/5 shadow-warm'
                     : 'border-brand-border bg-white hover:border-brand-primary/30 hover:shadow-warm'
@@ -137,11 +140,11 @@ export default function ThemePicker({ currentTheme, onClose }: Props) {
               >
                 {/* Preview swatch */}
                 <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden"
+                  className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden"
                   style={{ background: theme.preview }}
                 >
                   {isActive && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
 const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
@@ -82,9 +82,14 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
     try {
       await navigator.clipboard.writeText(window.location.href)
       setShowShareTip(true)
-      setTimeout(() => setShowShareTip(false), 2000)
     } catch {}
   }, [])
+
+  useEffect(() => {
+    if (!showShareTip) return
+    const timer = setTimeout(() => setShowShareTip(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showShareTip])
 
   const gardenDescription = useMemo(() => {
     const n = posts.length
@@ -99,7 +104,7 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
   return (
     <div
       className="min-h-screen relative overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #F5F0E8 0%, #EDE8DC 40%, #E4DDD0 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #DCEAD8 0%, #F6EFE3 42%, #E7DDC9 100%)' }}
     >
       {/* Floating pollen particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -125,7 +130,7 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
 
       <div className="max-w-3xl mx-auto px-4 pt-6 pb-12 relative z-10">
         {/* Header */}
-        <div className="text-center mb-4">
+        <div className="mb-4">
           <p className="text-[10px] tracking-[0.4em] uppercase mb-2" style={{ color: '#8B7B6A' }}>
             {gardenDescription}
           </p>
@@ -135,8 +140,8 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
           >
             {user.name}&apos;s Zen Garden
           </h1>
-          <p className="text-caption mt-1" style={{ color: '#9E8E7A' }}>
-            Each stone and flower is a moment of peace
+          <p className="text-caption mt-1 max-w-md" style={{ color: '#9E8E7A' }}>
+            Sand, water, stones, and small green things arranged by gratitude
           </p>
         </div>
 
@@ -144,8 +149,8 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
         <div
           className="relative rounded-3xl overflow-hidden"
           style={{
-            background: '#EDE4D0',
-            boxShadow: '0 8px 40px rgba(58,46,36,0.12), inset 0 1px 0 rgba(255,255,255,0.5)',
+            background: 'linear-gradient(90deg, #DCEAD8 0%, #DCEAD8 35%, #EFE4D1 35%, #EFE4D1 100%)',
+            boxShadow: '0 18px 50px rgba(58,46,36,0.13), inset 0 1px 0 rgba(255,255,255,0.62)',
             border: '1px solid rgba(160,140,120,0.25)',
           }}
         >
@@ -172,9 +177,11 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              <linearGradient id="zenSandGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F2E8D5" />
-                <stop offset="100%" stopColor="#E4D8C0" />
+              <linearGradient id="zenSandGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#DCEAD8" />
+                <stop offset="35%" stopColor="#DCEAD8" />
+                <stop offset="35%" stopColor="#F1E6D4" />
+                <stop offset="100%" stopColor="#E5D7BD" />
               </linearGradient>
               <radialGradient id="zenStoneHighlight" cx="30%" cy="30%" r="60%">
                 <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
@@ -198,15 +205,30 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
 
             {/* Sand base */}
             <rect x="0" y="0" width="1200" height="700" fill="url(#zenSandGrad)" />
+            <line x1="420" y1="0" x2="420" y2="700" stroke="rgba(160,140,120,0.12)" strokeWidth="1" />
+
+            {/* Left garden focus ring inspired by a raked water basin */}
+            <g transform="translate(250 260)">
+              <circle r="118" fill="rgba(255,255,255,0.28)" stroke="rgba(142,170,142,0.20)" />
+              <circle r="86" fill="rgba(239,230,209,0.75)" stroke="rgba(190,170,140,0.26)" />
+              {[42, 58, 74, 90, 106].map((r) => (
+                <circle key={r} r={r} fill="none" stroke="rgba(188,166,132,0.24)" strokeWidth="1.8" />
+              ))}
+              <path d="M-112 50 C-70 96 12 100 76 58 C108 37 119 13 126 -5" fill="none" stroke="rgba(126,184,199,0.52)" strokeWidth="16" strokeLinecap="round" />
+              <path d="M-94 42 C-52 72 4 78 58 46" fill="none" stroke="rgba(255,255,255,0.58)" strokeWidth="5" strokeLinecap="round" />
+              <ellipse cx="6" cy="4" rx="34" ry="24" fill="#A4A18F" opacity="0.82" />
+              <ellipse cx="-2" cy="-3" rx="28" ry="17" fill="url(#zenStoneHighlight)" opacity="0.7" />
+              <path d="M-12 0 q14 14 30 4 M-2 -12 q-2 18 4 30" stroke="rgba(70,90,70,0.45)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            </g>
 
             {/* Raked sand lines — gentle horizontal waves */}
             {Array.from({ length: 22 }).map((_, i) => {
               const y = 30 + i * 30
               const waveAmp = 5 + Math.sin(i * 0.8) * 4
               const waveFreq = 0.004 + Math.sin(i * 0.3) * 0.001
-              const d = `M40 ${y} ` +
+              const d = `M455 ${y} ` +
                 Array.from({ length: 24 }, (_, j) => {
-                  const px = 40 + j * 50
+                  const px = 455 + j * 31
                   const py = y + Math.sin(px * waveFreq + i * 0.5) * waveAmp
                   return `L${px} ${py}`
                 }).join(' ') +
@@ -215,7 +237,7 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
                 <path
                   key={`rake-${i}`}
                   d={d}
-                  stroke="rgba(200,185,160,0.5)"
+                  stroke="rgba(190,170,140,0.42)"
                   strokeWidth="0.8"
                   fill="none"
                   opacity={0.4 + Math.sin(i * 0.4) * 0.15}
@@ -583,7 +605,7 @@ export default function ZenClient({ user, posts, stats, isOwner, currentTheme }:
             style={{ background: '#FAF6F0', border: '1px solid rgba(160,140,120,0.3)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} />
+            <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
           </div>
         </div>
       )}

@@ -87,6 +87,7 @@ final class GratitudePost {
     var visibility: PostVisibility
     var photoData: Data?
     var photoUrl: String?
+    var cardTemplateId: String?
     var authorId: String
     var authorName: String
     var createdAt: Date
@@ -102,6 +103,7 @@ final class GratitudePost {
         visibility: PostVisibility = .privatePost,
         photoData: Data? = nil,
         photoUrl: String? = nil,
+        cardTemplateId: String? = nil,
         authorId: String = "",
         authorName: String = "",
         createdAt: Date = Date(),
@@ -116,6 +118,7 @@ final class GratitudePost {
         self.visibility = visibility
         self.photoData = photoData
         self.photoUrl = photoUrl
+        self.cardTemplateId = cardTemplateId
         self.authorId = authorId
         self.authorName = authorName
         self.createdAt = createdAt
@@ -149,6 +152,7 @@ struct SupabasePost: Codable {
     let category: GratitudeCategory
     let visibility: PostVisibility
     let photoUrl: String?
+    let cardTemplateId: String?
     let authorId: UUID
     let createdAt: String
     let updatedAt: String
@@ -159,6 +163,7 @@ struct SupabasePost: Codable {
     enum CodingKeys: String, CodingKey {
         case id, content, feeling, category, visibility
         case photoUrl = "photo_url"
+        case cardTemplateId = "card_template_id"
         case authorId = "author_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
@@ -177,6 +182,7 @@ struct SupabasePost: Codable {
             category: category,
             visibility: visibility,
             photoUrl: photoUrl,
+            cardTemplateId: cardTemplateId,
             authorId: authorId.uuidString,
             authorName: author?.name ?? "Unknown",
             createdAt: isoFormatter.date(from: createdAt) ?? Date(),
@@ -205,11 +211,13 @@ struct CreatePostDTO: Codable {
     let category: GratitudeCategory
     let visibility: PostVisibility
     let photoUrl: String?
+    let cardTemplateId: String?
     let authorId: UUID
 
     enum CodingKeys: String, CodingKey {
         case content, feeling, category, visibility
         case photoUrl = "photo_url"
+        case cardTemplateId = "card_template_id"
         case authorId = "author_id"
     }
 }

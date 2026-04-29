@@ -30,12 +30,14 @@ struct CreatePostView: View {
 
                     // Content
                     TabView(selection: $viewModel.currentStep) {
-                        Step1ContentView(viewModel: viewModel)
+                        Step1CategoryView(viewModel: viewModel)
                             .tag(1)
-                        Step2CategoryView(viewModel: viewModel)
+                        Step2ContentView(viewModel: viewModel)
                             .tag(2)
-                        Step3VisibilityView(viewModel: viewModel)
+                        Step3CardDesignerView(viewModel: viewModel, userName: userName)
                             .tag(3)
+                        Step4VisibilityView(viewModel: viewModel)
+                            .tag(4)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .animation(.easeInOut, value: viewModel.currentStep)
@@ -72,13 +74,13 @@ struct CreatePostView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
                                 .background(
-                                    viewModel.canProceedFromStep1
+                                    viewModel.canProceedFromCurrentStep
                                         ? AppTheme.primaryGradient
                                         : LinearGradient(colors: [AppTheme.mediumGray], startPoint: .leading, endPoint: .trailing)
                                 )
                                 .clipShape(Capsule())
                             }
-                            .disabled(!viewModel.canProceedFromStep1)
+                            .disabled(!viewModel.canProceedFromCurrentStep)
                         } else {
                             Button {
                                 viewModel.submitPost(authorId: userId, authorName: userName)
@@ -122,16 +124,51 @@ struct CreatePostView: View {
     }
 }
 
-// MARK: - Step 1: Content
+// MARK: - Step 1: Category
 
-struct Step1ContentView: View {
+struct Step1CategoryView: View {
     @Bindable var viewModel: CreatePostViewModel
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.spacingL) {
                 VStack(alignment: .leading, spacing: AppTheme.spacingS) {
-                    Text("What are you grateful for today?")
+                    Text("What are you grateful for?")
+                        .font(AppTheme.title2)
+                        .foregroundStyle(AppTheme.textPrimary)
+
+                    Text("Choose a category to organize your gratitude.")
+                        .font(AppTheme.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.spacingM) {
+                    ForEach(GratitudeCategory.allCases) { category in
+                        CategorySelectionCard(
+                            category: category,
+                            isSelected: viewModel.selectedCategory == category
+                        ) {
+                            viewModel.selectedCategory = category
+                            HapticManager.selection()
+                        }
+                    }
+                }
+            }
+            .padding(AppTheme.spacingL)
+        }
+    }
+}
+
+// MARK: - Step 2: Content
+
+struct Step2ContentView: View {
+    @Bindable var viewModel: CreatePostViewModel
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppTheme.spacingL) {
+                VStack(alignment: .leading, spacing: AppTheme.spacingS) {
+                    Text("Share your gratitude")
                         .font(AppTheme.title2)
                         .foregroundStyle(AppTheme.textPrimary)
 
@@ -221,77 +258,312 @@ struct Step1ContentView: View {
     }
 }
 
-// MARK: - Step 2: Category
+// MARK: - Step 3: Card Designer
 
-struct Step2CategoryView: View {
+struct Step3CardDesignerView: View {
     @Bindable var viewModel: CreatePostViewModel
+    let userName: String
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppTheme.spacingL) {
+            VStack(spacing: AppTheme.spacingL) {
+                // Header
                 VStack(alignment: .leading, spacing: AppTheme.spacingS) {
-                    Text("Categorize your gratitude")
+                    Text("Design your card")
                         .font(AppTheme.title2)
                         .foregroundStyle(AppTheme.textPrimary)
 
-                    Text("This helps you reflect on different areas of life.")
+                    Text("Choose a background style for your gratitude card.")
                         .font(AppTheme.subheadline)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, AppTheme.spacingL)
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.spacingM) {
-                    ForEach(GratitudeCategory.allCases) { category in
-                        CategorySelectionCard(
-                            category: category,
-                            isSelected: viewModel.selectedCategory == category
-                        ) {
-                            viewModel.selectedCategory = category
-                        }
+                // Background source picker
+                VStack(alignment: .leading, spacing: AppTheme.spacingS) {
+                    Text("Background Source")
+                        .font(.system(size: 10, weight: .semibold))
+                        .tracking(0.28)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, AppTheme.spacingL)
+
+                VStack(spacing: AppTheme.spacingS) {
+                    ForEach(backgroundSourceOptions, id: \.id) { option in
+                        BackgroundSourceOptionCard(
+                            option: option,
+                            isSelected: viewModel.backgroundSource == option.id,
+                            action: {
+                                if option.disabled { return }
+                                viewModel.backgroundSource = option.id
+                                HapticManager.selection()
+                            }
+                        )
                     }
                 }
+                .padding(.horizontal, AppTheme.spacingL)
+
+                // Live preview
+                VStack(spacing: AppTheme.spacingS) {
+                    Text("Live Preview")
+                        .font(.system(size: 10, weight: .semibold))
+                        .tracking(0.24)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(Color.clear)
+                                .overlay {
+                                    Capsule()
+                                        .strokeBorder(AppTheme.lightGray, lineWidth: 1)
+                                }
+                        )
+
+                    CardPreviewView(
+                        content: viewModel.content,
+                        authorName: userName,
+                        template: viewModel.selectedTemplate,
+                        photoData: viewModel.photoData,
+                        backgroundSource: viewModel.backgroundSource,
+                        category: viewModel.selectedCategory
+                    )
+                    .frame(height: 380)
+                }
+                .padding(.horizontal, AppTheme.spacingL)
+
+                // Template picker (when template source is selected)
+                if viewModel.backgroundSource == .template {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingM) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Template Library")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .tracking(0.28)
+                                    .foregroundStyle(AppTheme.textSecondary)
+
+                                Text("Select a polished look for your card.")
+                                    .font(AppTheme.subheadline)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+
+                            Spacer()
+
+                            Text(viewModel.selectedTemplate.name)
+                                .font(.system(size: 10, weight: .semibold))
+                                .tracking(0.2)
+                                .foregroundStyle(AppTheme.textSecondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .strokeBorder(AppTheme.lightGray, lineWidth: 1)
+                                )
+                        }
+
+                        TemplatePickerView(selectedTemplate: $viewModel.selectedTemplate, columns: 4)
+                    }
+                    .padding(AppTheme.spacingM)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(AppTheme.cardBackground)
+                            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    )
+                    .padding(.horizontal, AppTheme.spacingL)
+                }
+
+                // Photo preview (when photo source is selected)
+                if viewModel.backgroundSource == .photo && viewModel.hasPhoto {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingS) {
+                        Text("Your Photo")
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(0.28)
+                            .foregroundStyle(AppTheme.textSecondary)
+
+                        Text("Your uploaded photo becomes the full card background with a readability overlay applied automatically.")
+                            .font(AppTheme.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary)
+
+                        if let photoData = viewModel.photoData,
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 150)
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL))
+                        }
+                    }
+                    .padding(AppTheme.spacingM)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(AppTheme.cardBackground)
+                            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    )
+                    .padding(.horizontal, AppTheme.spacingL)
+                }
+
+                // AI generation (when AI source is selected)
+                if viewModel.backgroundSource == .ai {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingS) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("AI Remix")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .tracking(0.28)
+                                    .foregroundStyle(AppTheme.textSecondary)
+
+                                Text("Generate a fresh background from your words.")
+                                    .font(AppTheme.subheadline)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+                        }
+
+                        Button {
+                            Task { await viewModel.generateAIImage() }
+                        } label: {
+                            HStack(spacing: 8) {
+                                if viewModel.isGeneratingAI {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                }
+
+                                Text(viewModel.isGeneratingAI ? "Generating..." : viewModel.aiImageUrl == nil ? "Generate Background" : "Regenerate Background")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(AppTheme.primaryGradient)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL))
+                        }
+                        .disabled(viewModel.isGeneratingAI || viewModel.content.isEmpty)
+                    }
+                    .padding(AppTheme.spacingM)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(AppTheme.cardBackground)
+                            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    )
+                    .padding(.horizontal, AppTheme.spacingL)
+                }
             }
-            .padding(AppTheme.spacingL)
+            .padding(.vertical, AppTheme.spacingL)
         }
+    }
+
+    var backgroundSourceOptions: [BackgroundSourceOption] {
+        [
+            BackgroundSourceOption(
+                id: .photo,
+                title: "Use Uploaded Photo",
+                description: viewModel.hasPhoto
+                    ? "Your photo becomes the card background."
+                    : "Add a photo first to unlock this option.",
+                disabled: !viewModel.hasPhoto
+            ),
+            BackgroundSourceOption(
+                id: .template,
+                title: "Choose a Template",
+                description: "Pick a polished art direction with predictable contrast.",
+                disabled: false
+            ),
+            BackgroundSourceOption(
+                id: .ai,
+                title: "AI Remix",
+                description: "Generate a new background from your words.",
+                badge: "Pro",
+                disabled: false
+            ),
+        ]
     }
 }
 
-struct CategorySelectionCard: View {
-    let category: GratitudeCategory
+struct BackgroundSourceOption: Identifiable {
+    let id: CardBackgroundSource
+    let title: String
+    let description: String
+    var badge: String?
+    var disabled: Bool = false
+}
+
+struct BackgroundSourceOptionCard: View {
+    let option: BackgroundSourceOption
     let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: AppTheme.spacingS) {
-                Text(category.emoji)
-                    .font(.system(size: 36))
+            HStack(spacing: AppTheme.spacingM) {
+                Image(systemName: iconName)
+                    .font(.title2)
+                    .foregroundStyle(isSelected ? AppTheme.warmGold : AppTheme.mediumGray)
+                    .frame(width: 32)
 
-                Text(category.rawValue)
-                    .font(AppTheme.headline)
-                    .foregroundStyle(isSelected ? AppTheme.categoryColor(category) : AppTheme.textPrimary)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(option.title)
+                            .font(AppTheme.headline)
+                            .foregroundStyle(option.disabled ? AppTheme.mediumGray : AppTheme.textPrimary)
+
+                        if let badge = option.badge {
+                            Text(badge)
+                                .font(.system(size: 8, weight: .semibold))
+                                .tracking(0.2)
+                                .foregroundStyle(AppTheme.textSecondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .strokeBorder(AppTheme.lightGray, lineWidth: 1)
+                                )
+                        }
+                    }
+
+                    Text(option.description)
+                        .font(AppTheme.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? AppTheme.warmGold : AppTheme.lightGray)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, AppTheme.spacingL)
+            .padding(AppTheme.spacingM)
             .background(
                 isSelected
-                    ? AppTheme.categoryColor(category).opacity(0.1)
+                    ? AppTheme.warmGold.opacity(0.06)
                     : AppTheme.lightGray.opacity(0.5)
             )
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL))
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusM))
             .overlay {
                 if isSelected {
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL)
-                        .strokeBorder(AppTheme.categoryColor(category), lineWidth: 2)
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusM)
+                        .strokeBorder(AppTheme.warmGold.opacity(0.4), lineWidth: 1.5)
                 }
             }
         }
         .buttonStyle(.plain)
+        .disabled(option.disabled)
+    }
+
+    var iconName: String {
+        switch option.id {
+        case .photo: return "photo"
+        case .template: return "square.grid.2x2"
+        case .ai: return "sparkles"
+        }
     }
 }
 
-// MARK: - Step 3: Visibility
+// MARK: - Step 4: Visibility
 
-struct Step3VisibilityView: View {
+struct Step4VisibilityView: View {
     @Bindable var viewModel: CreatePostViewModel
 
     var body: some View {
@@ -314,6 +586,7 @@ struct Step3VisibilityView: View {
                             isSelected: viewModel.visibility == option
                         ) {
                             viewModel.visibility = option
+                            HapticManager.selection()
                         }
                     }
                 }
@@ -386,6 +659,42 @@ struct VisibilityOptionCard: View {
                 if isSelected {
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadiusM)
                         .strokeBorder(AppTheme.warmGold.opacity(0.4), lineWidth: 1.5)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Category Selection Card
+
+struct CategorySelectionCard: View {
+    let category: GratitudeCategory
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: AppTheme.spacingS) {
+                Text(category.emoji)
+                    .font(.system(size: 36))
+
+                Text(category.displayName)
+                    .font(AppTheme.headline)
+                    .foregroundStyle(isSelected ? AppTheme.categoryColor(category) : AppTheme.textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppTheme.spacingL)
+            .background(
+                isSelected
+                    ? AppTheme.categoryColor(category).opacity(0.1)
+                    : AppTheme.lightGray.opacity(0.5)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL))
+            .overlay {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusL)
+                        .strokeBorder(AppTheme.categoryColor(category), lineWidth: 2)
                 }
             }
         }

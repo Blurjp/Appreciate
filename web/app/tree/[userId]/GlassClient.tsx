@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import type { VisualizationProps } from './ZenClient'
 
 const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
-// Vivid accent colors per category for glass card borders/glows
+// Soft accent colors per category for airy glass card borders/glows
 const CATEGORY_ACCENTS: Record<string, { color: string; glow: string; label: string }> = {
-  FAMILY:     { color: '#FF8FA3', glow: 'rgba(255,143,163,0.25)', label: 'Family' },
-  WORK:       { color: '#74B9FF', glow: 'rgba(116,185,255,0.25)', label: 'Work' },
-  SMALL_JOYS: { color: '#FFD580', glow: 'rgba(255,213,128,0.25)', label: 'Small Joys' },
-  NATURE:     { color: '#55EFC4', glow: 'rgba(85,239,196,0.25)', label: 'Nature' },
-  HEALTH:     { color: '#C39BD3', glow: 'rgba(195,155,211,0.25)', label: 'Health' },
-  OTHER:      { color: '#74D7FF', glow: 'rgba(116,215,255,0.25)', label: 'Other' },
+  FAMILY:     { color: '#D97992', glow: 'rgba(217,121,146,0.18)', label: 'Family' },
+  WORK:       { color: '#4E8FCC', glow: 'rgba(78,143,204,0.18)', label: 'Work' },
+  SMALL_JOYS: { color: '#D7A84F', glow: 'rgba(215,168,79,0.18)', label: 'Small Joys' },
+  NATURE:     { color: '#4D9B7F', glow: 'rgba(77,155,127,0.18)', label: 'Nature' },
+  HEALTH:     { color: '#9C7BC0', glow: 'rgba(156,123,192,0.18)', label: 'Health' },
+  OTHER:      { color: '#4B9FC2', glow: 'rgba(75,159,194,0.18)', label: 'Other' },
 }
 
 function seededRandom(seed: number) {
@@ -46,52 +46,50 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
     try {
       await navigator.clipboard.writeText(window.location.href)
       setShowShareTip(true)
-      setTimeout(() => setShowShareTip(false), 2000)
     } catch {}
   }, [])
 
+  useEffect(() => {
+    if (!showShareTip) return
+    const timer = setTimeout(() => setShowShareTip(false), 2000)
+    return () => clearTimeout(timer)
+  }, [showShareTip])
+
   const wallDescription = (() => {
     const n = posts.length
-    if (n === 0) return 'An empty sky, waiting for light'
-    if (n < 5) return 'The first glimmers of gratitude'
-    if (n < 15) return 'A constellation of moments'
-    if (n < 30) return 'Luminous fragments of wonder'
-    if (n < 60) return 'An ethereal tapestry of light'
-    return 'An infinite luminous expanse'
+    if (n === 0) return 'A quiet canvas, waiting for light'
+    if (n < 5) return 'The first glass notes of gratitude'
+    if (n < 15) return 'Soft fragments begin to gather'
+    if (n < 30) return 'A luminous gratitude journey'
+    if (n < 60) return 'An ethereal wall of remembered light'
+    return 'An expansive field of gratitude'
   })()
 
   return (
     <div
       className="min-h-screen relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0A0E1A 0%, #0E1628 30%, #14203A 60%, #0A0E1A 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #ECF8FF 0%, #F9F2FA 36%, #E2F7F8 68%, #DDEBFF 100%)' }}
     >
-      {/* Animated gradient orbs */}
+      {/* Soft prismatic wash */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute rounded-full"
           style={{
-            width: '60vw', height: '60vw',
-            top: '-20%', left: '-10%',
-            background: 'radial-gradient(circle, rgba(100,60,200,0.18) 0%, transparent 70%)',
-            animation: 'glassOrb1 12s ease-in-out infinite alternate',
+            position: 'absolute',
+            inset: '-20%',
+            background:
+              'linear-gradient(120deg, rgba(120,205,232,0.24), transparent 34%, rgba(255,192,214,0.22) 58%, transparent 78%), linear-gradient(25deg, transparent 10%, rgba(178,223,196,0.20) 38%, transparent 65%)',
+            filter: 'blur(30px)',
+            animation: 'glassDrift 18s ease-in-out infinite alternate',
           }}
         />
         <div
-          className="absolute rounded-full"
           style={{
-            width: '50vw', height: '50vw',
-            bottom: '-15%', right: '-10%',
-            background: 'radial-gradient(circle, rgba(40,120,220,0.16) 0%, transparent 70%)',
-            animation: 'glassOrb2 15s ease-in-out infinite alternate',
-          }}
-        />
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: '40vw', height: '40vw',
-            top: '40%', left: '40%',
-            background: 'radial-gradient(circle, rgba(20,180,140,0.10) 0%, transparent 70%)',
-            animation: 'glassOrb3 10s ease-in-out infinite alternate',
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.28) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px)',
+            backgroundSize: '72px 72px',
+            maskImage: 'linear-gradient(180deg, transparent 0%, black 16%, black 82%, transparent 100%)',
+            opacity: 0.38,
           }}
         />
       </div>
@@ -104,9 +102,10 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             className="px-3 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase transition-all"
             style={{
               background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.16)',
-              color: 'rgba(255,255,255,0.55)',
+              border: '1px solid rgba(255,255,255,0.55)',
+              color: '#4C6E7F',
               backdropFilter: 'blur(12px)',
+              boxShadow: '0 8px 24px rgba(82,123,145,0.12)',
             }}
           >
             Change theme
@@ -116,18 +115,18 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
 
       <div className="max-w-4xl mx-auto px-4 pt-6 pb-12 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <p className="text-[10px] tracking-[0.4em] uppercase mb-2" style={{ color: 'rgba(200,210,255,0.35)' }}>
+        <div className="mb-8">
+          <p className="text-[10px] tracking-[0.4em] uppercase mb-2" style={{ color: 'rgba(68,101,116,0.52)' }}>
             {wallDescription}
           </p>
           <h1
             className="text-large-title tracking-tight"
-            style={{ color: 'rgba(255,255,255,0.90)', textShadow: '0 0 60px rgba(120,100,255,0.2)' }}
+            style={{ color: '#172D3A', textShadow: '0 20px 60px rgba(255,255,255,0.8)' }}
           >
-            {user.name}&apos;s Wall
+            {user.name}&apos;s Gratitude Journey
           </h1>
-          <p className="text-caption mt-1" style={{ color: 'rgba(200,210,255,0.35)' }}>
-            Every card is a floating moment of gratitude
+          <p className="text-caption mt-1 max-w-md" style={{ color: 'rgba(52,82,96,0.58)' }}>
+            Frosted notes floating over a soft field of remembered moments
           </p>
         </div>
 
@@ -137,13 +136,13 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             <div
               className="inline-block px-10 py-8 rounded-2xl"
               style={{
-                background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(255,255,255,0.46)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.10)',
-                boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(255,255,255,0.58)',
+                boxShadow: '0 20px 60px rgba(82,123,145,0.18)',
               }}
             >
-              <p style={{ color: 'rgba(200,210,255,0.35)', fontSize: '14px', fontStyle: 'italic' }}>
+              <p style={{ color: 'rgba(52,82,96,0.55)', fontSize: '14px', fontStyle: 'italic' }}>
                 first light awaits...
               </p>
             </div>
@@ -165,12 +164,12 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                   onClick={() => setSelectedIdx(isSelected ? null : i)}
                   className="relative rounded-2xl p-5 cursor-pointer"
                   style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid rgba(255,255,255,${isSelected ? '0.22' : '0.10'})`,
+                    background: 'rgba(255,255,255,0.40)',
+                    backdropFilter: 'blur(22px) saturate(1.15)',
+                    border: `1px solid rgba(255,255,255,${isSelected ? '0.82' : '0.54'})`,
                     boxShadow: isSelected
-                      ? `0 0 0 1px ${accent.color}40, 0 12px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)`
-                      : `0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)`,
+                      ? `0 0 0 1px ${accent.color}45, 0 22px 60px rgba(82,123,145,0.24), inset 0 1px 0 rgba(255,255,255,0.85)`
+                      : `0 12px 36px rgba(82,123,145,0.15), inset 0 1px 0 rgba(255,255,255,0.70)`,
                     animation: !isSelected ? `glassFloat ${floatDuration}s ease-in-out ${floatDelay}s infinite alternate` : 'none',
                     transition: 'border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease',
                     transform: isSelected ? 'scale(1.02)' : 'scale(1)',
@@ -179,7 +178,7 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                   {/* Accent top border */}
                   <div
                     className="absolute top-0 left-4 right-4 h-px rounded-full"
-                    style={{ background: `linear-gradient(90deg, transparent, ${accent.color}60, transparent)` }}
+                    style={{ background: `linear-gradient(90deg, transparent, ${accent.color}80, transparent)` }}
                   />
 
                   {/* Category label */}
@@ -188,7 +187,7 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: accent.color, boxShadow: `0 0 8px ${accent.color}` }}
                     />
-                    <span className="text-[9px] tracking-[0.22em] uppercase" style={{ color: accent.color, opacity: 0.85 }}>
+                    <span className="text-[9px] tracking-[0.22em] uppercase" style={{ color: accent.color, opacity: 0.95 }}>
                       {accent.label}
                     </span>
                   </div>
@@ -197,7 +196,7 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                   <p
                     className="text-body leading-relaxed"
                     style={{
-                      color: 'rgba(255,255,255,0.82)',
+                      color: '#244050',
                       maxHeight: '80px',
                       overflow: 'hidden',
                     }}
@@ -206,15 +205,15 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                   </p>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="text-[10px]" style={{ color: 'rgba(200,210,255,0.28)' }}>
+                  <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(86,120,138,0.10)' }}>
+                    <p className="text-[10px]" style={{ color: 'rgba(52,82,96,0.42)' }}>
                       {new Date(post.createdAt).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric',
                       })}
                     </p>
                     {post.heartCount > 0 && (
-                      <p className="text-[10px] flex items-center gap-1" style={{ color: 'rgba(200,210,255,0.28)' }}>
-                        <span style={{ color: accent.color, opacity: 0.7 }}>♥</span>
+                      <p className="text-[10px] flex items-center gap-1" style={{ color: 'rgba(52,82,96,0.42)' }}>
+                        <span style={{ color: accent.color, opacity: 0.85 }}>♥</span>
                         {post.heartCount}
                       </p>
                     )}
@@ -235,11 +234,11 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             <div key={label} className="text-center">
               <p
                 className="text-title-2"
-                style={{ color: 'rgba(255,255,255,0.80)', textShadow: '0 0 20px rgba(120,100,255,0.12)' }}
+                style={{ color: '#203A48', textShadow: '0 10px 30px rgba(255,255,255,0.75)' }}
               >
                 {value}
               </p>
-              <p className="text-[10px] tracking-[0.25em] uppercase mt-1" style={{ color: 'rgba(200,210,255,0.3)' }}>
+              <p className="text-[10px] tracking-[0.25em] uppercase mt-1" style={{ color: 'rgba(52,82,96,0.42)' }}>
                 {label}
               </p>
             </div>
@@ -252,9 +251,9 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             onClick={handleCopyLink}
             className="px-6 py-3 rounded-full text-subheadline transition-all active:scale-[0.97]"
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.14)',
-              color: 'rgba(255,255,255,0.45)',
+              background: 'rgba(255,255,255,0.42)',
+              border: '1px solid rgba(255,255,255,0.60)',
+              color: '#45687A',
               backdropFilter: 'blur(12px)',
             }}
           >
@@ -264,11 +263,11 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             href="https://appreciate.live"
             className="px-6 py-3 rounded-full text-subheadline font-medium transition-all active:scale-[0.97]"
             style={{
-              background: 'linear-gradient(135deg, rgba(100,80,220,0.5) 0%, rgba(60,100,220,0.5) 100%)',
-              border: '1px solid rgba(140,120,255,0.3)',
-              color: 'rgba(255,255,255,0.85)',
+              background: 'linear-gradient(135deg, rgba(63,148,183,0.78) 0%, rgba(164,121,189,0.64) 100%)',
+              border: '1px solid rgba(255,255,255,0.48)',
+              color: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(12px)',
-              boxShadow: '0 4px 24px rgba(100,80,220,0.25)',
+              boxShadow: '0 10px 30px rgba(82,123,145,0.22)',
             }}
           >
             Light your own
@@ -277,17 +276,17 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
 
         {/* Milestones */}
         <div className="mt-10 px-2">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-center mb-4" style={{ color: 'rgba(200,210,255,0.2)' }}>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-center mb-4" style={{ color: 'rgba(52,82,96,0.34)' }}>
             Luminous milestones
           </p>
           <div className="relative">
-            <div className="absolute top-4 left-0 right-0 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="absolute top-4 left-0 right-0 h-px" style={{ background: 'rgba(52,82,96,0.10)' }} />
             <div
               className="absolute top-4 left-0 h-px transition-all duration-1000"
               style={{
                 width: `${Math.min(100, (stats.totalPosts / 100) * 100)}%`,
-                background: 'linear-gradient(90deg, rgba(100,80,220,0.5) 0%, rgba(140,120,255,0.7) 100%)',
-                boxShadow: '0 0 8px rgba(140,120,255,0.3)',
+                background: 'linear-gradient(90deg, rgba(63,148,183,0.55) 0%, rgba(164,121,189,0.68) 100%)',
+                boxShadow: '0 0 10px rgba(63,148,183,0.18)',
               }}
             />
             <div className="flex items-start justify-between relative">
@@ -305,14 +304,14 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
                     <div
                       className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-500 ${reached ? 'scale-110' : 'opacity-25 grayscale'}`}
                       style={reached
-                        ? { background: 'rgba(255,255,255,0.08)', boxShadow: '0 0 14px rgba(140,120,255,0.25)' }
-                        : { background: 'rgba(255,255,255,0.03)' }}
+                        ? { background: 'rgba(255,255,255,0.54)', boxShadow: '0 8px 20px rgba(82,123,145,0.16)' }
+                        : { background: 'rgba(255,255,255,0.24)' }}
                     >
                       {m.emoji}
                     </div>
                     <span
                       className="text-[9px] tracking-wider uppercase"
-                      style={{ color: reached ? 'rgba(200,210,255,0.45)' : 'rgba(200,210,255,0.15)' }}
+                      style={{ color: reached ? 'rgba(52,82,96,0.55)' : 'rgba(52,82,96,0.20)' }}
                     >
                       {m.label}
                     </span>
@@ -328,16 +327,16 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
       {selectedPost && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
-          style={{ background: 'rgba(5,8,20,0.75)', backdropFilter: 'blur(8px)' }}
+          style={{ background: 'rgba(204,224,235,0.62)', backdropFilter: 'blur(10px)' }}
           onClick={() => setSelectedIdx(null)}
         >
           <div
             className="relative max-w-md w-full rounded-3xl p-7"
             style={{
-              background: 'rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(32px)',
+              background: 'rgba(255,255,255,0.56)',
+              backdropFilter: 'blur(32px) saturate(1.15)',
               border: `1px solid ${(CATEGORY_ACCENTS[selectedPost.category] || CATEGORY_ACCENTS.OTHER).color}40`,
-              boxShadow: `0 0 0 1px rgba(255,255,255,0.07), 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)`,
+              boxShadow: `0 0 0 1px rgba(255,255,255,0.50), 0 24px 80px rgba(82,123,145,0.28), inset 0 1px 0 rgba(255,255,255,0.82)`,
               animation: 'glassReveal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -368,28 +367,28 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             {/* Content */}
             <p
               className="text-body leading-relaxed font-serif italic"
-              style={{ fontFamily: 'Georgia, serif', color: 'rgba(255,255,255,0.88)' }}
+              style={{ fontFamily: 'Georgia, serif', color: '#203A48' }}
             >
               &ldquo;{selectedPost.content}&rdquo;
             </p>
 
             {selectedPost.feeling && (
-              <p className="text-footnote mt-3 italic" style={{ color: 'rgba(200,210,255,0.4)' }}>
+              <p className="text-footnote mt-3 italic" style={{ color: 'rgba(52,82,96,0.52)' }}>
                 Feeling {selectedPost.feeling}
               </p>
             )}
 
             <div
               className="flex items-center justify-between mt-5 pt-4"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ borderTop: '1px solid rgba(52,82,96,0.10)' }}
             >
-              <p className="text-caption" style={{ color: 'rgba(200,210,255,0.28)' }}>
+              <p className="text-caption" style={{ color: 'rgba(52,82,96,0.46)' }}>
                 {new Date(selectedPost.createdAt).toLocaleDateString('en-US', {
                   month: 'long', day: 'numeric', year: 'numeric',
                 })}
               </p>
               {selectedPost.heartCount > 0 && (
-                <p className="text-caption flex items-center gap-1" style={{ color: 'rgba(200,210,255,0.28)' }}>
+                <p className="text-caption flex items-center gap-1" style={{ color: 'rgba(52,82,96,0.46)' }}>
                   <span style={{ color: (CATEGORY_ACCENTS[selectedPost.category] || CATEGORY_ACCENTS.OTHER).color, opacity: 0.7 }}>♥</span>
                   {selectedPost.heartCount}
                 </p>
@@ -399,7 +398,7 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
             <button
               onClick={() => setSelectedIdx(null)}
               className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full text-sm transition-all"
-              style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)' }}
+              style={{ color: 'rgba(52,82,96,0.42)', background: 'rgba(255,255,255,0.50)' }}
             >
               ×
             </button>
@@ -411,35 +410,27 @@ export default function GlassClient({ user, posts, stats, isOwner, currentTheme 
       {showThemePicker && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: 'rgba(5,8,20,0.65)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(204,224,235,0.62)', backdropFilter: 'blur(6px)' }}
           onClick={() => setShowThemePicker(false)}
         >
           <div
             className="w-full max-w-lg rounded-t-3xl p-6"
             style={{
-              background: 'rgba(20,26,50,0.95)',
-              border: '1px solid rgba(255,255,255,0.10)',
+              background: 'rgba(248,252,255,0.92)',
+              border: '1px solid rgba(255,255,255,0.62)',
               backdropFilter: 'blur(24px)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ThemePicker currentTheme={currentTheme || 'glass'} onClose={() => setShowThemePicker(false)} />
+            <ThemePicker currentTheme={currentTheme || 'glass'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
           </div>
         </div>
       )}
 
       <style>{`
-        @keyframes glassOrb1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(8vw, 6vh) scale(1.15); }
-        }
-        @keyframes glassOrb2 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-6vw, -8vh) scale(1.1); }
-        }
-        @keyframes glassOrb3 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-4vw, 5vh) scale(1.08); }
+        @keyframes glassDrift {
+          0% { transform: translate3d(-2%, -1%, 0) scale(1); }
+          100% { transform: translate3d(3%, 2%, 0) scale(1.04); }
         }
         @keyframes glassFloat {
           0% { transform: translateY(0px); }

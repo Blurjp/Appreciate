@@ -27,8 +27,10 @@ export default function Toast({
   if (!isVisible) return null
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-toast-in">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-toast-in">
       <div
+        role="alert"
+        aria-live="assertive"
         className={`flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg text-white text-headline font-medium ${
           isError ? 'bg-red-500' : 'bg-brand-primary'
         }`}

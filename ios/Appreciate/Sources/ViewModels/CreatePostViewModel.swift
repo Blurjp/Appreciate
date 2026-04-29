@@ -5,16 +5,22 @@ import UIKit
 
 @Observable
 final class CreatePostViewModel {
-    // Step 1: Content
+    // Step 1: Category
+    var selectedCategory: GratitudeCategory = .smallJoys
+
+    // Step 2: Content
     var content = ""
     var feeling = ""
     var selectedPhotoItem: PhotosPickerItem?
     var photoData: Data?
 
-    // Step 2: Category
-    var selectedCategory: GratitudeCategory = .smallJoys
+    // Step 3: Card Designer
+    var selectedTemplate: CardTemplate = .default
+    var backgroundSource: CardBackgroundSource = .template
+    var aiImageUrl: URL?
+    var isGeneratingAI = false
 
-    // Step 3: Visibility
+    // Step 4: Visibility
     var visibility: PostVisibility = .privatePost
 
     // UI State
@@ -27,7 +33,7 @@ final class CreatePostViewModel {
     private let postService: PostService
     private let streakService: StreakService
 
-    let totalSteps = 3
+    let totalSteps = 4
 
     init(postService: PostService, streakService: StreakService) {
         self.postService = postService
@@ -35,7 +41,38 @@ final class CreatePostViewModel {
     }
 
     var canProceedFromStep1: Bool {
+        true // Category is always selected
+    }
+
+    var canProceedFromStep2: Bool {
         !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var canProceedFromCurrentStep: Bool {
+        switch currentStep {
+        case 1: return canProceedFromStep1
+        case 2: return canProceedFromStep2
+        default: return true
+        }
+    }
+
+    var hasPhoto: Bool {
+        photoData != nil
+    }
+
+    /// The resolved card template ID to save with the post
+    var resolvedCardTemplateId: String? {
+        switch backgroundSource {
+        case .photo:
+            return hasPhoto ? CardTemplate.photoTemplateId : nil
+        case .ai:
+            if let url = aiImageUrl {
+                return "ai:\(url.absoluteString)"
+            }
+            return selectedTemplate.id
+        case .template:
+            return selectedTemplate.id
+        }
     }
 
     var progressPercentage: Double {
@@ -56,7 +93,7 @@ final class CreatePostViewModel {
     }
 
     func submitPost(authorId: String, authorName: String) {
-        guard canProceedFromStep1 else { return }
+        guard canProceedFromStep2 else { return }
         isSubmitting = true
         errorMessage = nil
 
@@ -68,6 +105,7 @@ final class CreatePostViewModel {
                     category: selectedCategory,
                     visibility: visibility,
                     photoData: photoData,
+                    cardTemplateId: resolvedCardTemplateId,
                     authorId: authorId,
                     authorName: authorName
                 )
@@ -92,6 +130,10 @@ final class CreatePostViewModel {
         selectedPhotoItem = nil
         photoData = nil
         selectedCategory = .smallJoys
+        selectedTemplate = .default
+        backgroundSource = .template
+        aiImageUrl = nil
+        isGeneratingAI = false
         visibility = .privatePost
         currentStep = 1
         isSubmitting = false
@@ -104,6 +146,32 @@ final class CreatePostViewModel {
     func loadPhoto() async {
         guard let item = selectedPhotoItem else { return }
         photoData = try? await item.loadTransferable(type: Data.self)
+        // Auto-switch to photo background when photo is added
+        if photoData != nil {
+            backgroundSource = .photo
+        }
+    }
+
+    /// Load photo from PhotosPickerItem
+    @MainActor
+    static func loadPhotoData(from item: PhotosPickerItem?) async -> Data? {
+        guard let item = item else { return nil }
+        return try? await item.loadTransferable(type: Data.self)
+    }
+
+    /// Generate an AI image for the card background
+    /// NOTE: Requires Supabase Edge Function "generate-image" to be set up
+    @MainActor
+    func generateAIImage() async {
+        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        isGeneratingAI = true
+        defer { isGeneratingAI = false }
+
+        // TODO: Implement AI image generation via Supabase Edge Function
+        // This requires setting up the edge function in Supabase
+        // For now, this is a placeholder that shows the Pro feature UI
+        print("AI image generation not yet implemented")
     }
 
     private var randomConfirmation: String {
