@@ -22,7 +22,7 @@
 		3CC34E80A40800226B78F214 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D94291D05475B59415D8F /* AuthService.swift */; };
 		495B1771F64C97951367CD9E /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0690392B02F0F7E032F4A5 /* WelcomeView.swift */; };
 		4AC269029AF67EF2A5450896 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1FFB4623DDE0A83C248A /* RootView.swift */; };
-		50B8D471B1DC1E25E08062BF /* CardDesignerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B6F65FF6BF6D6112116946 /* CardDesignerView.swift */; };
+
 		60865EE90E44E25B1BED22CC /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 855FFA9BD233D680046B51CF /* AppTheme.swift */; };
 		681F7BF3F62A861303804D5F /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1629973B9473D80D9B83E1BE /* UserProfile.swift */; };
 		68B29A7F8F45007CC189C6F4 /* PostService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE540FF61DCE1F8595BB67C /* PostService.swift */; };
@@ -35,7 +35,7 @@
 		930814587477D8EDD14B84BA /* EditPostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A711E4494F4EB58BA448D7 /* EditPostView.swift */; };
 		A7A38AECF8DC6102EADBBF6B /* StreakCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA082EB52B3020462CB53441 /* StreakCard.swift */; };
 		AC676826FDE5AC4747E22B02 /* MyWallViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1808AFED484D02BAD530013 /* MyWallViewModel.swift */; };
-		B3D72D0D5F2F970AA1DED5DB /* CardDesignerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBD6FFE826997A963AA225D /* CardDesignerViewModel.swift */; };
+
 		C05DE1A5A184CF2BBE24624F /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E897CD72414534159AEFC953 /* ShareSheet.swift */; };
 		C2E92F969C20201636F7EEB7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1A4A86F33AE77878E8729BB2 /* Supabase */; };
 		C498CA879F03B9558B28F88B /* CardExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C11B9C4AF109F4EA1CEFDC /* CardExportService.swift */; };
@@ -53,7 +53,7 @@
 		1AE5A9FA270D20221DB78AD7 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
 		1EE540FF61DCE1F8595BB67C /* PostService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostService.swift; sourceTree = "<group>"; };
 		2335347067F22D92E8E3A65B /* CategoryFilterBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryFilterBar.swift; sourceTree = "<group>"; };
-		2FBD6FFE826997A963AA225D /* CardDesignerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDesignerViewModel.swift; sourceTree = "<group>"; };
+
 		3243EE5294D274CDD1CA7EF5 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		35FE4C6FCC88C9B2673F1502 /* AppreciateApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppreciateApp.swift; sourceTree = "<group>"; };
 		41AFFF78DA4A0754765880D1 /* CreatePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostView.swift; sourceTree = "<group>"; };
@@ -82,7 +82,7 @@
 		E06AEEACF8045516892F07D1 /* GratitudePostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GratitudePostCard.swift; sourceTree = "<group>"; };
 		E4C11B9C4AF109F4EA1CEFDC /* CardExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardExportService.swift; sourceTree = "<group>"; };
 		E897CD72414534159AEFC953 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
-		F7B6F65FF6BF6D6112116946 /* CardDesignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDesignerView.swift; sourceTree = "<group>"; };
+
 		FCFF6F70BB99F2B17E1AC5C5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -234,7 +234,6 @@
 			isa = PBXGroup;
 			children = (
 				5C005D27EAEC6CF073EE0A55 /* AuthViewModel.swift */,
-				2FBD6FFE826997A963AA225D /* CardDesignerViewModel.swift */,
 				DB5517DC4FCA221BF523314E /* CreatePostViewModel.swift */,
 				D4BD3ACEB8B1EC19CD97CB5D /* FeedViewModel.swift */,
 				A1808AFED484D02BAD530013 /* MyWallViewModel.swift */,
@@ -279,7 +278,6 @@
 		EC38A637949B9F1AFDF74A8A /* CreatePost */ = {
 			isa = PBXGroup;
 			children = (
-				F7B6F65FF6BF6D6112116946 /* CardDesignerView.swift */,
 				41AFFF78DA4A0754765880D1 /* CreatePostView.swift */,
 			);
 			path = CreatePost;
@@ -353,8 +351,6 @@
 				6B207E19B2BA72A0D497EC86 /* AppreciateApp.swift in Sources */,
 				3CC34E80A40800226B78F214 /* AuthService.swift in Sources */,
 				3A569CB43E84443CF763C329 /* AuthViewModel.swift in Sources */,
-				50B8D471B1DC1E25E08062BF /* CardDesignerView.swift in Sources */,
-				B3D72D0D5F2F970AA1DED5DB /* CardDesignerViewModel.swift in Sources */,
 				C498CA879F03B9558B28F88B /* CardExportService.swift in Sources */,
 				3BE4D9D729339E77F3C02B36 /* CardPreviewView.swift in Sources */,
 				3BE325E43043EEC7B4663AAC /* CardTemplate.swift in Sources */,
