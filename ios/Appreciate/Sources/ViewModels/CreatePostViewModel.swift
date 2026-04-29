@@ -160,7 +160,6 @@ final class CreatePostViewModel {
     }
 
     /// Generate an AI image for the card background
-    /// NOTE: Requires Supabase Edge Function "generate-image" to be set up
     @MainActor
     func generateAIImage() async {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
@@ -168,10 +167,12 @@ final class CreatePostViewModel {
         isGeneratingAI = true
         defer { isGeneratingAI = false }
 
-        // TODO: Implement AI image generation via Supabase Edge Function
-        // This requires setting up the edge function in Supabase
-        // For now, this is a placeholder that shows the Pro feature UI
-        print("AI image generation not yet implemented")
+        do {
+            let url = try await AIService.generateImage(content: content, feeling: feeling)
+            self.aiImageUrl = url
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
     }
 
     private var randomConfirmation: String {

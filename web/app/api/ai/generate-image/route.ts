@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const EMOTION_STYLES: Record<string, { scene: string; colors: string; mood: string }> = {
   happy:    { scene: 'bright watercolor meadow, wildflowers in sunlight', colors: 'yellow, orange, light green', mood: 'cheerful, vibrant, energetic' },
@@ -40,9 +41,28 @@ function buildPrompt(feeling?: string, photoPaletteHint?: string, hasPhotoRefere
 }
 
 export async function POST(req: NextRequest) {
+  // Try cookie-based auth first (web), then Bearer token (iOS)
+  let userId: string | undefined
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+
+  if (user) {
+    userId = user.id
+  } else {
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+    if (token) {
+      const tokenClient = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+      const { data: { user: tokenUser } } = await tokenClient.auth.getUser(token)
+      if (tokenUser) userId = tokenUser.id
+    }
+  }
+
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

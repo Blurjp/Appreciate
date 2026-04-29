@@ -17,4 +17,12 @@ enum SupabaseConfig {
         }
         return key
     }()
+
+    static let apiBaseURL: URL = {
+        let urlString = Bundle.main.infoDictionary?["API_BASE_URL"] as? String ?? "https://appreciate.live"
+        guard let url = URL(string: urlString) else {
+            fatalError("Invalid API_BASE_URL in Info.plist")
+        }
+        return url
+    }()
 }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0BA51544E0421795FF24F1EC /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C557740946C8EF6F5140F04 /* SupabaseConfig.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6978869504132 /* AIService.swift */; };
 		13ABA139E7FAFABBD0F61197 /* GratitudePost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80251CCE3B469A22B006C13F /* GratitudePost.swift */; };
 		1576CAC4B8B0931521A573D3 /* CategoryFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2335347067F22D92E8E3A65B /* CategoryFilterBar.swift */; };
 		1AD14B4F1E5F58996AD8B2E4 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 641D838F951DD30DBC92E95A /* ToastView.swift */; };
@@ -48,6 +49,7 @@
 
 /* Begin PBXFileReference section */
 		0170588A13717FEC6E386B73 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A6978869504132 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		02D2117B084A17604D5D9602 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1629973B9473D80D9B83E1BE /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		1AE5A9FA270D20221DB78AD7 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				DF6D94291D05475B59415D8F /* AuthService.swift */,
+					F1E2D3C4B5A6978869504132 /* AIService.swift */,
 				E4C11B9C4AF109F4EA1CEFDC /* CardExportService.swift */,
 				1EE540FF61DCE1F8595BB67C /* PostService.swift */,
 				1AE5A9FA270D20221DB78AD7 /* StreakService.swift */,
@@ -350,6 +353,7 @@
 				60865EE90E44E25B1BED22CC /* AppTheme.swift in Sources */,
 				6B207E19B2BA72A0D497EC86 /* AppreciateApp.swift in Sources */,
 				3CC34E80A40800226B78F214 /* AuthService.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* AIService.swift in Sources */,
 				3A569CB43E84443CF763C329 /* AuthViewModel.swift in Sources */,
 				C498CA879F03B9558B28F88B /* CardExportService.swift in Sources */,
 				3BE4D9D729339E77F3C02B36 /* CardPreviewView.swift in Sources */,
