@@ -1,9 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
-
-const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 interface Post {
   id: string
@@ -43,7 +40,6 @@ function seeded(seed: number) {
 
 export default function SkyClient({ user, posts, isOwner, currentTheme, embedded, onThemeSaved }: Props) {
   const [selected, setSelected] = useState(0)
-  const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
 
   const { postStars, backgroundStars } = useMemo(() => {
@@ -110,7 +106,7 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
                 type="button"
                 aria-label={`Open gratitude ${star.postIndex + 1}`}
                 onClick={() => setSelected(star.postIndex)}
-                className="absolute z-10 flex items-center justify-center rounded-full border border-white/45 bg-white/10 transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-white/30"
+                className="absolute z-10 flex cursor-pointer items-center justify-center rounded-full border border-white/45 bg-white/10 transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-white/30"
                 style={{
                   left: `${star.x}%`,
                   top: `${star.y}%`,
@@ -138,34 +134,13 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
               <p className="mt-2 text-xs text-white/45">#{active.category.replace('_', ' ').toLowerCase()}</p>
             </div>
           )}
-
-          {isOwner && (
-            <button
-              onClick={() => setShowThemePicker(true)}
-              className="absolute bottom-7 right-7 z-20 flex h-16 w-16 items-center justify-center rounded-full border border-white/12 bg-white/10 text-4xl font-light text-white/70 shadow-[0_0_28px_rgba(255,255,255,0.20)] backdrop-blur-xl"
-              aria-label="Change theme"
-            >
-              +
-            </button>
-          )}
         </div>
   )
-
-  const handleThemeSaved = (themeId: string) => {
-    if (embedded && onThemeSaved) {
-      onThemeSaved(themeId)
-    } else {
-      window.location.reload()
-    }
-  }
 
   if (embedded) {
     return (
       <>
         {visualization}
-        {showThemePicker && (
-          <ThemePicker currentTheme={currentTheme || 'starry'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-        )}
         <SkyTwinkleStyle />
       </>
     )
@@ -176,9 +151,6 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
       <section className="mx-auto max-w-4xl">
         {visualization}
       </section>
-      {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'starry'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-      )}
       <SkyTwinkleStyle />
     </main>
   )

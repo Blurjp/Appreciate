@@ -1,14 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import type { VisualizationProps } from './ZenClient'
-
-const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 export default function GlassClient({ user, posts, isOwner, currentTheme, embedded, onThemeSaved }: VisualizationProps) {
   const [selected, setSelected] = useState(0)
-  const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
   const visiblePosts = posts.length > 0 ? posts.slice(0, 8) : []
 
@@ -57,36 +53,11 @@ export default function GlassClient({ user, posts, isOwner, currentTheme, embedd
               </button>
             ))}
           </div>
-
-          {isOwner && (
-            <button
-              onClick={() => setShowThemePicker(true)}
-              className="absolute bottom-8 right-8 z-20 flex h-16 w-16 items-center justify-center rounded-full border border-white/72 bg-white/38 text-4xl font-light text-[#425F70] shadow-xl backdrop-blur-2xl"
-              aria-label="Change theme"
-            >
-              +
-            </button>
-          )}
         </div>
   )
 
-  const handleThemeSaved = (themeId: string) => {
-    if (embedded && onThemeSaved) {
-      onThemeSaved(themeId)
-    } else {
-      window.location.reload()
-    }
-  }
-
   if (embedded) {
-    return (
-      <>
-        {visualization}
-        {showThemePicker && (
-          <ThemePicker currentTheme={currentTheme || 'glass'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-        )}
-      </>
-    )
+    return <>{visualization}</>
   }
 
   return (
@@ -94,9 +65,6 @@ export default function GlassClient({ user, posts, isOwner, currentTheme, embedd
       <section className="mx-auto max-w-4xl">
         {visualization}
       </section>
-      {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'glass'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-      )}
     </main>
   )
 }

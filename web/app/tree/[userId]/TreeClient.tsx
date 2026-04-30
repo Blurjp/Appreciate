@@ -1,9 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
-
-const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 interface Post {
   id: string
@@ -43,7 +40,6 @@ const LEAF_COLORS: Record<string, string> = {
 
 export default function TreeClient({ user, posts, isOwner, currentTheme, embedded, onThemeSaved }: Props) {
   const [selected, setSelected] = useState(0)
-  const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
 
   const { postLeaves, backgroundLeaves } = useMemo(() => {
@@ -105,7 +101,7 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
                 key={i}
                 type="button"
                 onClick={() => setSelected(leaf.postIndex)}
-                className="absolute z-20 h-9 w-6 rounded-[80%_0_80%_0] border border-white/70 shadow-md transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/35"
+                className="absolute z-20 h-9 w-6 cursor-pointer rounded-[80%_0_80%_0] border border-white/70 shadow-md transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/35"
                 style={{
                   left: `${leaf.x}%`,
                   top: `${leaf.y}%`,
@@ -123,36 +119,11 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
               <p className="text-lg leading-snug">{active.content}</p>
             </div>
           )}
-
-          {isOwner && (
-            <button
-              onClick={() => setShowThemePicker(true)}
-              className="absolute bottom-8 right-8 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-[#D8B56A] text-4xl font-light text-[#4A3A2A] shadow-xl"
-              aria-label="Change theme"
-            >
-              +
-            </button>
-          )}
         </div>
   )
 
-  const handleThemeSaved = (themeId: string) => {
-    if (embedded && onThemeSaved) {
-      onThemeSaved(themeId)
-    } else {
-      window.location.reload()
-    }
-  }
-
   if (embedded) {
-    return (
-      <>
-        {visualization}
-        {showThemePicker && (
-          <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-        )}
-      </>
-    )
+    return <>{visualization}</>
   }
 
   return (
@@ -160,9 +131,6 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
       <section className="mx-auto max-w-4xl">
         {visualization}
       </section>
-      {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-      )}
     </main>
   )
 }

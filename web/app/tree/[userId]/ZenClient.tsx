@@ -1,9 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import dynamic from 'next/dynamic'
-
-const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: false })
 
 interface Post {
   id: string
@@ -47,7 +44,6 @@ function seeded(seed: number) {
 
 export default function ZenClient({ posts, isOwner, currentTheme, embedded, onThemeSaved }: VisualizationProps) {
   const [selected, setSelected] = useState(0)
-  const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
 
   const { postObjects, decorativeObjects } = useMemo(() => {
@@ -122,7 +118,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
                 key={i}
                 type="button"
                 onClick={() => setSelected(obj.postIndex)}
-                className="absolute z-20 rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#8EC7CF]/35"
+                className="absolute z-20 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#8EC7CF]/35"
                 style={{
                   left: `${obj.x}%`,
                   top: `${obj.y}%`,
@@ -143,36 +139,11 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
               <div className="absolute -bottom-3 left-12 h-6 w-6 rotate-45 border-b border-r border-white/65 bg-white/72" />
             </div>
           )}
-
-          {isOwner && (
-            <button
-              onClick={() => setShowThemePicker(true)}
-              className="absolute bottom-8 right-8 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-[#C89562] text-4xl font-light text-[#4B3320] shadow-xl"
-              aria-label="Change theme"
-            >
-              +
-            </button>
-          )}
         </div>
   )
 
-  const handleThemeSaved = (themeId: string) => {
-    if (embedded && onThemeSaved) {
-      onThemeSaved(themeId)
-    } else {
-      window.location.reload()
-    }
-  }
-
   if (embedded) {
-    return (
-      <>
-        {visualization}
-        {showThemePicker && (
-          <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-        )}
-      </>
-    )
+    return <>{visualization}</>
   }
 
   return (
@@ -180,9 +151,6 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
       <section className="mx-auto max-w-4xl">
         {visualization}
       </section>
-      {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
-      )}
     </main>
   )
 }
@@ -200,6 +168,9 @@ function Plant({ selected = false }: { selected?: boolean }) {
 
 function Stone({ selected = false }: { selected?: boolean }) {
   return (
-    <span className={`block h-10 w-14 rounded-[50%] shadow-md ${selected ? 'bg-[#A6815E]' : 'bg-[#B9B09D]'}`} />
+    <span className="relative block h-10 w-12">
+      <span className={`absolute bottom-0 left-1 h-8 w-10 rounded-[50%] ${selected ? 'bg-[#8B9A82]' : 'bg-[#A0B09A]'}`} />
+      <span className={`absolute bottom-2 right-0 h-6 w-7 rounded-[50%] ${selected ? 'bg-[#9AAB92]' : 'bg-[#B0BFB0]'}`} />
+    </span>
   )
 }
