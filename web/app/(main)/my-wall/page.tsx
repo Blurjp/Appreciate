@@ -1,20 +1,18 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
-import { GratitudePost, PostVisibility, StreakData } from '@/types'
+import { GratitudePost, PostVisibility } from '@/types'
 import { cn } from '@/lib/utils'
 import GratitudePostCard from '@/components/GratitudePostCard'
-import ThemePicker from '@/components/ThemePicker'
 import Toast from '@/components/Toast'
 import { GratitudeCategory } from '@/types'
-
-// Lazy load heavy components for better initial load performance
-const StreakCardComponent = dynamic(
-  () => import('@/components/StreakCard').then(mod => ({ default: mod.default })),
-  { loading: () => <div className="h-24 bg-brand-card rounded-2xl border border-brand-border animate-pulse" /> }
-)
+import SkyClient from '../../tree/[userId]/SkyClient'
+import TreeClient from '../../tree/[userId]/TreeClient'
+import ZenClient, { VisualizationProps } from '../../tree/[userId]/ZenClient'
+import PolaroidClient from '../../tree/[userId]/PolaroidClient'
+import GlassClient from '../../tree/[userId]/GlassClient'
 
 const EditPostModal = dynamic(
   () => import('@/components/EditPostModal').then(mod => ({ default: mod.default })),
@@ -32,7 +30,6 @@ export default function MyWallPage() {
   const [editingPost, setEditingPost] = useState<GratitudePost | null>(null)
   const [toast, setToast] = useState({ visible: false, message: '', icon: '✓', isError: false })
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [showThemePicker, setShowThemePicker] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: posts = [], isLoading: postsLoading } = useQuery<GratitudePost[]>({
@@ -59,15 +56,27 @@ export default function MyWallPage() {
     refetchOnWindowFocus: false,
   })
 
-  const { data: streak } = useQuery<StreakData>({
-    queryKey: ['streak'],
+  const { data: wallData, isLoading: wallLoading } = useQuery<TreeApiResponse>({
+    queryKey: ['tree-wall', userProfile?.id, userProfile?.wallTheme],
     queryFn: async () => {
-      const res = await fetch('/api/streak')
+      const res = await fetch(`/api/tree/${userProfile?.id}`)
+      if (!res.ok) throw new Error('Failed to load wall')
       return res.json()
     },
+    enabled: Boolean(userProfile?.id),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
   })
+
+  const handleWallThemeSaved = useCallback((themeId: string) => {
+    queryClient.setQueryData(['user'], (old: unknown) => {
+      if (old && typeof old === 'object') {
+        return { ...(old as Record<string, unknown>), wallTheme: themeId }
+      }
+      return old
+    })
+    queryClient.invalidateQueries({ queryKey: ['tree-wall', userProfile?.id] })
+  }, [queryClient, userProfile?.id])
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -154,52 +163,21 @@ export default function MyWallPage() {
   }, [updateMutation, showToast])
 
   return (
-    <div className="px-4 pt-6">
-      {/* Header */}
-      <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">Private</p>
-      <h1 className="text-title text-brand-text-primary tracking-tight mb-5">My Wall</h1>
-
-      {/* Streak Card */}
-      {streak && (
-        <div className="mb-5">
-          <StreakCardComponent streak={streak} currentTheme={userProfile?.wallTheme || 'starry'} />
+    <div className="px-4 pt-5">
+      <div className="mb-5">
+        <div>
+          <p className="mb-1 text-[10px] uppercase text-brand-text-muted">Private</p>
+          <h1 className="text-title text-brand-text-primary">My Wall</h1>
         </div>
-      )}
+      </div>
 
-      {/* My Wall card — tap theme emoji to change theme, tap rest to view wall */}
       {userProfile?.id && (
-        <div className="block mb-5 p-4 rounded-2xl bg-white border border-brand-border shadow-card group">
-          <div className="flex items-center justify-between">
-            <a
-              href={`/tree/${userProfile.id}`}
-              className="flex items-center gap-3 flex-1 min-w-0"
-            >
-              <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
-                {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '🧊' }[userProfile.wallTheme || 'starry'] || '✨'}
-              </div>
-              <div className="min-w-0">
-                <p className="text-headline text-brand-text-primary">My Gratitude Wall</p>
-                <p className="text-caption text-brand-text-secondary">
-                  {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Glassmorphism' }[userProfile.wallTheme || 'starry'] || 'Starry Night'}
-                </p>
-              </div>
-            </a>
-            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-              <button
-                onClick={() => setShowThemePicker(true)}
-                className="text-[9px] tracking-widest uppercase text-brand-text-muted hover:text-brand-primary transition-colors border border-brand-border rounded-full px-3 py-1 hover:border-brand-primary"
-                title="Change theme"
-              >
-                Theme
-              </button>
-              <a
-                href={`/tree/${userProfile.id}`}
-                className="text-brand-text-muted hover:text-brand-primary transition-colors"
-              >
-                →
-              </a>
-            </div>
-          </div>
+        <div className="mb-5">
+          {wallLoading ? (
+            <div className="h-[70vh] min-h-[520px] animate-pulse rounded-2xl border border-white/60 bg-white/40 shadow-[0_24px_70px_rgba(62,78,84,0.14)]" />
+          ) : wallData ? (
+            <ExactWallEmbed data={wallData} onThemeSaved={handleWallThemeSaved} />
+          ) : null}
         </div>
       )}
 
@@ -210,10 +188,10 @@ export default function MyWallPage() {
             key={opt.label}
             onClick={() => setFilter(opt.value)}
             className={cn(
-              'px-4 py-2 rounded-full text-[10px] tracking-widest uppercase font-medium transition-all border',
+              'rounded-full px-4 py-2 text-[10px] font-medium uppercase transition-all border',
               filter === opt.value
                 ? 'bg-brand-primary text-white border-brand-primary'
-                : 'bg-white text-brand-text-muted border-brand-border hover:border-brand-primary hover:text-brand-primary'
+                : 'glass-chip text-brand-text-muted hover:text-brand-text-primary'
             )}
           >
             {opt.label}
@@ -223,7 +201,7 @@ export default function MyWallPage() {
 
       {/* Posts */}
       {postsLoading ? (
-        <div className="text-center py-16">
+        <div className="concept-panel px-6 py-14 text-center">
           <svg className="w-10 h-10 mx-auto text-brand-border animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
@@ -292,14 +270,6 @@ export default function MyWallPage() {
         </div>
       )}
 
-      {/* Theme Picker Modal */}
-      {showThemePicker && (
-        <ThemePicker
-          currentTheme={userProfile?.wallTheme || 'starry'}
-          onClose={() => setShowThemePicker(false)}
-        />
-      )}
-
       <Toast
         isVisible={toast.visible}
         message={toast.message}
@@ -309,4 +279,45 @@ export default function MyWallPage() {
       />
     </div>
   )
+}
+
+interface TreeApiResponse {
+  user: VisualizationProps['user'] & {
+    joinedAt?: string
+    wallTheme: string
+  }
+  posts: VisualizationProps['posts']
+  stats: VisualizationProps['stats']
+}
+
+function ExactWallEmbed({
+  data,
+  onThemeSaved,
+}: {
+  data: TreeApiResponse
+  onThemeSaved: (themeId: string) => void
+}) {
+  const props: VisualizationProps = {
+    user: data.user,
+    posts: data.posts,
+    stats: data.stats,
+    isOwner: true,
+    currentTheme: data.user.wallTheme,
+    embedded: true,
+    onThemeSaved,
+  }
+
+  switch (data.user.wallTheme) {
+    case 'tree':
+      return <TreeClient {...props} />
+    case 'zen':
+      return <ZenClient {...props} />
+    case 'polaroid':
+      return <PolaroidClient {...props} />
+    case 'glass':
+      return <GlassClient {...props} />
+    case 'starry':
+    default:
+      return <SkyClient {...props} />
+  }
 }

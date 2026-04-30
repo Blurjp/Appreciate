@@ -20,6 +20,8 @@ interface Props {
   stats: { totalPosts: number; totalHearts: number; currentStreak: number; longestStreak: number }
   isOwner?: boolean
   currentTheme?: string
+  embedded?: boolean
+  onThemeSaved?: (themeId: string) => void
 }
 
 function seeded(seed: number) {
@@ -31,43 +33,48 @@ function seeded(seed: number) {
 }
 
 const LEAF_COLORS: Record<string, string> = {
-  FAMILY: '#D4917A',
-  WORK: '#BE6858',
-  SMALL_JOYS: '#D8BC69',
-  NATURE: '#7FA06B',
-  HEALTH: '#9F8BB0',
-  OTHER: '#BBA898',
+  FAMILY: '#D18B73',
+  WORK: '#9A7DB8',
+  SMALL_JOYS: '#D7B85C',
+  NATURE: '#6F9B69',
+  HEALTH: '#77A7A8',
+  OTHER: '#B99A75',
 }
 
-export default function TreeClient({ user, posts, isOwner, currentTheme }: Props) {
+export default function TreeClient({ user, posts, isOwner, currentTheme, embedded, onThemeSaved }: Props) {
   const [selected, setSelected] = useState(0)
   const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
 
-  const leaves = useMemo(() => {
+  const { postLeaves, backgroundLeaves } = useMemo(() => {
     const rand = seeded(24)
-    const count = Math.max(14, Math.min(54, posts.length * 2 + 14))
-    return Array.from({ length: count }, (_, i) => {
+    const postLeaves = Array.from({ length: posts.length }, (_, i) => {
       const angle = rand() * Math.PI * 2
       const radius = Math.sqrt(rand()) * 34
       return {
         x: 50 + Math.cos(angle) * radius,
         y: 36 + Math.sin(angle) * radius * 0.62,
         rotate: rand() * 360,
-        postIndex: i < posts.length ? i : -1,
+        postIndex: i,
         color: LEAF_COLORS[posts[i]?.category || 'OTHER'] || LEAF_COLORS.OTHER,
       }
     })
+    const backgroundLeaves = Array.from({ length: Math.max(18, Math.min(56, posts.length * 2 + 18)) }, () => {
+      const angle = rand() * Math.PI * 2
+      const radius = Math.sqrt(rand()) * 36
+      return {
+        x: 50 + Math.cos(angle) * radius,
+        y: 36 + Math.sin(angle) * radius * 0.62,
+        rotate: rand() * 360,
+        color: '#86A777',
+      }
+    })
+    return { postLeaves, backgroundLeaves }
   }, [posts])
 
-  return (
-    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
-      <section className="mx-auto max-w-4xl">
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#F5EFE3] shadow-[0_24px_70px_rgba(91,72,48,0.18)]">
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,#F9F4E9_0%,#EDE3D2_100%)]" />
-          <h1 className="absolute left-7 top-7 z-10 text-[34px] font-semibold tracking-tight text-[#4A3A2A] sm:text-[44px]">
-            {user.name}&apos;s Gratitude Tree
-          </h1>
+  const visualization = (
+        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#F0E7D4] shadow-[0_24px_70px_rgba(80,62,40,0.18)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(194,214,172,0.55),transparent_34%),linear-gradient(180deg,#F7F0E2_0%,#E7D8BD_100%)]" />
 
           <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <path d="M49 94 C48 77 48 64 50 48" stroke="#8B5E3C" strokeWidth="4" strokeLinecap="round" fill="none" />
@@ -77,23 +84,36 @@ export default function TreeClient({ user, posts, isOwner, currentTheme }: Props
             <ellipse cx="50" cy="94" rx="31" ry="7" fill="#D8C8A8" opacity="0.8" />
           </svg>
 
-          {leaves.map((leaf, i) => {
-            const isPost = leaf.postIndex >= 0
+          {backgroundLeaves.map((leaf, i) => (
+            <span
+              key={`leaf-bg-${i}`}
+              className="absolute z-10 h-6 w-4 rounded-[80%_0_80%_0] shadow-sm"
+              style={{
+                left: `${leaf.x}%`,
+                top: `${leaf.y}%`,
+                background: leaf.color,
+                transform: `translate(-50%, -50%) rotate(${leaf.rotate}deg)`,
+                opacity: 0.42,
+              }}
+            />
+          ))}
+
+          {postLeaves.map((leaf, i) => {
             const isSelected = leaf.postIndex === selected
             return (
               <button
                 key={i}
                 type="button"
-                onClick={() => isPost && setSelected(leaf.postIndex)}
-                className="absolute z-10 h-7 w-4 rounded-[80%_0_80%_0] shadow-sm transition-transform duration-300"
+                onClick={() => setSelected(leaf.postIndex)}
+                className="absolute z-20 h-9 w-6 rounded-[80%_0_80%_0] border border-white/70 shadow-md transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/35"
                 style={{
                   left: `${leaf.x}%`,
                   top: `${leaf.y}%`,
                   background: leaf.color,
                   transform: `translate(-50%, -50%) rotate(${leaf.rotate}deg) scale(${isSelected ? 1.45 : 1})`,
-                  opacity: isPost ? 0.96 : 0.45,
+                  boxShadow: isSelected ? `0 0 0 10px ${leaf.color}33, 0 10px 24px rgba(61,46,32,0.18)` : '0 8px 18px rgba(61,46,32,0.16)',
                 }}
-                aria-label={isPost ? `Open leaf ${leaf.postIndex + 1}` : undefined}
+                aria-label={`Open leaf ${leaf.postIndex + 1}`}
               />
             )
           })}
@@ -114,10 +134,34 @@ export default function TreeClient({ user, posts, isOwner, currentTheme }: Props
             </button>
           )}
         </div>
-      </section>
+  )
 
+  const handleThemeSaved = (themeId: string) => {
+    if (embedded && onThemeSaved) {
+      onThemeSaved(themeId)
+    } else {
+      window.location.reload()
+    }
+  }
+
+  if (embedded) {
+    return (
+      <>
+        {visualization}
+        {showThemePicker && (
+          <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
+        )}
+      </>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
+      <section className="mx-auto max-w-4xl">
+        {visualization}
+      </section>
       {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
+        <ThemePicker currentTheme={currentTheme || 'tree'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
       )}
     </main>
   )

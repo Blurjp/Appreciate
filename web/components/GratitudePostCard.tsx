@@ -87,15 +87,14 @@ function GratitudePostCard({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-brand-border shadow-warm transition-shadow hover:shadow-warm-lg overflow-hidden"
-      style={{ borderLeft: `3px solid ${accentColor}` }}
+      className="concept-panel transition-transform duration-200 hover:-translate-y-0.5"
+      style={{ boxShadow: `0 18px 42px ${accentColor}16` }}
     >
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
+      <div className="relative z-10 p-5">
+        <div className="mb-4 flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-full flex items-center justify-center font-medium text-white text-sm flex-shrink-0"
-            style={{ backgroundColor: accentColor }}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-white/60 text-sm font-semibold text-white shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}AA)` }}
           >
             {initial}
           </div>
@@ -112,34 +111,30 @@ function GratitudePostCard({
           <VisibilityBadge visibility={post.visibility} />
         </div>
 
-        {/* Content */}
-        <div className="relative mb-4">
+        <div className="relative mb-4 rounded-2xl border border-white/55 bg-white/42 p-4 backdrop-blur-xl">
           <span
-            className="absolute -left-0.5 -top-1 text-2xl text-brand-border opacity-70"
+            className="absolute left-3 top-2 text-2xl text-brand-text-muted opacity-40"
             style={{ fontFamily: 'var(--font-serif), Georgia, serif', lineHeight: 1 }}
           >
             &ldquo;
           </span>
-          <p className="text-brand-text-primary text-[15px] leading-relaxed pl-4 pr-2 whitespace-pre-wrap">
+          <p className="whitespace-pre-wrap pl-4 pr-2 text-[15px] leading-relaxed text-brand-text-primary">
             {post.content}
           </p>
         </div>
 
-        {/* Feeling */}
         {post.feeling && (
           <div className="mb-4 pl-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-brand-surface text-brand-text-secondary border border-brand-divider">
+            <span className="glass-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-brand-text-secondary">
               <span className="italic">{post.feeling}</span>
             </span>
           </div>
         )}
 
-        {/* Card Background */}
         <CardBackground post={post} />
 
-        {/* Photo */}
         {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
-          <div className="mb-4 rounded-xl overflow-hidden relative h-52">
+          <div className="relative mb-4 h-52 overflow-hidden rounded-2xl border border-white/55">
             <Image
               src={post.photoUrl}
               alt="Post photo"
@@ -150,10 +145,9 @@ function GratitudePostCard({
           </div>
         )}
 
-        {/* Category Badge */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="mb-4 flex items-center gap-2">
           <span
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border"
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
             style={{
               backgroundColor: `${accentColor}18`,
               color: accentColor,
@@ -164,16 +158,15 @@ function GratitudePostCard({
           </span>
         </div>
 
-        {/* Actions */}
-        <div className="pt-3 border-t border-brand-divider">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="border-t border-white/50 pt-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleHeart}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
                 post.heartCount > 0
                   ? 'text-white'
-                  : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider'
+                  : 'glass-chip text-brand-text-secondary hover:text-brand-text-primary'
               )}
               style={post.heartCount > 0 ? { backgroundColor: accentColor } : {}}
             >
@@ -186,10 +179,10 @@ function GratitudePostCard({
             <button
               onClick={handleShareToggle}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
                 isShareOpen
                   ? 'bg-brand-accent text-white'
-                  : 'bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider'
+                  : 'glass-chip text-brand-text-secondary hover:text-brand-text-primary'
               )}
             >
               <ShareIcon />
@@ -201,7 +194,7 @@ function GratitudePostCard({
                 {onEdit && (
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider transition-all"
+                    className="glass-chip flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-brand-text-secondary transition-all hover:text-brand-text-primary"
                   >
                     <EditIcon />
                     <span>Edit</span>
@@ -211,7 +204,7 @@ function GratitudePostCard({
                 {onToggleVisibility && (
                   <button
                     onClick={handleToggleVisibility}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-brand-surface text-brand-text-secondary hover:bg-brand-accent-light border border-brand-divider transition-all"
+                    className="glass-chip flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-brand-text-secondary transition-all hover:text-brand-text-primary"
                   >
                     <span>{post.visibility === 'PRIVATE' ? 'Make Public' : 'Make Private'}</span>
                   </button>
@@ -220,7 +213,7 @@ function GratitudePostCard({
                 {onDelete && (
                   <button
                     onClick={handleDelete}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-all ml-auto"
+                    className="ml-auto flex items-center gap-1.5 rounded-xl border border-red-100 bg-red-50/80 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100"
                   >
                     <span>Delete</span>
                   </button>
@@ -230,7 +223,7 @@ function GratitudePostCard({
           </div>
 
           {isShareOpen && (
-            <div className="mt-4 p-3 rounded-xl bg-brand-surface border border-brand-divider">
+            <div className="glass-chip mt-4 rounded-2xl p-3">
               <ShareLinkActions
                 url={shareUrl}
                 title="Share this gratitude moment"

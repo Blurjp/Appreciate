@@ -8,10 +8,10 @@ const ThemePicker = dynamic(() => import('@/components/ThemePicker'), { ssr: fal
 
 const HAND = '"Comic Sans MS", "Bradley Hand", "Segoe Print", cursive'
 const GRADIENTS = [
-  'from-amber-100 via-stone-100 to-sky-100',
-  'from-sky-100 via-cyan-100 to-emerald-100',
-  'from-rose-100 via-orange-100 to-violet-100',
-  'from-lime-100 via-stone-100 to-amber-100',
+  'from-[#F7D8A8] via-[#F6E8D2] to-[#BFD6D8]',
+  'from-[#B9D7E6] via-[#DCEBE7] to-[#BFD7B8]',
+  'from-[#E8B7B0] via-[#F3D4B7] to-[#C7B7D8]',
+  'from-[#C9D8A8] via-[#EFE1C7] to-[#D7B85C]',
 ]
 
 function seeded(seed: number) {
@@ -22,7 +22,7 @@ function seeded(seed: number) {
   }
 }
 
-export default function PolaroidClient({ user, posts, isOwner, currentTheme }: VisualizationProps) {
+export default function PolaroidClient({ user, posts, isOwner, currentTheme, embedded, onThemeSaved }: VisualizationProps) {
   const [selected, setSelected] = useState(0)
   const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
@@ -39,40 +39,48 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme }: V
     }))
   }, [posts.length])
 
-  return (
-    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
-      <section className="mx-auto max-w-4xl">
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#FFF9ED] shadow-[0_24px_70px_rgba(91,72,48,0.18)]">
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(128,105,74,0.045)_1px,transparent_1px),radial-gradient(circle,rgba(91,72,48,0.06)_1px,transparent_1px)] bg-[size:92px_92px,18px_18px]" />
-          <h1 className="absolute left-7 top-8 z-20 max-w-[260px] text-[38px] leading-[0.92] text-[#17120E] sm:text-[50px]" style={{ fontFamily: HAND }}>
-            Moments of Gratitude
-          </h1>
+  const visualization = (
+        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#FBF4E7] shadow-[0_24px_70px_rgba(80,62,40,0.18)]">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(128,105,74,0.04)_1px,transparent_1px),radial-gradient(circle,rgba(91,72,48,0.055)_1px,transparent_1px)] bg-[size:92px_92px,18px_18px]" />
 
           {cards.map((card, i) => {
             const isPost = card.postIndex >= 0
             const post = posts[card.postIndex]
             const isSelected = card.postIndex === selected
-            return (
+            const style = {
+              left: `${card.x}%`,
+              top: `${card.y}%`,
+              width: isSelected ? 150 : 122,
+              transform: `translate(-50%, -50%) rotate(${isSelected ? card.rotate * 0.3 : card.rotate}deg) scale(${isSelected ? 1.08 : card.scale})`,
+            }
+
+            return isPost ? (
               <button
                 key={i}
                 type="button"
-                onClick={() => isPost && setSelected(card.postIndex)}
-                className="absolute z-10 bg-white p-2 text-left shadow-[0_10px_24px_rgba(45,36,24,0.18)] transition-transform duration-300"
-                style={{
-                  left: `${card.x}%`,
-                  top: `${card.y}%`,
-                  width: isSelected ? 142 : 116,
-                  transform: `translate(-50%, -50%) rotate(${isSelected ? card.rotate * 0.3 : card.rotate}deg) scale(${isSelected ? 1.08 : card.scale})`,
-                }}
-                aria-label={isPost ? `Open memory ${card.postIndex + 1}` : undefined}
+                onClick={() => setSelected(card.postIndex)}
+                className="absolute z-20 bg-white p-2 text-left shadow-[0_14px_30px_rgba(45,36,24,0.20)] ring-2 ring-[#D7B85C]/55 transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/45"
+                style={style}
+                aria-label={`Open memory ${card.postIndex + 1}`}
               >
+                <span className="absolute -right-2 -top-2 h-5 w-5 rounded-full border border-white bg-[#B98154] shadow" />
                 <div className={`h-24 bg-gradient-to-br ${GRADIENTS[i % GRADIENTS.length]} flex items-center justify-center`}>
                   <span className="text-4xl opacity-70">{i % 4 === 0 ? '☕' : i % 4 === 1 ? '☀️' : i % 4 === 2 ? '🌧️' : '✨'}</span>
                 </div>
                 <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-[#2F281F]" style={{ fontFamily: HAND }}>
-                  {post?.content || 'A small quiet moment.'}
+                  {post.content}
                 </p>
               </button>
+            ) : (
+              <div
+                key={i}
+                className="absolute z-10 bg-white/70 p-2 text-left opacity-55 shadow-[0_8px_18px_rgba(45,36,24,0.12)]"
+                style={style}
+              >
+                <div className={`h-24 bg-gradient-to-br ${GRADIENTS[i % GRADIENTS.length]}`} />
+                <div className="mt-2 h-2 w-16 rounded-full bg-stone-200" />
+                <div className="mt-1 h-2 w-10 rounded-full bg-stone-200" />
+              </div>
             )
           })}
 
@@ -92,10 +100,34 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme }: V
             </button>
           )}
         </div>
-      </section>
+  )
 
+  const handleThemeSaved = (themeId: string) => {
+    if (embedded && onThemeSaved) {
+      onThemeSaved(themeId)
+    } else {
+      window.location.reload()
+    }
+  }
+
+  if (embedded) {
+    return (
+      <>
+        {visualization}
+        {showThemePicker && (
+          <ThemePicker currentTheme={currentTheme || 'polaroid'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
+        )}
+      </>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
+      <section className="mx-auto max-w-4xl">
+        {visualization}
+      </section>
       {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'polaroid'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
+        <ThemePicker currentTheme={currentTheme || 'polaroid'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
       )}
     </main>
   )

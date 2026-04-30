@@ -33,6 +33,8 @@ export interface VisualizationProps {
   stats: Stats
   isOwner?: boolean
   currentTheme?: string
+  embedded?: boolean
+  onThemeSaved?: (themeId: string) => void
 }
 
 function seeded(seed: number) {
@@ -43,31 +45,32 @@ function seeded(seed: number) {
   }
 }
 
-export default function ZenClient({ posts, isOwner, currentTheme }: VisualizationProps) {
+export default function ZenClient({ posts, isOwner, currentTheme, embedded, onThemeSaved }: VisualizationProps) {
   const [selected, setSelected] = useState(0)
   const [showThemePicker, setShowThemePicker] = useState(false)
   const active = posts[selected] || posts[0]
 
-  const objects = useMemo(() => {
+  const { postObjects, decorativeObjects } = useMemo(() => {
     const rand = seeded(42)
-    const count = Math.max(7, Math.min(24, posts.length + 7))
-    return Array.from({ length: count }, (_, i) => ({
+    const postObjects = Array.from({ length: posts.length }, (_, i) => ({
       x: 43 + rand() * 50,
       y: 20 + rand() * 58,
       kind: i % 3,
-      postIndex: i < posts.length ? i : -1,
+      postIndex: i,
       rotate: -14 + rand() * 28,
     }))
+    const decorativeObjects = Array.from({ length: Math.max(7, Math.min(18, posts.length + 7)) }, (_, i) => ({
+      x: 43 + rand() * 50,
+      y: 20 + rand() * 58,
+      kind: i % 3,
+      rotate: -14 + rand() * 28,
+    }))
+    return { postObjects, decorativeObjects }
   }, [posts.length])
 
-  return (
-    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
-      <section className="mx-auto max-w-4xl">
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#F1E6D4] shadow-[0_24px_70px_rgba(88,74,52,0.22)]">
-          <div className="absolute inset-y-0 left-0 w-[38%] bg-[#DDEAD8]" />
-          <h1 className="absolute left-7 top-7 z-10 text-[34px] font-semibold tracking-tight text-[#8D7A57] sm:text-[42px]">
-            Today&apos;s Garden
-          </h1>
+  const visualization = (
+        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#EFE2CC] shadow-[0_24px_70px_rgba(78,63,42,0.20)]">
+          <div className="absolute inset-y-0 left-0 w-[38%] bg-[#D8E6D2]" />
 
           <div className="absolute left-[10%] top-[25%] h-44 w-44 rounded-full bg-white/24">
             {[42, 58, 74, 90].map((r) => (
@@ -77,10 +80,10 @@ export default function ZenClient({ posts, isOwner, currentTheme }: Visualizatio
                 style={{ inset: `${88 - r}px` }}
               />
             ))}
-            <div className="absolute inset-2 rounded-full border-[14px] border-[#D7EBD9]" />
-            <div className="absolute inset-2 rounded-full border-[14px] border-transparent border-t-[#C58E5E] rotate-45" />
-            <div className="absolute -bottom-2 left-2 h-16 w-40 rounded-[50%] border-b-[12px] border-[#9BD4DA]/70 rotate-[-8deg]" />
-            <div className="absolute left-1/2 top-1/2 h-8 w-12 -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[#9D9B87] shadow-lg" />
+            <div className="absolute inset-2 rounded-full border-[14px] border-[#CFE3D0]" />
+            <div className="absolute inset-2 rounded-full border-[14px] border-transparent border-t-[#B98154] rotate-45" />
+            <div className="absolute -bottom-2 left-2 h-16 w-40 rounded-[50%] border-b-[12px] border-[#8EC7CF]/70 rotate-[-8deg]" />
+            <div className="absolute left-1/2 top-1/2 h-8 w-12 -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[#8F927C] shadow-lg" />
           </div>
 
           <svg className="absolute inset-y-0 right-0 h-full w-[65%]" viewBox="0 0 650 520" preserveAspectRatio="none">
@@ -94,27 +97,42 @@ export default function ZenClient({ posts, isOwner, currentTheme }: Visualizatio
               />
             ))}
             {[{ x: 582, y: 28, r: 54 }, { x: 96, y: 470, r: 38 }, { x: 618, y: 438, r: 44 }].map((stone, i) => (
-              <ellipse key={i} cx={stone.x} cy={stone.y} rx={stone.r} ry={stone.r * 0.72} fill="#9AAB8C" opacity="0.72" />
+              <ellipse key={i} cx={stone.x} cy={stone.y} rx={stone.r} ry={stone.r * 0.72} fill="#8CA282" opacity="0.58" />
             ))}
           </svg>
 
-          {objects.map((obj, i) => {
-            const isPost = obj.postIndex >= 0
+          {decorativeObjects.map((obj, i) => (
+            <span
+              key={`decor-${i}`}
+              className="absolute z-10 opacity-45"
+              style={{
+                left: `${obj.x}%`,
+                top: `${obj.y}%`,
+                transform: `translate(-50%, -50%) rotate(${obj.rotate}deg)`,
+              }}
+            >
+              {obj.kind === 0 ? <Plant /> : <Stone />}
+            </span>
+          ))}
+
+          {postObjects.map((obj, i) => {
             const isSelected = obj.postIndex === selected
             return (
               <button
                 key={i}
                 type="button"
-                onClick={() => isPost && setSelected(obj.postIndex)}
-                className="absolute z-10 transition-transform duration-300"
+                onClick={() => setSelected(obj.postIndex)}
+                className="absolute z-20 rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#8EC7CF]/35"
                 style={{
                   left: `${obj.x}%`,
                   top: `${obj.y}%`,
-                  transform: `translate(-50%, -50%) rotate(${obj.rotate}deg) scale(${isSelected ? 1.18 : 1})`,
+                  transform: `translate(-50%, -50%) rotate(${obj.rotate}deg) scale(${isSelected ? 1.22 : 1})`,
                 }}
-                aria-label={isPost ? `Open garden moment ${obj.postIndex + 1}` : undefined}
+                aria-label={`Open garden moment ${obj.postIndex + 1}`}
               >
-                {obj.kind === 0 ? <Plant /> : <Stone selected={isSelected} />}
+                <span className={`block rounded-full p-2 ${isSelected ? 'bg-[#8EC7CF]/30 ring-8 ring-[#8EC7CF]/25' : 'bg-white/38 ring-2 ring-white/70'}`}>
+                  {obj.kind === 0 ? <Plant selected /> : <Stone selected />}
+                </span>
               </button>
             )
           })}
@@ -136,28 +154,52 @@ export default function ZenClient({ posts, isOwner, currentTheme }: Visualizatio
             </button>
           )}
         </div>
-      </section>
+  )
 
+  const handleThemeSaved = (themeId: string) => {
+    if (embedded && onThemeSaved) {
+      onThemeSaved(themeId)
+    } else {
+      window.location.reload()
+    }
+  }
+
+  if (embedded) {
+    return (
+      <>
+        {visualization}
+        {showThemePicker && (
+          <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
+        )}
+      </>
+    )
+  }
+
+  return (
+    <main className="min-h-screen bg-[#EEF3F6] px-4 py-5">
+      <section className="mx-auto max-w-4xl">
+        {visualization}
+      </section>
       {showThemePicker && (
-        <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={() => window.location.reload()} />
+        <ThemePicker currentTheme={currentTheme || 'zen'} onClose={() => setShowThemePicker(false)} onSaved={handleThemeSaved} />
       )}
     </main>
   )
 }
 
-function Plant() {
+function Plant({ selected = false }: { selected?: boolean }) {
   return (
     <span className="relative block h-14 w-12">
-      <span className="absolute bottom-1 left-1/2 h-10 w-1 -translate-x-1/2 rounded-full bg-[#789B75]" />
-      <span className="absolute bottom-6 left-1 h-4 w-8 rounded-[50%] bg-[#789B75] rotate-[-30deg]" />
-      <span className="absolute bottom-7 right-1 h-4 w-8 rounded-[50%] bg-[#8AAA83] rotate-[30deg]" />
-      <span className="absolute bottom-10 left-4 h-4 w-7 rounded-[50%] bg-[#6F926A]" />
+      <span className={`absolute bottom-1 left-1/2 h-10 w-1 -translate-x-1/2 rounded-full ${selected ? 'bg-[#4F7B5E]' : 'bg-[#789B75]'}`} />
+      <span className={`absolute bottom-6 left-1 h-4 w-8 rounded-[50%] rotate-[-30deg] ${selected ? 'bg-[#4F7B5E]' : 'bg-[#789B75]'}`} />
+      <span className={`absolute bottom-7 right-1 h-4 w-8 rounded-[50%] rotate-[30deg] ${selected ? 'bg-[#6E9C75]' : 'bg-[#8AAA83]'}`} />
+      <span className={`absolute bottom-10 left-4 h-4 w-7 rounded-[50%] ${selected ? 'bg-[#416F50]' : 'bg-[#6F926A]'}`} />
     </span>
   )
 }
 
-function Stone({ selected }: { selected: boolean }) {
+function Stone({ selected = false }: { selected?: boolean }) {
   return (
-    <span className={`block h-10 w-14 rounded-[50%] bg-[#B9B09D] shadow-md ${selected ? 'ring-8 ring-[#9BD4DA]/30' : ''}`} />
+    <span className={`block h-10 w-14 rounded-[50%] shadow-md ${selected ? 'bg-[#A6815E]' : 'bg-[#B9B09D]'}`} />
   )
 }

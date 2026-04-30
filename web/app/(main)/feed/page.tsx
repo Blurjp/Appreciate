@@ -26,21 +26,80 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
   }).length
 
   return (
-    <div className="px-4 pt-6">
-      {/* Header */}
-      <div className="mb-5">
-        <p className="text-[10px] tracking-[0.3em] uppercase text-brand-text-muted mb-1">{formatDate(new Date())}</p>
-        <h1 className="text-title text-brand-text-primary tracking-tight">Today&apos;s Feed</h1>
-        <p className="text-subheadline text-brand-text-secondary mt-1">
-          {todayCount} appreciation{todayCount !== 1 ? 's' : ''} today
-        </p>
+    <div className="px-4 pt-5">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-1 text-[10px] uppercase text-brand-text-muted">{formatDate(new Date())}</p>
+          <h1 className="text-title text-brand-text-primary">Gratitude Sky</h1>
+        </div>
+        <div className="glass-chip rounded-2xl px-4 py-3 text-right">
+          <p className="text-2xl font-semibold leading-none text-brand-text-primary">{todayCount}</p>
+          <p className="mt-1 text-[10px] font-medium uppercase text-brand-text-muted">today</p>
+        </div>
       </div>
 
-      {/* Client Component for interactions */}
+      <GratitudeSkyPanel posts={initialPosts} todayCount={todayCount} />
+
       <Suspense fallback={<FeedSkeleton />}>
         <FeedClient initialPosts={initialPosts} initialCategory={category} />
       </Suspense>
     </div>
+  )
+}
+
+function GratitudeSkyPanel({
+  posts,
+  todayCount,
+}: {
+  posts: Awaited<ReturnType<typeof fetchPosts>>
+  todayCount: number
+}) {
+  const featured = posts[0]
+  const stars = [
+    ['12%', '20%', 4],
+    ['24%', '62%', 7],
+    ['38%', '32%', 5],
+    ['56%', '18%', 8],
+    ['72%', '56%', 5],
+    ['86%', '28%', 7],
+    ['18%', '78%', 3],
+    ['48%', '74%', 6],
+  ]
+
+  return (
+    <section className="sky-panel concept-panel mb-5 min-h-[245px] p-6 text-white">
+      <div className="absolute inset-0 z-0 opacity-70">
+        <svg className="h-full w-full" viewBox="0 0 760 300" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M75 205 C185 90 270 265 390 148 S555 42 685 112" fill="none" stroke="rgba(255,255,255,0.20)" strokeWidth="2" />
+          <path d="M130 92 C230 160 320 102 420 128 S570 218 660 78" fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="2" />
+        </svg>
+      </div>
+      {stars.map(([left, top, size], index) => (
+        <span
+          key={index}
+          className="absolute z-10 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.95)]"
+          style={{ left, top, width: size, height: size }}
+        />
+      ))}
+      <div className="relative z-10 max-w-[360px]">
+        <p className="text-[10px] font-medium uppercase text-white/55">My Gratitude Sky</p>
+        <h2 className="mt-3 text-[32px] font-light leading-tight text-white sm:text-[40px]">
+          Every small note becomes a point of light.
+        </h2>
+      </div>
+      <div className="absolute bottom-5 right-5 z-10 rounded-2xl border border-white/25 bg-white/16 px-5 py-4 text-white shadow-xl backdrop-blur-xl">
+        <p className="text-[10px] font-medium uppercase text-white/60">Latest moment</p>
+        <p className="mt-2 max-w-[230px] text-sm leading-5 text-white/90">
+          {featured?.content || 'Share one thing you noticed today.'}
+        </p>
+      </div>
+      <div className="absolute bottom-5 left-6 z-10 flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/14 text-2xl shadow-[0_0_24px_rgba(255,255,255,0.20)] backdrop-blur-xl">
+          +
+        </span>
+        <span className="text-sm text-white/65">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
+      </div>
+    </section>
   )
 }
 

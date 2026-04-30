@@ -33,13 +33,15 @@ export default function CreatePage() {
   })
 
   return (
-    <div className="h-[calc(100vh-5rem)]">
+    <div className="px-4 pt-5">
+      <div className="concept-panel h-[calc(100vh-8.5rem)]">
       <CreatePostForm
         onSubmit={async (data) => {
           return createMutation.mutateAsync(data)
         }}
         onClose={() => router.push('/my-wall')}
       />
+      </div>
     </div>
   )
 }

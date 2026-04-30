@@ -127,7 +127,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const selectedCategory = getCategoryMeta(category)
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative z-10 flex h-full flex-col">
       {/* Progress Bar */}
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
@@ -137,7 +137,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           {onClose && (
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full border border-brand-border flex items-center justify-center text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-all"
+              className="glass-chip flex h-8 w-8 items-center justify-center rounded-full text-brand-text-muted transition-all hover:text-brand-primary"
             >
               ✕
             </button>
@@ -195,7 +195,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="p-5 border-t border-brand-border bg-brand-background">
+      <div className="border-t border-white/50 bg-white/24 p-5 backdrop-blur-xl">
         {submitError && (
           <p className="mb-3 text-sm text-red-500">{submitError}</p>
         )}
@@ -203,7 +203,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         {step > 1 && (
           <button
             onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-3.5 rounded-xl border border-brand-border text-subheadline font-medium tracking-wide text-brand-text-secondary hover:border-brand-primary hover:text-brand-primary bg-brand-surface transition-all active:scale-95"
+            className="glass-chip flex-1 rounded-xl py-3.5 text-subheadline font-medium text-brand-text-secondary transition-all active:scale-95 hover:text-brand-text-primary"
           >
             ← Back
           </button>
@@ -215,7 +215,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             className={cn(
               'flex-1 py-3.5 rounded-xl text-subheadline tracking-wide font-medium transition-all active:scale-95',
               step === 1 && !canProceedStep1
-                ? 'bg-brand-surface text-brand-text-muted cursor-not-allowed border border-brand-border'
+                ? 'bg-white/28 text-brand-text-muted cursor-not-allowed border border-white/45'
                 : 'bg-brand-primary text-white shadow-button hover:bg-brand-accent-dark'
             )}
           >
@@ -275,7 +275,7 @@ function Step1Message({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-brand-border bg-white p-5 shadow-warm">
+      <div className="glass-chip rounded-2xl p-5">
         <div className="flex items-end justify-between gap-3">
           <label className="text-sm text-brand-text-secondary font-medium">Your appreciation</label>
           <span className="text-xs px-2.5 py-1 rounded-full bg-brand-surface text-brand-text-muted border border-brand-divider">
@@ -286,7 +286,7 @@ function Step1Message({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="mt-4 h-40 w-full resize-none rounded-xl border border-brand-border bg-white px-4 py-3 text-body leading-6 text-[#3A2E2A] placeholder:text-[#9A8880] focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all"
+          className="mt-4 h-40 w-full resize-none rounded-xl border border-white/55 bg-white/55 px-4 py-3 text-body leading-6 text-[#3A2E2A] placeholder:text-[#9A8880] transition-all focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
           maxLength={200}
         />
       </div>
@@ -307,7 +307,7 @@ function Step1Message({
               'flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all',
               category === cat.value
                 ? 'border-transparent text-white shadow-warm'
-                : 'border-brand-border bg-white text-brand-text-primary hover:border-brand-primary hover:shadow-warm'
+                : 'glass-chip text-brand-text-primary hover:text-brand-primary'
             )}
             style={category === cat.value ? { backgroundColor: cat.color } : {}}
           >
@@ -349,7 +349,7 @@ function Step2Photo({
         </p>
       </div>
 
-      <div className="rounded-[28px] border border-brand-border bg-white p-5 shadow-[0_16px_36px_rgba(17,17,17,0.05)]">
+      <div className="glass-chip rounded-2xl p-5">
         <div className="flex items-end justify-between gap-3">
           <div>
             <label className="text-headline text-brand-text-primary block font-medium">
@@ -362,7 +362,7 @@ function Step2Photo({
           {photoPreview && (
             <button
               onClick={onRemovePhoto}
-              className="rounded-full border border-brand-border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+              className="rounded-full border border-white/55 px-3 py-1 text-[10px] font-semibold uppercase text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
             >
               Remove
             </button>
@@ -376,7 +376,7 @@ function Step2Photo({
           className="hidden"
         />
         {photoPreview ? (
-          <div className="mt-5 overflow-hidden rounded-[24px] border border-brand-border">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-white/55">
             <img
               src={photoPreview}
               alt="Preview"
@@ -386,7 +386,7 @@ function Step2Photo({
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-5 w-full rounded-[24px] border border-dashed border-brand-border bg-brand-surface/35 py-16 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
+            className="mt-5 w-full rounded-2xl border border-dashed border-white/60 bg-white/28 py-16 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
           >
             <div className="flex flex-col items-center gap-3">
               <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -469,10 +469,10 @@ function Step4Visibility({
               key={opt.value}
               onClick={() => setVisibility(opt.value)}
               className={cn(
-                'w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left',
+                'flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all',
                 visibility === opt.value
-                  ? 'border-brand-primary bg-white'
-                  : 'border-brand-border bg-white hover:border-brand-primary'
+                  ? 'border-brand-primary bg-white/62'
+                  : 'glass-chip hover:border-brand-primary'
               )}
             >
               <div className={cn(
