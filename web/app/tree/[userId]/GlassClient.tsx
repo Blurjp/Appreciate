@@ -17,7 +17,7 @@ export default function GlassClient({ user, posts, isOwner, currentTheme, embedd
             <button
               type="button"
               onClick={() => setSelected(0)}
-              className="absolute right-[10%] top-[10%] z-20 max-w-[285px] rounded-2xl border border-white/75 bg-white/46 px-6 py-5 text-left text-[#243544] shadow-xl backdrop-blur-2xl ring-2 ring-[#68C2CC]/30"
+              className="pointer-events-none absolute right-[10%] top-[10%] z-20 max-w-[285px] rounded-2xl border border-white/75 bg-white/46 px-6 py-5 text-left text-[#243544] shadow-xl backdrop-blur-2xl ring-2 ring-[#68C2CC]/30"
             >
               {active.content}
             </button>

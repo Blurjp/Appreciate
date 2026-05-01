@@ -106,7 +106,7 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
                 type="button"
                 aria-label={`Open gratitude ${star.postIndex + 1}`}
                 onClick={() => setSelected(star.postIndex)}
-                className="absolute z-10 flex cursor-pointer items-center justify-center rounded-full border border-white/45 bg-white/10 transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-white/30"
+                className="absolute z-30 flex cursor-pointer items-center justify-center rounded-full border border-white/45 bg-white/10 transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-white/30"
                 style={{
                   left: `${star.x}%`,
                   top: `${star.y}%`,
@@ -126,7 +126,7 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
           })}
 
           {active && (
-            <div className="absolute left-[58%] top-[32%] z-20 max-w-[270px] rounded-lg border border-white/12 bg-white/14 p-4 text-white/86 shadow-2xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute left-[58%] top-[32%] z-20 max-w-[270px] rounded-lg border border-white/12 bg-white/14 p-4 text-white/86 shadow-2xl backdrop-blur-xl">
               <p className="text-sm font-medium text-white/70">
                 {new Date(active.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
               </p>

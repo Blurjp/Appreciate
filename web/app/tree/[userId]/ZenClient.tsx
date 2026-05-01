@@ -118,7 +118,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
                 key={i}
                 type="button"
                 onClick={() => setSelected(obj.postIndex)}
-                className="absolute z-20 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#8EC7CF]/35"
+                className="absolute z-30 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#8EC7CF]/35"
                 style={{
                   left: `${obj.x}%`,
                   top: `${obj.y}%`,
@@ -134,7 +134,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
           })}
 
           {active && (
-            <div className="absolute right-[10%] top-[34%] z-20 max-w-[300px] rounded-2xl border border-white/65 bg-white/72 px-5 py-4 text-[#30302A] shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute right-[10%] top-[34%] z-20 max-w-[300px] rounded-2xl border border-white/65 bg-white/72 px-5 py-4 text-[#30302A] shadow-xl backdrop-blur-xl">
               <p className="text-lg font-semibold leading-snug">{active.content}</p>
               <div className="absolute -bottom-3 left-12 h-6 w-6 rotate-45 border-b border-r border-white/65 bg-white/72" />
             </div>

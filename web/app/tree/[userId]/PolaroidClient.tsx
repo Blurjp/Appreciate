@@ -149,7 +149,7 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme, emb
           })}
 
           {active && (
-            <div className="absolute right-7 top-8 z-30 rotate-3 bg-[#F5EDCF] px-4 py-3 text-lg leading-tight text-[#2F281F] shadow" style={{ fontFamily: HAND, maxWidth: 185 }}>
+            <div className="pointer-events-none absolute right-7 top-8 z-30 rotate-3 bg-[#F5EDCF] px-4 py-3 text-lg leading-tight text-[#2F281F] shadow" style={{ fontFamily: HAND, maxWidth: 185 }}>
               {active.content}
             </div>
           )}

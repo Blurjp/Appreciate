@@ -101,21 +101,27 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
                 key={i}
                 type="button"
                 onClick={() => setSelected(leaf.postIndex)}
-                className="absolute z-20 h-9 w-6 cursor-pointer rounded-[80%_0_80%_0] border border-white/70 shadow-md transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/35"
+                className="absolute z-30 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full transition-transform duration-300 hover:scale-125 focus:outline-none focus:ring-4 focus:ring-[#D7B85C]/35"
                 style={{
                   left: `${leaf.x}%`,
                   top: `${leaf.y}%`,
-                  background: leaf.color,
                   transform: `translate(-50%, -50%) rotate(${leaf.rotate}deg) scale(${isSelected ? 1.45 : 1})`,
-                  boxShadow: isSelected ? `0 0 0 10px ${leaf.color}33, 0 10px 24px rgba(61,46,32,0.18)` : '0 8px 18px rgba(61,46,32,0.16)',
                 }}
                 aria-label={`Open leaf ${leaf.postIndex + 1}`}
-              />
+              >
+                <span
+                  className="block h-9 w-6 rounded-[80%_0_80%_0] border border-white/70 shadow-md"
+                  style={{
+                    background: leaf.color,
+                    boxShadow: isSelected ? `0 0 0 10px ${leaf.color}33, 0 10px 24px rgba(61,46,32,0.18)` : '0 8px 18px rgba(61,46,32,0.16)',
+                  }}
+                />
+              </button>
             )
           })}
 
           {active && (
-            <div className="absolute right-7 top-[32%] z-20 max-w-[300px] rounded-2xl border border-white/60 bg-white/70 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute right-7 top-[32%] z-20 max-w-[300px] rounded-2xl border border-white/60 bg-white/70 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
               <p className="text-lg leading-snug">{active.content}</p>
             </div>
           )}

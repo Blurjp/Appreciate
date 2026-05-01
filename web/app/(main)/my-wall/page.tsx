@@ -46,25 +46,31 @@ export default function MyWallPage() {
     refetchOnWindowFocus: false,
   })
 
-  const { data: userProfile } = useQuery<{ isPro: boolean; id: string; wallTheme: string }>({
+  const { data: allWallPosts = [], isLoading: wallPostsLoading } = useQuery<GratitudePost[]>({
+    queryKey: ['my-wall-all'],
+    queryFn: async () => {
+      const res = await fetch('/api/my-wall')
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: userProfile } = useQuery<{
+    isPro: boolean
+    id: string
+    name: string
+    avatarUrl: string | null
+    wallTheme: string
+  }>({
     queryKey: ['user'],
     queryFn: async () => {
       const res = await fetch('/api/user')
       return res.json()
     },
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  })
-
-  const { data: wallData, isLoading: wallLoading } = useQuery<TreeApiResponse>({
-    queryKey: ['tree-wall', userProfile?.id, userProfile?.wallTheme],
-    queryFn: async () => {
-      const res = await fetch(`/api/tree/${userProfile?.id}`)
-      if (!res.ok) throw new Error('Failed to load wall')
-      return res.json()
-    },
-    enabled: Boolean(userProfile?.id),
-    staleTime: 60_000,
     refetchOnWindowFocus: false,
   })
 
@@ -75,8 +81,7 @@ export default function MyWallPage() {
       }
       return old
     })
-    queryClient.invalidateQueries({ queryKey: ['tree-wall', userProfile?.id] })
-  }, [queryClient, userProfile?.id])
+  }, [queryClient])
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -84,6 +89,7 @@ export default function MyWallPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['streak'] })
       showToast('Post deleted', '🗑️')
     },
@@ -100,6 +106,7 @@ export default function MyWallPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
     },
   })
 
@@ -122,6 +129,7 @@ export default function MyWallPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['feed'] })
     },
   })
@@ -173,11 +181,35 @@ export default function MyWallPage() {
 
       {userProfile?.id && (
         <div className="mb-5">
-          {wallLoading ? (
+          {wallPostsLoading ? (
             <div className="h-[70vh] min-h-[520px] animate-pulse rounded-2xl border border-white/60 bg-white/40 shadow-[0_24px_70px_rgba(62,78,84,0.14)]" />
-          ) : wallData ? (
-            <ExactWallEmbed data={wallData} onThemeSaved={handleWallThemeSaved} />
-          ) : null}
+          ) : (
+            <ExactWallEmbed
+              data={{
+                user: {
+                  id: userProfile.id,
+                  name: userProfile.name,
+                  avatarUrl: userProfile.avatarUrl,
+                  wallTheme: userProfile.wallTheme || 'starry',
+                },
+                posts: allWallPosts.map((post) => ({
+                  id: post.id,
+                  content: post.content,
+                  feeling: post.feeling,
+                  category: post.category,
+                  createdAt: post.createdAt,
+                  heartCount: post.heartCount,
+                })),
+                stats: {
+                  totalPosts: allWallPosts.length,
+                  totalHearts: allWallPosts.reduce((sum, post) => sum + (post.heartCount || 0), 0),
+                  currentStreak: 0,
+                  longestStreak: 0,
+                },
+              }}
+              onThemeSaved={handleWallThemeSaved}
+            />
+          )}
         </div>
       )}
 
