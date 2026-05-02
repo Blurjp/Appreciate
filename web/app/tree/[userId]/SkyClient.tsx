@@ -126,12 +126,12 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
           })}
 
           {active && (
-            <div className="pointer-events-none absolute left-[58%] top-[32%] z-20 max-w-[270px] rounded-lg border border-white/12 bg-white/14 p-4 text-white/86 shadow-2xl backdrop-blur-xl">
-              <p className="text-sm font-medium text-white/70">
+            <div className="pointer-events-none absolute left-[58%] top-[32%] z-20 max-w-[270px] rounded-lg border border-white/20 bg-black/40 p-4 shadow-2xl backdrop-blur-xl">
+              <p className="text-sm font-medium text-white/90">
                 {new Date(active.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
               </p>
-              <p className="mt-1 text-base leading-snug">{active.content}</p>
-              <p className="mt-2 text-xs text-white/45">#{active.category.replace('_', ' ').toLowerCase()}</p>
+              <p className="mt-1 text-base leading-snug text-white">{active.content}</p>
+              <p className="mt-2 text-xs text-white/60">#{active.category.replace('_', ' ').toLowerCase()}</p>
             </div>
           )}
         </div>

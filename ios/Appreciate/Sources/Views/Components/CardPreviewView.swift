@@ -118,7 +118,8 @@ struct CardPreviewView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(0.3)
                     }
-                    .foregroundColor(Color(hex: template.accentColor))
+                    .foregroundColor(Color(hex: template.textColor).opacity(0.7))
+                    .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
                     Spacer()
 
@@ -129,8 +130,8 @@ struct CardPreviewView: View {
                         .padding(.vertical, 4)
                         .background(
                             backgroundSource == .template
-                                ? Color.white.opacity(0.25)
-                                : Color.black.opacity(0.14)
+                                ? Color.black.opacity(0.2)
+                                : Color.black.opacity(0.25)
                         )
                         .foregroundColor(Color(hex: template.textColor))
                         .clipShape(Capsule())
@@ -149,6 +150,7 @@ struct CardPreviewView: View {
                     Text("\"\(content.isEmpty ? "Your appreciation message will appear here." : content)\"")
                         .font(.system(size: content.count > 100 ? 22 : 28, weight: .semibold, design: .rounded))
                         .foregroundColor(Color(hex: template.textColor))
+                        .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
                         .lineSpacing(6)
                         .multilineTextAlignment(.leading)
                 }
@@ -178,10 +180,12 @@ struct CardPreviewView: View {
                             Text(authorName)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: template.textColor))
+                                .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
                             Text("appreciate.live")
                                 .font(.system(size: 10))
-                                .foregroundColor(Color(hex: template.textColor).opacity(0.7))
+                                .foregroundColor(Color(hex: template.textColor).opacity(0.8))
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                         }
                     }
 

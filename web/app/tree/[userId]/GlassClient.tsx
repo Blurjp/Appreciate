@@ -17,7 +17,7 @@ export default function GlassClient({ user, posts, isOwner, currentTheme, embedd
             <button
               type="button"
               onClick={() => setSelected(0)}
-              className="pointer-events-none absolute right-[10%] top-[10%] z-20 max-w-[285px] rounded-2xl border border-white/75 bg-white/46 px-6 py-5 text-left text-[#243544] shadow-xl backdrop-blur-2xl ring-2 ring-[#68C2CC]/30"
+              className="pointer-events-none absolute right-[10%] top-[10%] z-20 max-w-[285px] rounded-2xl border border-white/75 bg-white/75 px-6 py-5 text-left text-[#1a2a38] shadow-xl backdrop-blur-2xl ring-2 ring-[#68C2CC]/30"
             >
               {active.content}
             </button>
@@ -43,10 +43,10 @@ export default function GlassClient({ user, posts, isOwner, currentTheme, embedd
                 key={post.id}
                 type="button"
                 onClick={() => setSelected(i)}
-                className={`min-h-[84px] rounded-2xl border px-5 py-4 text-left text-lg leading-snug text-[#243544] shadow-lg backdrop-blur-2xl transition-transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-[#68C2CC]/30 active:scale-[0.98] ${
+                className={`min-h-[84px] rounded-2xl border px-5 py-4 text-left text-lg leading-snug text-[#1a2a38] shadow-lg backdrop-blur-2xl transition-transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-[#68C2CC]/30 active:scale-[0.98] ${
                   i === selected
-                    ? 'border-[#68C2CC]/70 bg-white/58 ring-2 ring-[#68C2CC]/35'
-                    : 'border-white/70 bg-white/38'
+                    ? 'border-[#68C2CC]/70 bg-white/72 ring-2 ring-[#68C2CC]/35'
+                    : 'border-white/70 bg-white/60'
                 }`}
               >
                 {post.content}

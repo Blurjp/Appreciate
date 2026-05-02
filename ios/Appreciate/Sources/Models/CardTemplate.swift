@@ -43,56 +43,56 @@ extension CardTemplate {
             name: "Minimal",
             backgroundColors: ["#ffffff", "#f5f5f5"],
             textColor: "#1a1a1a",
-            accentColor: "#ff6b6b"
+            accentColor: "#cc4444"
         ),
         CardTemplate(
             id: "sunset",
             name: "Sunset",
-            backgroundColors: ["#ff9a9e", "#fecfef"],
-            textColor: "#4a1942",
-            accentColor: "#ff6b9d"
+            backgroundColors: ["#e85d6f", "#d44a6a"],
+            textColor: "#ffffff",
+            accentColor: "#ffecd2"
         ),
         CardTemplate(
             id: "ocean",
             name: "Ocean",
-            backgroundColors: ["#667eea", "#764ba2"],
+            backgroundColors: ["#4a5ec7", "#5b3d8f"],
             textColor: "#ffffff",
             accentColor: "#ffd700"
         ),
         CardTemplate(
             id: "forest",
             name: "Forest",
-            backgroundColors: ["#134e5e", "#71b280"],
+            backgroundColors: ["#1a5c3a", "#2d7a4f"],
             textColor: "#ffffff",
             accentColor: "#f0e68c"
         ),
         CardTemplate(
             id: "lavender",
             name: "Lavender",
-            backgroundColors: ["#a18cd1", "#fbc2eb"],
-            textColor: "#4a1942",
-            accentColor: "#ff69b4"
+            backgroundColors: ["#7b5ea7", "#9b6fbf"],
+            textColor: "#ffffff",
+            accentColor: "#f0ddf8"
         ),
         CardTemplate(
             id: "golden",
             name: "Golden",
-            backgroundColors: ["#f093fb", "#f5576c"],
+            backgroundColors: ["#c74b8a", "#a8365e"],
             textColor: "#ffffff",
             accentColor: "#ffd700"
         ),
         CardTemplate(
             id: "midnight",
             name: "Midnight",
-            backgroundColors: ["#0f0c29", "#302b63", "#24243e"],
+            backgroundColors: ["#0f0c29", "#1a1650", "#12103a"],
             textColor: "#ffffff",
             accentColor: "#00d4ff"
         ),
         CardTemplate(
             id: "peach",
             name: "Peach",
-            backgroundColors: ["#ffecd2", "#fcb69f"],
-            textColor: "#5d4e37",
-            accentColor: "#ff6b6b"
+            backgroundColors: ["#e89b6e", "#d4804f"],
+            textColor: "#ffffff",
+            accentColor: "#ffecd2"
         ),
     ]
 
