@@ -6,17 +6,17 @@
 :root,
 [data-theme="tree"] {
   --color-brand-background: #FAF6EE;
-  --color-brand-surface: #F5EFE3;
+  --color-brand-surface: #F2E8DA;
   --color-brand-card: #FFFFFF;
-  --color-brand-primary: #C4704B;
-  --color-brand-accent: #7D8C6E;
-  --color-brand-accent-light: #EDE8DF;
-  --color-brand-accent-dark: #8B3A2A;
-  --color-brand-text-primary: #3A2E2A;
-  --color-brand-text-secondary: #6B5E57;
-  --color-brand-text-muted: #9A8880;
-  --color-brand-border: #E2D8CE;
-  --color-brand-divider: #EDE8DF;
+  --color-brand-primary: #9B4D30;
+  --color-brand-accent: #566747;
+  --color-brand-accent-light: #E6DED2;
+  --color-brand-accent-dark: #6F2F22;
+  --color-brand-text-primary: #211713;
+  --color-brand-text-secondary: #44352F;
+  --color-brand-text-muted: #5D5049;
+  --color-brand-border: #CBBDAE;
+  --color-brand-divider: #D9CEC1;
   --theme-page-bg: #FAF6EE;
   --theme-nav-bg: #FAF6EE;
   --theme-nav-border: #E2D8CE;
@@ -36,10 +36,10 @@
   --color-brand-accent-light: rgba(255, 255, 255, 0.08);
   --color-brand-accent-dark: #FFFFFF;
   --color-brand-text-primary: #FFFFFF;
-  --color-brand-text-secondary: #B0B0C8;
-  --color-brand-text-muted: #707090;
-  --color-brand-border: rgba(255, 255, 255, 0.12);
-  --color-brand-divider: rgba(255, 255, 255, 0.06);
+  --color-brand-text-secondary: #D3D3E4;
+  --color-brand-text-muted: #B8B8D2;
+  --color-brand-border: rgba(255, 255, 255, 0.24);
+  --color-brand-divider: rgba(255, 255, 255, 0.14);
   --theme-page-bg: #1A1A2E;
   --theme-nav-bg: rgba(26, 26, 46, 0.92);
   --theme-nav-border: rgba(255, 255, 255, 0.1);
@@ -54,15 +54,15 @@
   --color-brand-background: #D4E6D4;
   --color-brand-surface: #C0D8C0;
   --color-brand-card: #E8F0E8;
-  --color-brand-primary: #6B8F5B;
-  --color-brand-accent: #7D9A6E;
+  --color-brand-primary: #4F753F;
+  --color-brand-accent: #4D6D3F;
   --color-brand-accent-light: #C8DCC8;
   --color-brand-accent-dark: #4A7040;
-  --color-brand-text-primary: #3A4A35;
-  --color-brand-text-secondary: #5A6A54;
-  --color-brand-text-muted: #8A9A84;
-  --color-brand-border: #A8C0A8;
-  --color-brand-divider: #B8D0B8;
+  --color-brand-text-primary: #1D2A1A;
+  --color-brand-text-secondary: #354832;
+  --color-brand-text-muted: #4E6148;
+  --color-brand-border: #8BA68B;
+  --color-brand-divider: #9CB79C;
   --theme-page-bg: #D4E6D4;
   --theme-nav-bg: #CCDCC8;
   --theme-nav-border: #A8C0A8;
@@ -77,14 +77,14 @@
   --color-brand-background: #F8F4E9;
   --color-brand-surface: #F0EAE0;
   --color-brand-card: #FFFFFF;
-  --color-brand-primary: #8B7355;
-  --color-brand-accent: #A08565;
+  --color-brand-primary: #6F563B;
+  --color-brand-accent: #72583E;
   --color-brand-accent-light: #F0E6D2;
   --color-brand-accent-dark: #5D4037;
-  --color-brand-text-primary: #3E3028;
-  --color-brand-text-secondary: #6B5D50;
-  --color-brand-text-muted: #9A8C7E;
-  --color-brand-border: #D8D0C4;
+  --color-brand-text-primary: #241B16;
+  --color-brand-text-secondary: #44372D;
+  --color-brand-text-muted: #5F5145;
+  --color-brand-border: #BFB4A6;
   --color-brand-divider: #E8E0D4;
   --theme-page-bg: #F8F4E9;
   --theme-nav-bg: #F5F0E8;
@@ -99,16 +99,16 @@
 [data-theme="glass"] {
   --color-brand-background: #EEF6FA;
   --color-brand-surface: #E3F0F4;
-  --color-brand-card: rgba(255, 255, 255, 0.65);
-  --color-brand-primary: #5C8FA6;
-  --color-brand-accent: #86A885;
-  --color-brand-accent-light: rgba(255, 255, 255, 0.5);
-  --color-brand-accent-dark: #3F6E82;
-  --color-brand-text-primary: #243340;
-  --color-brand-text-secondary: #5E6F74;
-  --color-brand-text-muted: #89999E;
-  --color-brand-border: rgba(255, 255, 255, 0.5);
-  --color-brand-divider: rgba(255, 255, 255, 0.3);
+  --color-brand-card: rgba(255, 255, 255, 0.86);
+  --color-brand-primary: #3F7288;
+  --color-brand-accent: #527A51;
+  --color-brand-accent-light: rgba(255, 255, 255, 0.78);
+  --color-brand-accent-dark: #2D596B;
+  --color-brand-text-primary: #172532;
+  --color-brand-text-secondary: #31464D;
+  --color-brand-text-muted: #4B5E64;
+  --color-brand-border: rgba(61, 86, 96, 0.28);
+  --color-brand-divider: rgba(61, 86, 96, 0.18);
   --theme-page-bg: linear-gradient(135deg, #EEF6FA 0%, #F8F1F4 48%, #E5F7F7 100%);
   --theme-nav-bg: rgba(255, 255, 255, 0.58);
   --theme-nav-border: rgba(255, 255, 255, 0.5);
@@ -202,8 +202,8 @@
     position: relative;
     overflow: hidden;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.62);
-    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid color-mix(in srgb, var(--color-brand-border) 72%, rgba(255, 255, 255, 0.62));
+    background: color-mix(in srgb, var(--theme-card-bg) 84%, white);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 18px 52px rgba(62, 78, 84, 0.14);
@@ -237,8 +237,8 @@
   }
 
   .glass-chip {
-    border: 1px solid rgba(255, 255, 255, 0.66);
-    background: rgba(255, 255, 255, 0.46);
+    border: 1px solid color-mix(in srgb, var(--color-brand-border) 58%, white);
+    background: color-mix(in srgb, var(--theme-card-bg) 86%, white);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 12px 30px rgba(62, 78, 84, 0.12);
@@ -276,7 +276,7 @@
 
   input.bg-white::placeholder,
   textarea.bg-white::placeholder {
-    color: #9A8880 !important;
+    color: #6B5E57 !important;
   }
 
   /* Warm Badge */

@@ -24,12 +24,12 @@ const config: Config = {
           'divider': 'var(--color-brand-divider)',
         },
         category: {
-          family: '#C4704B',
+          family: '#9B4D30',
           work: '#8B3A2A',
-          'small-joys': '#C4A35A',
-          nature: '#7D8C6E',
-          health: '#9B8AA0',
-          other: '#A09080',
+          'small-joys': '#7A6023',
+          nature: '#566747',
+          health: '#6E5877',
+          other: '#655446',
         },
         warm: {
           cream: {
@@ -56,9 +56,9 @@ const config: Config = {
             500: '#A88540',
           },
           ink: {
-            300: '#9A8880',
-            400: '#6B5E57',
-            500: '#3A2E2A',
+            300: '#5D5049',
+            400: '#44352F',
+            500: '#211713',
           },
         },
       },
@@ -103,10 +103,10 @@ const config: Config = {
         'card': '0 4px 20px rgba(58, 46, 42, 0.08)',
         'card-hover': '0 8px 32px rgba(58, 46, 42, 0.12)',
         'elevated': '0 8px 32px rgba(58, 46, 42, 0.1)',
-        'button': '0 4px 12px rgba(196, 112, 75, 0.25)',
+        'button': '0 4px 12px rgba(155, 77, 48, 0.28)',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #C4704B 0%, #D4917A 100%)',
+        'gradient-primary': 'linear-gradient(135deg, #9B4D30 0%, #B86545 100%)',
         'gradient-bg': 'linear-gradient(180deg, #FAF6EE 0%, #F5EFE3 100%)',
         'gradient-card': 'linear-gradient(135deg, #FFFFFF 0%, #FAF6EE 100%)',
       },

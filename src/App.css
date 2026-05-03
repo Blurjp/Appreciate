@@ -26,8 +26,8 @@
 }
 
 .card {
-  background: rgba(255, 248, 238, 0.88);
-  border: 1px solid rgba(112, 83, 58, 0.14);
+  background: rgba(255, 248, 238, 0.96);
+  border: 1px solid rgba(82, 58, 39, 0.24);
   border-radius: 28px;
   box-shadow: 0 24px 60px rgba(88, 58, 24, 0.1);
   backdrop-filter: blur(18px);
@@ -169,19 +169,19 @@
 
 .subtle-link {
   text-decoration: none;
-  color: #7a5b45;
+  color: #4f392a;
   font-size: 0.95rem;
 }
 
 .admin-link {
-  color: #94684a;
+  color: #724326;
 }
 
 .nav-link,
 .user-badge,
 .text-link {
   text-decoration: none;
-  color: #6f5038;
+  color: #3f2d22;
 }
 
 .nav-link {
@@ -211,7 +211,7 @@
 .user-badge small,
 .muted,
 .report-status {
-  color: #82614b;
+  color: #4f392a;
 }
 
 .avatar {
@@ -221,7 +221,7 @@
   display: inline-grid;
   place-items: center;
   background: linear-gradient(135deg, #d36a34, #ef9d55);
-  color: #fff9f2;
+  color: #ffffff;
   font-weight: 700;
 }
 
@@ -251,7 +251,7 @@
 .login-card,
 .claim-panel {
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(112, 83, 58, 0.12);
+  border: 1px solid rgba(82, 58, 39, 0.22);
   border-radius: 22px;
 }
 
@@ -315,7 +315,7 @@
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  color: #8a6a54;
+  color: #523a2b;
   font-size: 0.84rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px dashed rgba(112, 83, 58, 0.16);
@@ -401,7 +401,7 @@ textarea:focus {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 0.76rem;
-  color: #82614b;
+  color: #4f392a;
 }
 
 .pill {
@@ -468,7 +468,7 @@ textarea:focus {
 }
 
 .muted-link {
-  color: #82614b;
+  color: #4f392a;
 }
 
 .team-table,
@@ -614,7 +614,7 @@ textarea:focus {
 }
 
 .paper-comments {
-  background: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.86);
   border-radius: 18px;
   padding: 0.75rem;
 }
@@ -699,8 +699,8 @@ textarea:focus {
   gap: 0.15rem;
   padding: 0.85rem 1rem;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(112, 83, 58, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(82, 58, 39, 0.22);
 }
 
 .wall-toolbar {
@@ -843,8 +843,8 @@ textarea:focus {
   align-items: flex-start;
   padding: 1.25rem;
   border-radius: 28px;
-  background: rgba(255, 248, 238, 0.88);
-  border: 1px solid rgba(112, 83, 58, 0.14);
+  background: rgba(255, 248, 238, 0.96);
+  border: 1px solid rgba(82, 58, 39, 0.24);
 }
 
 .utility-column {

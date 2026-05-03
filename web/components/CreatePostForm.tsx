@@ -195,7 +195,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="border-t border-white/50 bg-white/24 p-5 backdrop-blur-xl">
+      <div className="border-t border-brand-border bg-white/82 p-5 backdrop-blur-xl">
         {submitError && (
           <p className="mb-3 text-sm text-red-500">{submitError}</p>
         )}
@@ -215,7 +215,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             className={cn(
               'flex-1 py-3.5 rounded-xl text-subheadline tracking-wide font-medium transition-all active:scale-95',
               step === 1 && !canProceedStep1
-                ? 'bg-white/28 text-brand-text-muted cursor-not-allowed border border-white/45'
+                ? 'bg-white/70 text-brand-text-muted cursor-not-allowed border border-brand-border'
                 : 'bg-brand-primary text-white shadow-button hover:bg-brand-accent-dark'
             )}
           >
@@ -286,7 +286,7 @@ function Step1Message({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Today I'm grateful for..."
-          className="mt-4 h-40 w-full resize-none rounded-xl border border-white/55 bg-white/55 px-4 py-3 text-body leading-6 text-[#3A2E2A] placeholder:text-[#9A8880] transition-all focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+          className="mt-4 h-40 w-full resize-none rounded-xl border border-brand-border bg-white/88 px-4 py-3 text-body leading-6 text-[#211713] placeholder:text-[#6B5E57] transition-all focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
           maxLength={200}
         />
       </div>
@@ -362,7 +362,7 @@ function Step2Photo({
           {photoPreview && (
             <button
               onClick={onRemovePhoto}
-              className="rounded-full border border-white/55 px-3 py-1 text-[10px] font-semibold uppercase text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+              className="rounded-full border border-brand-border bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase text-brand-text-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
             >
               Remove
             </button>
@@ -386,7 +386,7 @@ function Step2Photo({
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-5 w-full rounded-2xl border border-dashed border-white/60 bg-white/28 py-16 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
+            className="mt-5 w-full rounded-2xl border border-dashed border-brand-border bg-white/72 py-16 text-brand-text-muted transition-all hover:border-brand-primary hover:text-brand-primary"
           >
             <div className="flex flex-col items-center gap-3">
               <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>

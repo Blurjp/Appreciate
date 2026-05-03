@@ -82,13 +82,13 @@ function GratitudeSkyPanel({
         />
       ))}
       <div className="relative z-10 max-w-[360px]">
-        <p className="text-[10px] font-medium uppercase text-white/55">My Gratitude Sky</p>
+        <p className="text-[10px] font-medium uppercase text-white/80">My Gratitude Sky</p>
         <h2 className="mt-3 text-[32px] font-light leading-tight text-white sm:text-[40px]">
           Every small note becomes a point of light.
         </h2>
       </div>
-      <div className="absolute bottom-5 right-5 z-10 rounded-2xl border border-white/25 bg-white/16 px-5 py-4 text-white shadow-xl backdrop-blur-xl">
-        <p className="text-[10px] font-medium uppercase text-white/60">Latest moment</p>
+      <div className="absolute bottom-5 right-5 z-10 rounded-2xl border border-white/35 bg-black/35 px-5 py-4 text-white shadow-xl backdrop-blur-xl">
+        <p className="text-[10px] font-medium uppercase text-white/82">Latest moment</p>
         <p className="mt-2 max-w-[230px] text-sm leading-5 text-white/90">
           {featured?.content || 'Share one thing you noticed today.'}
         </p>
@@ -97,7 +97,7 @@ function GratitudeSkyPanel({
         <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/14 text-2xl shadow-[0_0_24px_rgba(255,255,255,0.20)] backdrop-blur-xl">
           +
         </span>
-        <span className="text-sm text-white/65">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
+        <span className="text-sm text-white/82">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
       </div>
     </section>
   )

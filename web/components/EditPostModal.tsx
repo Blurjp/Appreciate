@@ -101,7 +101,7 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 maxLength={500}
-                className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-[#3A2E2A] placeholder:text-[#9A8880] resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
+                className="w-full h-28 px-4 py-3 bg-white rounded-xl text-body text-[#211713] placeholder:text-[#6B5E57] resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary border border-brand-border"
               />
               <p className="text-caption text-brand-text-secondary text-right mt-1">{content.length}/500</p>
             </div>
