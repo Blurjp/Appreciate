@@ -41,6 +41,7 @@ export function useCreatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['streak'] })
     },
   })

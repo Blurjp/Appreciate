@@ -215,7 +215,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
             className={cn(
               'flex-1 py-3.5 rounded-xl text-subheadline tracking-wide font-medium transition-all active:scale-95',
               step === 1 && !canProceedStep1
-                ? 'bg-white/70 text-brand-text-muted cursor-not-allowed border border-brand-border'
+                ? 'bg-brand-surface/90 text-brand-text-secondary cursor-not-allowed border border-brand-border'
                 : 'bg-brand-primary text-white shadow-button hover:bg-brand-accent-dark'
             )}
           >

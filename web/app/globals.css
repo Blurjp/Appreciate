@@ -402,6 +402,11 @@
 }
 
 @layer utilities {
+  [data-theme="starry"] .bg-brand-primary.text-white,
+  [data-theme="starry"] .bg-brand-accent.text-white {
+    color: #17172B;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
