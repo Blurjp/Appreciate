@@ -28,6 +28,7 @@ export default function CreatePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feed'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['streak'] })
     },
   })

@@ -4,7 +4,7 @@
   font-family: 'Manrope', sans-serif;
   line-height: 1.5;
   font-weight: 500;
-  color: #4b2f20;
+  color: #211713;
   background:
     radial-gradient(circle at top, rgba(255, 223, 185, 0.95), transparent 38%),
     linear-gradient(180deg, #fff9f1 0%, #f6ecdf 45%, #f2e5d8 100%);
@@ -40,11 +40,11 @@ h1,
 h2,
 h3 {
   font-family: 'Fraunces', serif;
-  color: #5a2f16;
+  color: #3d1f0e;
 }
 
 p {
-  color: #5c4230;
+  color: #382a23;
 }
 
 #root {

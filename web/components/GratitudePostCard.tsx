@@ -21,12 +21,12 @@ interface Props {
 }
 
 const CATEGORY_ACCENT_COLORS: Record<string, string> = {
-  FAMILY: '#C4704B',
+  FAMILY: '#9B4D30',
   WORK: '#8B3A2A',
-  SMALL_JOYS: '#C4A35A',
-  NATURE: '#7D8C6E',
-  HEALTH: '#9B8AA0',
-  OTHER: '#A09080',
+  SMALL_JOYS: '#7A6023',
+  NATURE: '#566747',
+  HEALTH: '#6E5877',
+  OTHER: '#655446',
 }
 
 function GratitudePostCard({
@@ -44,7 +44,7 @@ function GratitudePostCard({
   const isAnonymous = useMemo(() => post.visibility === 'ANONYMOUS', [post.visibility])
   const authorName = useMemo(() => isAnonymous ? 'Anonymous' : post.author.name, [isAnonymous, post.author.name])
   const initial = useMemo(() => isAnonymous ? '?' : authorName[0]?.toUpperCase() || '?', [isAnonymous, authorName])
-  const accentColor = CATEGORY_ACCENT_COLORS[post.category] ?? '#A09080'
+  const accentColor = CATEGORY_ACCENT_COLORS[post.category] ?? '#655446'
 
   const shareUrl = useMemo(
     () => typeof window === 'undefined' ? `/share/${post.id}` : `${window.location.origin}/share/${post.id}`,
@@ -111,7 +111,7 @@ function GratitudePostCard({
           <VisibilityBadge visibility={post.visibility} />
         </div>
 
-        <div className="relative mb-4 rounded-2xl border border-white/55 bg-white/42 p-4 backdrop-blur-xl">
+        <div className="relative mb-4 rounded-2xl border border-brand-border bg-white/82 p-4 backdrop-blur-xl">
           <span
             className="absolute left-3 top-2 text-2xl text-brand-text-muted opacity-40"
             style={{ fontFamily: 'var(--font-serif), Georgia, serif', lineHeight: 1 }}
