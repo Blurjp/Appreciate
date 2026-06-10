@@ -21,6 +21,7 @@ function WelcomePageContent() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -31,6 +32,7 @@ function WelcomePageContent() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+    setInfo('')
 
     try {
       if (isSignUp) {
@@ -51,7 +53,7 @@ function WelcomePageContent() {
         if (data.session) {
           await router.push(nextPath)
         } else {
-          setError('Check your email to confirm your account!')
+          setInfo('Check your email to confirm your account!')
           setIsLoading(false)
         }
       } else {
@@ -128,6 +130,14 @@ function WelcomePageContent() {
             {error && (
               <p className="text-caption text-red-500 text-center py-1">{error}</p>
             )}
+            {info && (
+              <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                <svg className="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p className="text-sm text-emerald-700 font-medium">{info}</p>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -139,7 +149,7 @@ function WelcomePageContent() {
           </form>
 
           <button
-            onClick={() => { setIsSignUp(!isSignUp); setError('') }}
+            onClick={() => { setIsSignUp(!isSignUp); setError(''); setInfo('') }}
             className="w-full text-center mt-4 text-caption tracking-wide text-brand-text-muted hover:text-brand-primary transition-colors"
           >
             {isSignUp ? 'Already have an account? Sign In' : 'New here? Create Account'}

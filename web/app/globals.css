@@ -33,7 +33,7 @@
   --color-brand-card: rgba(30, 30, 60, 0.85);
   --color-brand-primary: #E8E0F0;
   --color-brand-accent: #B8C0E0;
-  --color-brand-accent-light: rgba(255, 255, 255, 0.08);
+  --color-brand-accent-light: rgba(255, 255, 255, 0.3);
   --color-brand-accent-dark: #FFFFFF;
   --color-brand-text-primary: #FFFFFF;
   --color-brand-text-secondary: #D3D3E4;
@@ -102,7 +102,7 @@
   --color-brand-card: rgba(255, 255, 255, 0.86);
   --color-brand-primary: #3F7288;
   --color-brand-accent: #527A51;
-  --color-brand-accent-light: rgba(255, 255, 255, 0.78);
+  --color-brand-accent-light: rgba(255, 255, 255, 0.5);
   --color-brand-accent-dark: #2D596B;
   --color-brand-text-primary: #172532;
   --color-brand-text-secondary: #31464D;
