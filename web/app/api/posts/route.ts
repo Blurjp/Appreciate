@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchPosts, createPost } from '@/lib/db/posts'
 
-// GET /api/posts — Fetch public feed (with optional category filter)
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
-  const { searchParams } = new URL(req.url)
-  const category = searchParams.get('category') || undefined
 
   try {
-    const posts = await fetchPosts(supabase, { category })
+    const posts = await fetchPosts(supabase)
     return NextResponse.json(posts)
   } catch (error) {
     return NextResponse.json(

@@ -12,7 +12,7 @@ import SkyClient from '../../tree/[userId]/SkyClient'
 import TreeClient from '../../tree/[userId]/TreeClient'
 import ZenClient, { VisualizationProps } from '../../tree/[userId]/ZenClient'
 import PolaroidClient from '../../tree/[userId]/PolaroidClient'
-import GlassClient from '../../tree/[userId]/GlassClient'
+import StickyNotesClient from '../../tree/[userId]/StickyNotesClient'
 
 const EditPostModal = dynamic(
   () => import('@/components/EditPostModal').then(mod => ({ default: mod.default })),
@@ -23,6 +23,7 @@ const FILTER_OPTIONS: { value: PostVisibility | null; label: string }[] = [
   { value: null, label: 'All' },
   { value: 'PRIVATE', label: 'Private' },
   { value: 'PUBLIC', label: 'Public' },
+  { value: 'ANONYMOUS', label: 'Anonymous' },
 ]
 
 export default function MyWallPage() {
@@ -139,12 +140,19 @@ export default function MyWallPage() {
   }, [])
 
   const handleToggleVisibility = useCallback((post: GratitudePost) => {
-    const newVisibility = post.visibility === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE'
+    const cycle: Record<PostVisibility, PostVisibility> = {
+      PRIVATE: 'PUBLIC',
+      PUBLIC: 'ANONYMOUS',
+      ANONYMOUS: 'PRIVATE',
+    }
+    const newVisibility = cycle[post.visibility]
     updateMutation.mutate({ id: post.id, visibility: newVisibility })
-    showToast(
-      newVisibility === 'PRIVATE' ? 'Post is now private' : 'Post is now public',
-      newVisibility === 'PRIVATE' ? '🔒' : '🌐'
-    )
+    const labels: Record<PostVisibility, { msg: string; icon: string }> = {
+      PRIVATE: { msg: 'Post is now private', icon: '🔒' },
+      PUBLIC: { msg: 'Post is now public', icon: '🌐' },
+      ANONYMOUS: { msg: 'Post is now anonymous', icon: '🎭' },
+    }
+    showToast(labels[newVisibility].msg, labels[newVisibility].icon)
   }, [updateMutation, showToast])
 
   const handleDelete = useCallback((id: string) => {
@@ -339,15 +347,19 @@ function ExactWallEmbed({
     onThemeSaved,
   }
 
-  switch (data.user.wallTheme) {
+  const resolvedWallTheme = data.user.wallTheme === 'glass' ? 'sticky-notes' : data.user.wallTheme
+
+  switch (resolvedWallTheme) {
     case 'tree':
       return <TreeClient {...props} />
     case 'zen':
       return <ZenClient {...props} />
     case 'polaroid':
       return <PolaroidClient {...props} />
+    case 'sticky-notes':
+      return <StickyNotesClient {...props} />
     case 'glass':
-      return <GlassClient {...props} />
+      return <StickyNotesClient {...props} />
     case 'starry':
     default:
       return <SkyClient {...props} />

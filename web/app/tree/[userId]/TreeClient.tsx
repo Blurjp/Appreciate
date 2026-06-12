@@ -121,7 +121,7 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
           })}
 
           {active && (
-            <div className="pointer-events-none absolute right-7 top-[32%] z-20 max-w-[300px] rounded-2xl border border-white/60 bg-white/70 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute bottom-6 left-6 right-6 z-20 max-w-[320px] rounded-2xl border border-white/60 bg-white/80 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
               <p className="text-lg leading-snug">{active.content}</p>
             </div>
           )}

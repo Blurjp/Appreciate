@@ -134,13 +134,13 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
-                {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '🧊' }[user.wallTheme || 'starry'] || '✨'}
-              </div>
-              <div>
-                <p className="text-headline text-brand-text-primary">Wall Theme</p>
-                <p className="text-caption text-brand-text-secondary">
-                  {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Glassmorphism' }[user.wallTheme || 'starry'] || 'Starry Night'}
+                <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
+                  {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '📝', 'sticky-notes': '📝' }[user.wallTheme || 'starry'] || '✨'}
+                </div>
+                <div>
+                  <p className="text-headline text-brand-text-primary">Wall Theme</p>
+                  <p className="text-caption text-brand-text-secondary">
+                    {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Sticky Notes', 'sticky-notes': 'Sticky Notes' }[user.wallTheme || 'starry'] || 'Starry Night'}
                 </p>
               </div>
             </div>

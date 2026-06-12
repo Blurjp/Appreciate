@@ -43,17 +43,19 @@ const THEMES = [
     starColor: '#8B7355',
   },
   {
-    id: 'glass',
-    name: 'Glassmorphism',
-    emoji: '🧊',
-    description: 'Frosted glass panels floating over shifting colors',
-    preview: 'linear-gradient(135deg, #ECF8FF 0%, #F9F2FA 46%, #DDEBFF 100%)',
-    starColor: '#4A90D9',
+    id: 'sticky-notes',
+    dbId: 'glass',
+    name: 'Sticky Notes',
+    emoji: '📝',
+    description: 'Colorful notes pinned to a warm corkboard',
+    preview: 'linear-gradient(135deg, #F7F2EA 0%, #EDE5D8 50%, #E0D5C3 100%)',
+    starColor: '#9B4D30',
   },
 ]
 
 export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
-  const [selected, setSelected] = useState(currentTheme)
+  const dbToRender: Record<string, string> = { starry: 'starry', tree: 'tree', zen: 'zen', polaroid: 'polaroid', glass: 'sticky-notes', 'sticky-notes': 'sticky-notes' }
+  const [selected, setSelected] = useState(dbToRender[currentTheme] || currentTheme)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const { setTheme } = useTheme()
@@ -64,14 +66,15 @@ export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
     setSaving(true)
     setError('')
 
-    // Apply theme immediately for instant feedback
+    const theme = THEMES.find(t => t.id === themeId)
+    const dbThemeId = theme?.dbId || themeId
     setTheme(themeId as ThemeId)
 
     try {
       const res = await fetch('/api/user', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallTheme: themeId }),
+        body: JSON.stringify({ wallTheme: dbThemeId }),
       })
       const data = await res.json()
       if (res.ok) {

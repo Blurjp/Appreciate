@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useCallback, ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-export type ThemeId = 'starry' | 'tree' | 'zen' | 'polaroid' | 'glass'
+export type ThemeId = 'starry' | 'tree' | 'zen' | 'polaroid' | 'sticky-notes'
 
 interface ThemeContextValue {
   currentTheme: ThemeId
@@ -17,8 +17,25 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 function applyTheme(themeId: ThemeId) {
   if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', themeId)
+    document.documentElement.setAttribute('data-theme', themeId === 'sticky-notes' ? 'glass' : themeId)
   }
+}
+
+const DB_THEME_MAP: Record<string, ThemeId> = {
+  starry: 'starry',
+  tree: 'tree',
+  zen: 'zen',
+  polaroid: 'polaroid',
+  glass: 'sticky-notes',
+  'sticky-notes': 'sticky-notes',
+}
+
+const RENDER_TO_DB: Record<string, string> = {
+  starry: 'starry',
+  tree: 'tree',
+  zen: 'zen',
+  polaroid: 'polaroid',
+  'sticky-notes': 'glass',
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -33,16 +50,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
   })
 
-  const currentTheme = ((user?.wallTheme as ThemeId) || 'starry')
+  const rawTheme = (user?.wallTheme as string) || 'starry'
+  const currentTheme = DB_THEME_MAP[rawTheme] || 'starry'
 
   useEffect(() => {
     applyTheme(currentTheme)
   }, [currentTheme])
 
   const setTheme = useCallback((themeId: ThemeId) => {
+    const dbId = RENDER_TO_DB[themeId] || themeId
     queryClient.setQueryData(['user'], (old: unknown) => {
       if (old && typeof old === 'object') {
-        return { ...(old as Record<string, unknown>), wallTheme: themeId }
+        return { ...(old as Record<string, unknown>), wallTheme: dbId }
       }
       return old
     })

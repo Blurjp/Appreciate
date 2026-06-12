@@ -1,15 +1,13 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { GratitudePost, GratitudeCategory } from '@/types'
+import { GratitudePost } from '@/types'
 
-export function usePosts(category?: GratitudeCategory) {
+export function usePosts() {
   return useQuery<GratitudePost[]>({
-    queryKey: ['posts', category],
+    queryKey: ['posts'],
     queryFn: async () => {
-      const params = new URLSearchParams()
-      if (category) params.set('category', category)
-      const res = await fetch(`/api/posts?${params.toString()}`)
+      const res = await fetch('/api/posts')
       if (!res.ok) throw new Error('Failed to fetch posts')
       return res.json()
     },
