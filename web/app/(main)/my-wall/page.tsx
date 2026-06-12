@@ -86,11 +86,13 @@ export default function MyWallPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/posts/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
+      queryClient.invalidateQueries({ queryKey: ['feed'] })
       queryClient.invalidateQueries({ queryKey: ['streak'] })
       showToast('Post deleted', '🗑️')
     },
@@ -103,6 +105,7 @@ export default function MyWallPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ heartToggle: true }),
       })
+      if (!res.ok) throw new Error('Failed to toggle heart')
       return res.json()
     },
     onSuccess: () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface Props {
   message: string
@@ -17,12 +17,15 @@ export default function Toast({
   isVisible,
   onDismiss,
 }: Props) {
+  const dismissRef = useRef(onDismiss)
+  dismissRef.current = onDismiss
+
   useEffect(() => {
     if (isVisible) {
-      const timer = setTimeout(onDismiss, 2500)
+      const timer = setTimeout(() => dismissRef.current(), 2500)
       return () => clearTimeout(timer)
     }
-  }, [isVisible, onDismiss])
+  }, [isVisible])
 
   if (!isVisible) return null
 

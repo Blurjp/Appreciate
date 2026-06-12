@@ -326,6 +326,8 @@ export default memo(GratitudePostCard, (prevProps, nextProps) => {
     prevProps.post.id === nextProps.post.id &&
     prevProps.post.content === nextProps.post.content &&
     prevProps.post.heartCount === nextProps.post.heartCount &&
-    prevProps.post.updatedAt === nextProps.post.updatedAt
+    prevProps.post.updatedAt === nextProps.post.updatedAt &&
+    prevProps.post.visibility === nextProps.post.visibility &&
+    prevProps.post.category === nextProps.post.category
   )
 })

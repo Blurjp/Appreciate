@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest) {
     .from('profiles')
     .update(updateData)
     .eq('id', user.id)
-    .select('id, name, email, avatar_url, created_at')
+    .select('id, name, email, avatar_url, created_at, is_pro, wall_theme')
     .single()
 
   if (error) {
@@ -69,5 +69,7 @@ export async function PATCH(req: NextRequest) {
     email: profile.email,
     avatarUrl: profile.avatar_url,
     createdAt: profile.created_at,
+    isPro: profile.is_pro ?? false,
+    wallTheme: profile.wall_theme || 'starry',
   })
 }

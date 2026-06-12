@@ -10,11 +10,12 @@ export const size = {
 export const contentType = 'image/png'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function Image({ params }: Props) {
-  const post = await fetchSharedPost(params.id)
+  const { id } = await params
+  const post = await fetchSharedPost(id)
 
   if (!post || post.visibility === 'PRIVATE') {
     return new ImageResponse(
