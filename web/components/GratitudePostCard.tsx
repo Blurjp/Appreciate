@@ -206,7 +206,7 @@ function GratitudePostCard({
                     onClick={handleToggleVisibility}
                     className="glass-chip flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-brand-text-secondary transition-all hover:text-brand-text-primary"
                   >
-                    <span>{post.visibility === 'PRIVATE' ? 'Make Public' : 'Make Private'}</span>
+                    <span>{post.visibility === 'PRIVATE' ? 'Make Public' : post.visibility === 'PUBLIC' ? 'Make Anon' : 'Make Private'}</span>
                   </button>
                 )}
 

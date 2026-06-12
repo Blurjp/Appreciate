@@ -4,20 +4,10 @@ import { fetchPosts } from '@/lib/db/posts'
 import { formatDate } from '@/lib/utils'
 import { FeedClient } from './feed-client'
 
-interface FeedPageProps {
-  searchParams: { category?: string }
-}
-
-// Server Component - fetches initial data on the server
-export default async function FeedPage({ searchParams }: FeedPageProps) {
+export default async function FeedPage() {
   const supabase = await createClient()
-  const category = searchParams.category
 
-  // Fetch initial posts on the server for instant display
-  const initialPosts = await fetchPosts(supabase, {
-    category,
-    limit: 50,
-  })
+  const initialPosts = await fetchPosts(supabase, { limit: 50 })
 
   const todayCount = initialPosts.filter((p) => {
     const postDate = new Date(p.createdAt)
@@ -41,7 +31,7 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
       <GratitudeSkyPanel posts={initialPosts} todayCount={todayCount} />
 
       <Suspense fallback={<FeedSkeleton />}>
-        <FeedClient initialPosts={initialPosts} initialCategory={category} />
+        <FeedClient initialPosts={initialPosts} />
       </Suspense>
     </div>
   )
@@ -55,49 +45,35 @@ function GratitudeSkyPanel({
   todayCount: number
 }) {
   const featured = posts[0]
-  const stars = [
-    ['12%', '20%', 4],
-    ['24%', '62%', 7],
-    ['38%', '32%', 5],
-    ['56%', '18%', 8],
-    ['72%', '56%', 5],
-    ['86%', '28%', 7],
-    ['18%', '78%', 3],
-    ['48%', '74%', 6],
-  ]
 
   return (
-    <section className="sky-panel concept-panel mb-5 min-h-[245px] p-6 text-white">
-      <div className="absolute inset-0 z-0 opacity-70">
+    <section className="concept-panel mb-5 min-h-[245px] p-6 text-brand-text-primary overflow-hidden"
+      style={{ background: 'var(--theme-page-bg)' }}
+    >
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_12%_20%,var(--color-brand-accent-light),transparent_34%),radial-gradient(circle_at_86%_28%,var(--color-brand-accent-light),transparent_28%),radial-gradient(circle_at_48%_74%,var(--color-brand-surface),transparent_34%)]" />
+      <div className="absolute inset-0 z-0 opacity-50">
         <svg className="h-full w-full" viewBox="0 0 760 300" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M75 205 C185 90 270 265 390 148 S555 42 685 112" fill="none" stroke="rgba(255,255,255,0.20)" strokeWidth="2" />
-          <path d="M130 92 C230 160 320 102 420 128 S570 218 660 78" fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="2" />
+          <path d="M75 205 C185 90 270 265 390 148 S555 42 685 112" fill="none" stroke="var(--color-brand-border)" strokeWidth="2" />
+          <path d="M130 92 C230 160 320 102 420 128 S570 218 660 78" fill="none" stroke="var(--color-brand-border)" strokeWidth="2" />
         </svg>
       </div>
-      {stars.map(([left, top, size], index) => (
-        <span
-          key={index}
-          className="absolute z-10 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.95)]"
-          style={{ left, top, width: size, height: size }}
-        />
-      ))}
       <div className="relative z-10 max-w-[360px]">
-        <p className="text-[10px] font-medium uppercase text-white/80">My Gratitude Sky</p>
-        <h2 className="mt-3 text-[32px] font-light leading-tight text-white sm:text-[40px]">
+        <p className="text-[10px] font-medium uppercase text-brand-text-muted">My Gratitude Sky</p>
+        <h2 className="mt-3 text-[32px] font-light leading-tight text-brand-text-primary sm:text-[40px]">
           Every small note becomes a point of light.
         </h2>
       </div>
-      <div className="absolute bottom-5 right-5 z-10 rounded-2xl border border-white/35 bg-black/35 px-5 py-4 text-white shadow-xl backdrop-blur-xl">
-        <p className="text-[10px] font-medium uppercase text-white/82">Latest moment</p>
-        <p className="mt-2 max-w-[230px] text-sm leading-5 text-white/90">
+      <div className="absolute bottom-5 right-5 z-10 rounded-2xl border border-brand-border bg-brand-card/80 px-5 py-4 shadow-xl backdrop-blur-xl">
+        <p className="text-[10px] font-medium uppercase text-brand-text-muted">Latest moment</p>
+        <p className="mt-2 max-w-[230px] text-sm leading-5 text-brand-text-secondary">
           {featured?.content || 'Share one thing you noticed today.'}
         </p>
       </div>
       <div className="absolute bottom-5 left-6 z-10 flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/14 text-2xl shadow-[0_0_24px_rgba(255,255,255,0.20)] backdrop-blur-xl">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-border bg-brand-surface text-2xl shadow-warm backdrop-blur-xl text-brand-primary">
           +
         </span>
-        <span className="text-sm text-white/82">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
+        <span className="text-sm text-brand-text-secondary">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
       </div>
     </section>
   )

@@ -4,7 +4,7 @@ import SkyClient from './SkyClient'
 import TreeClient from './TreeClient'
 import ZenClient from './ZenClient'
 import PolaroidClient from './PolaroidClient'
-import GlassClient from './GlassClient'
+import StickyNotesClient from './StickyNotesClient'
 
 interface Props {
   params: Promise<{ userId: string }>
@@ -15,7 +15,8 @@ const THEME_NAMES: Record<string, string> = {
   tree: 'Gratitude Tree',
   zen: 'Zen Garden',
   polaroid: 'Polaroid Gallery',
-  glass: 'Glassmorphism Wall',
+  glass: 'Sticky Notes',
+  'sticky-notes': 'Sticky Notes',
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -91,7 +92,7 @@ export default async function VisualizationPage({ params }: Props) {
 
   const totalHearts = (posts || []).reduce((sum: number, p: { heart_count?: number | null }) => sum + (p.heart_count || 0), 0)
   const isOwner = authUser?.id === userId
-  const theme = profile.wall_theme || 'starry'
+  const theme = profile.wall_theme === 'glass' ? 'sticky-notes' : (profile.wall_theme || 'starry')
 
   const mappedPosts = (posts || []).map((p: { id: string; content: string; feeling?: string | null; category: string; created_at: string; heart_count?: number | null }) => ({
     id: p.id,
@@ -128,7 +129,8 @@ export default async function VisualizationPage({ params }: Props) {
       case 'polaroid':
         return <PolaroidClient {...commonProps} />
       case 'glass':
-        return <GlassClient {...commonProps} />
+      case 'sticky-notes':
+        return <StickyNotesClient {...commonProps} />
       case 'starry':
       default:
         return <SkyClient {...commonProps} />
