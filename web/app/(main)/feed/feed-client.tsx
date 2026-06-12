@@ -32,6 +32,7 @@ export function FeedClient({ initialPosts }: FeedClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ heartToggle: true }),
       })
+      if (!res.ok) throw new Error('Failed to toggle heart')
       return res.json()
     },
     onSuccess: () => {

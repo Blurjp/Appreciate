@@ -5,11 +5,12 @@ import { fetchSharedPost } from '@/lib/posts'
 import { getPostShareMeta, getSiteUrl } from '@/lib/share'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await fetchSharedPost(params.id)
+  const { id } = await params
+  const post = await fetchSharedPost(id)
   if (!post || post.visibility === 'PRIVATE') {
     return {
       title: 'Appreciate — A moment of gratitude',
@@ -46,8 +47,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SharePage({ params }: Props) {
-  const post = await fetchSharedPost(params.id)
-  const signupHref = `/welcome?next=${encodeURIComponent('/feed')}&from=share&id=${params.id}`
+  const { id } = await params
+  const post = await fetchSharedPost(id)
+  const signupHref = `/welcome?next=${encodeURIComponent('/feed')}&from=share&id=${id}`
 
   if (!post) {
     return <PrivateCard signupHref={signupHref} />

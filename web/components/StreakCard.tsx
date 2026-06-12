@@ -82,7 +82,7 @@ function ThemeObjectPreview({ theme, totalPosts }: { theme: string; totalPosts: 
     )
   }
 
-  if (theme === 'glass') {
+  if (theme === 'glass' || theme === 'sticky-notes') {
     return (
       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-sky-50 via-rose-50 to-cyan-50">
         {Array.from({ length: objects }).map((_, i) => (

@@ -43,7 +43,7 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme, emb
       scale: 0.82 + rand() * 0.28,
       postIndex: i < posts.length ? i : -1,
     }))
-  }, [posts.length])
+  }, [posts])
 
   const startDrag = (
     event: React.PointerEvent<HTMLElement>,

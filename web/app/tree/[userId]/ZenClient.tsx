@@ -62,7 +62,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
       rotate: -14 + rand() * 28,
     }))
     return { postObjects, decorativeObjects }
-  }, [posts.length])
+  }, [posts])
 
   const visualization = (
         <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#EFE2CC] shadow-[0_24px_70px_rgba(78,63,42,0.20)]">
