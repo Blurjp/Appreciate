@@ -129,12 +129,16 @@ export default function MyWallPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      if (!res.ok) throw new Error('Failed to update post')
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['feed'] })
+    },
+    onError: () => {
+      showToast('Failed to update post', '✗', true)
     },
   })
 
