@@ -44,7 +44,6 @@ const THEMES = [
   },
   {
     id: 'sticky-notes',
-    dbId: 'glass',
     name: 'Sticky Notes',
     emoji: '📝',
     description: 'Colorful notes pinned to a warm corkboard',
@@ -54,8 +53,7 @@ const THEMES = [
 ]
 
 export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
-  const dbToRender: Record<string, string> = { starry: 'starry', tree: 'tree', zen: 'zen', polaroid: 'polaroid', glass: 'sticky-notes', 'sticky-notes': 'sticky-notes' }
-  const [selected, setSelected] = useState(dbToRender[currentTheme] || currentTheme)
+  const [selected, setSelected] = useState(currentTheme)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const { setTheme } = useTheme()
@@ -66,15 +64,13 @@ export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
     setSaving(true)
     setError('')
 
-    const theme = THEMES.find(t => t.id === themeId)
-    const dbThemeId = theme?.dbId || themeId
     setTheme(themeId as ThemeId)
 
     try {
       const res = await fetch('/api/user', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallTheme: dbThemeId }),
+        body: JSON.stringify({ wallTheme: themeId }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -83,12 +79,12 @@ export default function ThemePicker({ currentTheme, onClose, onSaved }: Props) {
       } else {
         setError(data.error || 'Failed to save theme')
         setSelected(currentTheme)
-        setTheme(currentTheme as ThemeId) // revert
+        setTheme(currentTheme as ThemeId)
       }
     } catch {
       setError('Network error — please try again')
       setSelected(currentTheme)
-      setTheme(currentTheme as ThemeId) // revert
+      setTheme(currentTheme as ThemeId)
     } finally {
       setSaving(false)
     }

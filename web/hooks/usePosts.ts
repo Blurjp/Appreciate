@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { GratitudePost } from '@/types'
-
 export function usePosts() {
   return useQuery<GratitudePost[]>({
     queryKey: ['posts'],
@@ -69,6 +68,8 @@ export function useUpdatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
+      queryClient.invalidateQueries({ queryKey: ['feed'] })
     },
   })
 }
@@ -103,9 +104,31 @@ export function useToggleHeart() {
       if (!res.ok) throw new Error('Failed to toggle heart')
       return res.json()
     },
-    onSuccess: () => {
+    onMutate: async (postId: string) => {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10)
+      await queryClient.cancelQueries({ queryKey: ['posts'] })
+      const prev = queryClient.getQueryData<GratitudePost[]>(['posts'])
+      queryClient.setQueryData<GratitudePost[]>(['posts'], (old) =>
+        (old ?? []).map((p) => {
+          if (p.id !== postId) return p
+          const wasHearted = p.isHeartedByMe ?? false
+          return {
+            ...p,
+            isHeartedByMe: !wasHearted,
+            heartCount: Math.max(0, p.heartCount + (wasHearted ? -1 : 1)),
+          }
+        })
+      )
+      return { prev }
+    },
+    onError: (_err, _postId, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['posts'], ctx.prev)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+      queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
+      queryClient.invalidateQueries({ queryKey: ['feed'] })
     },
   })
 }

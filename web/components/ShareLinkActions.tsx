@@ -48,8 +48,12 @@ export default function ShareLinkActions({
   }
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(url)
-    setSuccess('Link copied.')
+    try {
+      await navigator.clipboard.writeText(url)
+      setSuccess('Link copied.')
+    } catch {
+      setStatus({ message: 'Could not copy — try manually.', tone: 'default' })
+    }
   }
 
   const handlePlatformShare = (platform: Exclude<SharePlatform, 'copy' | 'instagram'>, shareUrl: string) => {
@@ -94,9 +98,13 @@ export default function ShareLinkActions({
       }
     }
 
-    await navigator.clipboard.writeText(buildInstagramCopy(title, text, url))
-    window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
-    setSuccess('Caption copied. Instagram opened in a new tab.')
+    try {
+      await navigator.clipboard.writeText(buildInstagramCopy(title, text, url))
+      window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
+      setSuccess('Caption copied. Instagram opened in a new tab.')
+    } catch {
+      setStatus({ message: 'Could not copy caption — try manually.', tone: 'default' })
+    }
   }
 
   const encodedUrl = encodeURIComponent(url)

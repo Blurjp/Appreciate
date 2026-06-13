@@ -96,7 +96,6 @@
   --theme-backdrop-blur: none;
 }
 
-[data-theme="glass"],
 [data-theme="sticky-notes"] {
   --color-brand-background: #F5F0E8;
   --color-brand-surface: #EDE5D8;

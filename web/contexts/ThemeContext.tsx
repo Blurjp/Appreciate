@@ -17,25 +17,8 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 function applyTheme(themeId: ThemeId) {
   if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', themeId === 'sticky-notes' ? 'glass' : themeId)
+    document.documentElement.setAttribute('data-theme', themeId)
   }
-}
-
-const DB_THEME_MAP: Record<string, ThemeId> = {
-  starry: 'starry',
-  tree: 'tree',
-  zen: 'zen',
-  polaroid: 'polaroid',
-  glass: 'sticky-notes',
-  'sticky-notes': 'sticky-notes',
-}
-
-const RENDER_TO_DB: Record<string, string> = {
-  starry: 'starry',
-  tree: 'tree',
-  zen: 'zen',
-  polaroid: 'polaroid',
-  'sticky-notes': 'glass',
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -51,17 +34,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   })
 
   const rawTheme = (user?.wallTheme as string) || 'starry'
-  const currentTheme = DB_THEME_MAP[rawTheme] || 'starry'
+  const validThemes: ThemeId[] = ['starry', 'tree', 'zen', 'polaroid', 'sticky-notes']
+  const currentTheme = validThemes.includes(rawTheme as ThemeId) ? (rawTheme as ThemeId) : 'starry'
 
   useEffect(() => {
     applyTheme(currentTheme)
   }, [currentTheme])
 
   const setTheme = useCallback((themeId: ThemeId) => {
-    const dbId = RENDER_TO_DB[themeId] || themeId
     queryClient.setQueryData(['user'], (old: unknown) => {
       if (old && typeof old === 'object') {
-        return { ...(old as Record<string, unknown>), wallTheme: dbId }
+        return { ...(old as Record<string, unknown>), wallTheme: themeId }
       }
       return old
     })

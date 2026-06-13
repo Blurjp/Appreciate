@@ -92,7 +92,7 @@ export default async function VisualizationPage({ params }: Props) {
 
   const totalHearts = (posts || []).reduce((sum: number, p: { heart_count?: number | null }) => sum + (p.heart_count || 0), 0)
   const isOwner = authUser?.id === userId
-  const theme = profile.wall_theme === 'glass' ? 'sticky-notes' : (profile.wall_theme || 'starry')
+  const theme = profile.wall_theme || 'starry'
 
   const mappedPosts = (posts || []).map((p: { id: string; content: string; feeling?: string | null; category: string; created_at: string; heart_count?: number | null }) => ({
     id: p.id,
@@ -128,7 +128,6 @@ export default async function VisualizationPage({ params }: Props) {
         return <ZenClient {...commonProps} />
       case 'polaroid':
         return <PolaroidClient {...commonProps} />
-      case 'glass':
       case 'sticky-notes':
         return <StickyNotesClient {...commonProps} />
       case 'starry':

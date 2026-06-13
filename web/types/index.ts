@@ -28,6 +28,7 @@ export interface GratitudePost {
   updatedAt: string
   heartCount: number
   isBookmarked: boolean
+  isHeartedByMe?: boolean
 }
 
 export interface StreakData {

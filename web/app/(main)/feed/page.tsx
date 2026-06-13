@@ -2,33 +2,19 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchPosts } from '@/lib/db/posts'
 import { formatDate } from '@/lib/utils'
-import { FeedClient } from './feed-client'
+import { FeedClient, FeedHeader } from './feed-client'
 
 export default async function FeedPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const initialPosts = await fetchPosts(supabase, { limit: 50 })
-
-  const todayCount = initialPosts.filter((p) => {
-    const postDate = new Date(p.createdAt)
-    const today = new Date()
-    return postDate.toDateString() === today.toDateString()
-  }).length
+  const initialPosts = await fetchPosts(supabase, { limit: 50, userId: user?.id })
 
   return (
     <div className="px-4 pt-5">
-      <div className="mb-5 flex items-end justify-between gap-4">
-        <div>
-          <p className="mb-1 text-[10px] uppercase text-brand-text-muted">{formatDate(new Date())}</p>
-          <h1 className="text-title text-brand-text-primary">Gratitude Sky</h1>
-        </div>
-        <div className="glass-chip rounded-2xl px-4 py-3 text-right">
-          <p className="text-2xl font-semibold leading-none text-brand-text-primary">{todayCount}</p>
-          <p className="mt-1 text-[10px] font-medium uppercase text-brand-text-muted">today</p>
-        </div>
-      </div>
+      <FeedHeader initialPosts={initialPosts} />
 
-      <GratitudeSkyPanel posts={initialPosts} todayCount={todayCount} />
+      <GratitudeSkyPanel posts={initialPosts} />
 
       <Suspense fallback={<FeedSkeleton />}>
         <FeedClient initialPosts={initialPosts} />
@@ -39,10 +25,8 @@ export default async function FeedPage() {
 
 function GratitudeSkyPanel({
   posts,
-  todayCount,
 }: {
   posts: Awaited<ReturnType<typeof fetchPosts>>
-  todayCount: number
 }) {
   const featured = posts[0]
 
@@ -73,7 +57,7 @@ function GratitudeSkyPanel({
         <span className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-border bg-brand-surface text-2xl shadow-warm backdrop-blur-xl text-brand-primary">
           +
         </span>
-        <span className="text-sm text-brand-text-secondary">{todayCount} new light{todayCount === 1 ? '' : 's'} today</span>
+        <span className="text-sm text-brand-text-secondary">New lights today</span>
       </div>
     </section>
   )

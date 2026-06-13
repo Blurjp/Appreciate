@@ -1,13 +1,22 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GratitudeCategory, GratitudePost, PostVisibility } from '@/types'
 import CreatePostForm from '@/components/CreatePostForm'
 
 export default function CreatePage() {
   const router = useRouter()
   const queryClient = useQueryClient()
+
+  const { data: user } = useQuery<{ isPro: boolean }>({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const res = await fetch('/api/user')
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
 
   const createMutation = useMutation({
     mutationFn: async (data: {
@@ -37,6 +46,7 @@ export default function CreatePage() {
     <div className="px-4 pt-5">
       <div className="concept-panel h-[calc(100vh-8.5rem)]">
       <CreatePostForm
+        isPro={user?.isPro ?? false}
         onSubmit={async (data) => {
           return createMutation.mutateAsync(data)
         }}

@@ -7,6 +7,7 @@ interface Props {
   message: string
   postId: string
   onDismiss: () => void
+  onDesignCard?: () => void
 }
 
 export default function PostSharePrompt({
@@ -14,6 +15,7 @@ export default function PostSharePrompt({
   message,
   postId,
   onDismiss,
+  onDesignCard,
 }: Props) {
   if (!isVisible) return null
 
@@ -42,6 +44,18 @@ export default function PostSharePrompt({
           text="I just shared an appreciation on Appreciate."
           imageUrl={imageUrl}
         />
+
+        {onDesignCard && (
+          <button
+            onClick={onDesignCard}
+            className="mt-3 w-full rounded-2xl bg-brand-primary py-3.5 text-subheadline font-semibold tracking-wide text-white transition-colors hover:opacity-90 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+            Design a Beautiful Card
+          </button>
+        )}
 
         <button
           onClick={onDismiss}

@@ -164,13 +164,13 @@ function GratitudePostCard({
               onClick={handleHeart}
               className={cn(
                 'flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
-                post.heartCount > 0
+                post.isHeartedByMe
                   ? 'text-white'
                   : 'glass-chip text-brand-text-secondary hover:text-brand-text-primary'
               )}
-              style={post.heartCount > 0 ? { backgroundColor: accentColor } : {}}
+              style={post.isHeartedByMe ? { backgroundColor: accentColor } : {}}
             >
-              <HeartIcon filled={post.heartCount > 0} animating={isHeartAnimating} />
+              <HeartIcon filled={post.isHeartedByMe ?? false} animating={isHeartAnimating} />
               {post.heartCount > 0 && (
                 <span>{post.heartCount}</span>
               )}
@@ -326,6 +326,7 @@ export default memo(GratitudePostCard, (prevProps, nextProps) => {
     prevProps.post.id === nextProps.post.id &&
     prevProps.post.content === nextProps.post.content &&
     prevProps.post.heartCount === nextProps.post.heartCount &&
+    prevProps.post.isHeartedByMe === nextProps.post.isHeartedByMe &&
     prevProps.post.updatedAt === nextProps.post.updatedAt &&
     prevProps.post.visibility === nextProps.post.visibility &&
     prevProps.post.category === nextProps.post.category

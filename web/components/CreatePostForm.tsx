@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import {
   GratitudeCategory,
   PostVisibility,
@@ -13,6 +14,11 @@ import { cn, randomFrom } from '@/lib/utils'
 import ConfirmationOverlay from './ConfirmationOverlay'
 import { resolveCardPresentation } from './AppreciationCardGenerator'
 import PostSharePrompt from './PostSharePrompt'
+
+const AppreciationCardGenerator = dynamic(
+  () => import('./AppreciationCardGenerator'),
+  { ssr: false }
+)
 
 const CATEGORY_TEMPLATE_MAP: Record<GratitudeCategory, string> = {
   FAMILY: 'sunset',
@@ -32,9 +38,10 @@ interface Props {
     cardTemplateId?: string
   }) => Promise<{ id: string }>
   onClose?: () => void
+  isPro?: boolean
 }
 
-export default function CreatePostForm({ onSubmit, onClose }: Props) {
+export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Props) {
   const [content, setContent] = useState('')
   const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
@@ -43,6 +50,8 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
   const [sharePromptPostId, setSharePromptPostId] = useState<string | null>(null)
   const [confirmationMessage, setConfirmationMessage] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showCardDesigner, setShowCardDesigner] = useState(false)
+  const [createdPostContent, setCreatedPostContent] = useState('')
 
   const canSubmit = content.trim().length > 0
 
@@ -53,6 +62,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
     try {
       const cardTemplateId = CATEGORY_TEMPLATE_MAP[category]
       const createdPost = await onSubmit({ content, category, visibility, cardTemplateId })
+      setCreatedPostContent(content)
       const nextMessage = randomFrom(CONFIRMATIONS)
       setConfirmationMessage(nextMessage)
       if (visibility === 'PRIVATE') {
@@ -218,6 +228,7 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
         isVisible={showConfirmation}
         message={confirmationMessage}
         onDismiss={handleConfirmationDismiss}
+        onCreateCard={() => setShowCardDesigner(true)}
       />
 
       {sharePromptPostId && (
@@ -226,6 +237,15 @@ export default function CreatePostForm({ onSubmit, onClose }: Props) {
           message={confirmationMessage}
           postId={sharePromptPostId}
           onDismiss={handleConfirmationDismiss}
+          onDesignCard={() => setShowCardDesigner(true)}
+        />
+      )}
+
+      {showCardDesigner && (
+        <AppreciationCardGenerator
+          content={createdPostContent}
+          isPro={isPro}
+          onClose={() => setShowCardDesigner(false)}
         />
       )}
     </div>

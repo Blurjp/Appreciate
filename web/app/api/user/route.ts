@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json()
   const updateData: Record<string, unknown> = {}
-  if (body.name) updateData.name = body.name
+  if ('name' in body) updateData.name = body.name
   if (body.wallTheme) updateData.wall_theme = body.wallTheme
 
   const { data: profile, error } = await supabase

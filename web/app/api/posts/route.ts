@@ -4,9 +4,10 @@ import { fetchPosts, createPost } from '@/lib/db/posts'
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   try {
-    const posts = await fetchPosts(supabase)
+    const posts = await fetchPosts(supabase, { userId: user?.id })
     return NextResponse.json(posts)
   } catch (error) {
     return NextResponse.json(

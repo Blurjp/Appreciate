@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
 import { GratitudePost, PostVisibility } from '@/types'
 import { cn } from '@/lib/utils'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import GratitudePostCard from '@/components/GratitudePostCard'
 import Toast from '@/components/Toast'
 import { GratitudeCategory } from '@/types'
@@ -33,7 +34,7 @@ export default function MyWallPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
-  const { data: posts = [], isLoading: postsLoading } = useQuery<GratitudePost[]>({
+  const { data: posts = [], isLoading: postsLoading, refetch: refetchPosts } = useQuery<GratitudePost[]>({
     queryKey: ['my-wall', filter],
     queryFn: async () => {
       const params = new URLSearchParams()
@@ -45,6 +46,10 @@ export default function MyWallPage() {
     staleTime: 30_000,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+  })
+
+  const { pullDistance, isRefreshing, progress } = usePullToRefresh({
+    onRefresh: async () => { await refetchPosts() },
   })
 
   const { data: allWallPosts = [], isLoading: wallPostsLoading } = useQuery<GratitudePost[]>({
@@ -108,7 +113,31 @@ export default function MyWallPage() {
       if (!res.ok) throw new Error('Failed to toggle heart')
       return res.json()
     },
-    onSuccess: () => {
+    onMutate: async (postId: string) => {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10)
+      await queryClient.cancelQueries({ queryKey: ['my-wall'] })
+      await queryClient.cancelQueries({ queryKey: ['my-wall-all'] })
+      const prevWall = queryClient.getQueryData<GratitudePost[]>(['my-wall'])
+      const prevAll = queryClient.getQueryData<GratitudePost[]>(['my-wall-all'])
+      const toggle = (old: GratitudePost[] | undefined) =>
+        (old ?? []).map((p) => {
+          if (p.id !== postId) return p
+          const wasHearted = p.isHeartedByMe ?? false
+          return {
+            ...p,
+            isHeartedByMe: !wasHearted,
+            heartCount: Math.max(0, p.heartCount + (wasHearted ? -1 : 1)),
+          }
+        })
+      queryClient.setQueryData<GratitudePost[]>(['my-wall'], toggle)
+      queryClient.setQueryData<GratitudePost[]>(['my-wall-all'], toggle)
+      return { prevWall, prevAll }
+    },
+    onError: (_err, _postId, ctx) => {
+      if (ctx?.prevWall) queryClient.setQueryData(['my-wall'], ctx.prevWall)
+      if (ctx?.prevAll) queryClient.setQueryData(['my-wall-all'], ctx.prevAll)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
     },
@@ -132,10 +161,21 @@ export default function MyWallPage() {
       if (!res.ok) throw new Error('Failed to update post')
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['my-wall'] })
       queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
       queryClient.invalidateQueries({ queryKey: ['feed'] })
+      queryClient.invalidateQueries({ queryKey: ['streak'] })
+      if (variables.visibility) {
+        const labels: Record<PostVisibility, { msg: string; icon: string }> = {
+          PRIVATE: { msg: 'Post is now private', icon: '🔒' },
+          PUBLIC: { msg: 'Post is now public', icon: '🌐' },
+          ANONYMOUS: { msg: 'Post is now anonymous', icon: '🎭' },
+        }
+        showToast(labels[variables.visibility].msg, labels[variables.visibility].icon)
+      } else {
+        showToast('Post updated', '✅')
+      }
     },
     onError: () => {
       showToast('Failed to update post', '✗', true)
@@ -154,13 +194,7 @@ export default function MyWallPage() {
     }
     const newVisibility = cycle[post.visibility]
     updateMutation.mutate({ id: post.id, visibility: newVisibility })
-    const labels: Record<PostVisibility, { msg: string; icon: string }> = {
-      PRIVATE: { msg: 'Post is now private', icon: '🔒' },
-      PUBLIC: { msg: 'Post is now public', icon: '🌐' },
-      ANONYMOUS: { msg: 'Post is now anonymous', icon: '🎭' },
-    }
-    showToast(labels[newVisibility].msg, labels[newVisibility].icon)
-  }, [updateMutation, showToast])
+  }, [updateMutation])
 
   const handleDelete = useCallback((id: string) => {
     setDeleteConfirm(id)
@@ -182,8 +216,7 @@ export default function MyWallPage() {
     cardTemplateId: string
   }) => {
     updateMutation.mutate(data)
-    showToast('Post updated', '✅')
-  }, [updateMutation, showToast])
+  }, [updateMutation])
 
   return (
     <div className="px-4 pt-5">
@@ -245,6 +278,24 @@ export default function MyWallPage() {
           </button>
         ))}
       </div>
+
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className="flex items-center justify-center py-2 transition-opacity"
+          style={{ height: isRefreshing ? 40 : pullDistance, opacity: progress }}
+        >
+          <svg
+            className={cn('h-5 w-5 text-brand-text-muted', isRefreshing && 'animate-spin')}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+      )}
 
       {/* Posts */}
       {postsLoading ? (
@@ -354,9 +405,7 @@ function ExactWallEmbed({
     onThemeSaved,
   }
 
-  const resolvedWallTheme = data.user.wallTheme === 'glass' ? 'sticky-notes' : data.user.wallTheme
-
-  switch (resolvedWallTheme) {
+  switch (data.user.wallTheme) {
     case 'tree':
       return <TreeClient {...props} />
     case 'zen':
@@ -364,8 +413,6 @@ function ExactWallEmbed({
     case 'polaroid':
       return <PolaroidClient {...props} />
     case 'sticky-notes':
-      return <StickyNotesClient {...props} />
-    case 'glass':
       return <StickyNotesClient {...props} />
     case 'starry':
     default:

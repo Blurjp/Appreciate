@@ -1,9 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { GratitudePost } from '@/types'
 
-// All queries use Supabase's PostgREST API with RLS enforcement.
-// The authenticated user's JWT is passed automatically via the Supabase client.
-
 const POST_SELECT = '*, profiles(id, name, avatar_url)'
 
 function mapPost(row: Record<string, unknown>): GratitudePost {
@@ -26,12 +23,29 @@ function mapPost(row: Record<string, unknown>): GratitudePost {
     updatedAt: row.updated_at as string,
     heartCount: (row.heart_count as number) ?? 0,
     isBookmarked: (row.is_bookmarked as boolean) ?? false,
+    isHeartedByMe: false,
   }
+}
+
+async function annotateHearts(
+  supabase: SupabaseClient,
+  posts: GratitudePost[],
+  userId: string
+): Promise<GratitudePost[]> {
+  if (posts.length === 0) return posts
+  const postIds = posts.map((p) => p.id)
+  const { data: hearted } = await supabase
+    .from('hearts')
+    .select('post_id')
+    .eq('user_id', userId)
+    .in('post_id', postIds)
+  const heartedSet = new Set((hearted ?? []).map((h) => h.post_id))
+  return posts.map((p) => ({ ...p, isHeartedByMe: heartedSet.has(p.id) }))
 }
 
 export async function fetchPosts(
   supabase: SupabaseClient,
-  options?: { category?: string; limit?: number; offset?: number }
+  options?: { category?: string; limit?: number; offset?: number; userId?: string }
 ) {
   const limit = options?.limit ?? 50
   const offset = options?.offset ?? 0
@@ -49,7 +63,9 @@ export async function fetchPosts(
 
   const { data, error } = await query
   if (error) throw error
-  return (data ?? []).map(mapPost)
+  const posts = (data ?? []).map(mapPost)
+  if (options?.userId) return annotateHearts(supabase, posts, options.userId)
+  return posts
 }
 
 export async function fetchMyPosts(
@@ -69,7 +85,8 @@ export async function fetchMyPosts(
 
   const { data, error } = await query
   if (error) throw error
-  return (data ?? []).map(mapPost)
+  const posts = (data ?? []).map(mapPost)
+  return annotateHearts(supabase, posts, userId)
 }
 
 export async function createPost(
@@ -134,69 +151,15 @@ export async function deletePost(supabase: SupabaseClient, id: string) {
   if (error) throw error
 }
 
-/// Toggle heart: uses a single RPC call for better performance
-/// TODO: Create a database function 'toggle_heart' that combines all operations atomically:
-/// CREATE OR REPLACE FUNCTION toggle_heart(post_id_param UUID, user_id_param UUID)
-/// RETURNS BOOLEAN AS $$
-/// DECLARE
-///   already_hearted BOOLEAN;
-/// BEGIN
-///   SELECT EXISTS(SELECT 1 FROM hearts WHERE post_id = post_id_param AND user_id = user_id_param)
-///   INTO already_hearted;
-///
-///   IF already_hearted THEN
-///     DELETE FROM hearts WHERE post_id = post_id_param AND user_id = user_id_param;
-///     UPDATE gratitude_posts SET heart_count = GREATEST(heart_count - 1, 0) WHERE id = post_id_param;
-///     RETURN FALSE;
-///   ELSE
-///     INSERT INTO hearts (post_id, user_id) VALUES (post_id_param, user_id_param)
-///     ON CONFLICT (post_id, user_id) DO NOTHING;
-///     UPDATE gratitude_posts SET heart_count = heart_count + 1 WHERE id = post_id_param;
-///     RETURN TRUE;
-///   END IF;
-/// END;
-/// $$ LANGUAGE plpgsql;
-///
-/// Once created, replace the implementation below with:
-/// const { data, error } = await supabase.rpc('toggle_heart', {
-///   post_id_param: postId,
-///   user_id_param: userId
-/// })
-/// if (error) throw error
-/// return data as boolean
 export async function toggleHeart(
   supabase: SupabaseClient,
   postId: string,
   userId: string
 ) {
-  // Check if already hearted
-  const { data: existing } = await supabase
-    .from('hearts')
-    .select('id')
-    .eq('post_id', postId)
-    .eq('user_id', userId)
-
-  if (existing && existing.length > 0) {
-    // Un-heart
-    await supabase
-      .from('hearts')
-      .delete()
-      .eq('post_id', postId)
-      .eq('user_id', userId)
-
-    // Use RPC for atomic decrement
-    await supabase.rpc('decrement_heart_count', { post_id_param: postId })
-
-    return false
-  } else {
-    // Heart
-    await supabase
-      .from('hearts')
-      .insert({ post_id: postId, user_id: userId })
-
-    // Use RPC for atomic increment
-    await supabase.rpc('increment_heart_count', { post_id_param: postId })
-
-    return true
-  }
+  const { data, error } = await supabase.rpc('toggle_heart', {
+    post_id_param: postId,
+    user_id_param: userId,
+  })
+  if (error) throw error
+  return data as boolean
 }

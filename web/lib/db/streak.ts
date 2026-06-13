@@ -1,12 +1,20 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { StreakData } from '@/types'
 
-/// Fetches streak data from the Supabase streak_data table.
-/// The streak is auto-updated by a database trigger when posts are created,
-/// so no manual calculation is needed.
+function todayInTz(tz?: string): Date {
+  if (!tz) {
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    return now
+  }
+  const parts = new Date().toLocaleDateString('en-US', { timeZone: tz }).split('/')
+  return new Date(Number(parts[2]), Number(parts[0]) - 1, Number(parts[1]))
+}
+
 export async function fetchStreak(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  tz?: string
 ): Promise<StreakData> {
   const { data, error } = await supabase
     .from('streak_data')
@@ -24,8 +32,7 @@ export async function fetchStreak(
     }
   }
 
-  // Calculate week activity from recent posts
-  const weekActivity = await fetchWeekActivity(supabase, userId)
+  const weekActivity = await fetchWeekActivity(supabase, userId, tz)
 
   return {
     currentStreak: data.current_streak ?? 0,
@@ -38,10 +45,10 @@ export async function fetchStreak(
 
 async function fetchWeekActivity(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  tz?: string
 ): Promise<boolean[]> {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = todayInTz(tz)
   const weekAgo = new Date(today)
   weekAgo.setDate(weekAgo.getDate() - 6)
 
@@ -54,8 +61,9 @@ async function fetchWeekActivity(
   const postingDays = new Set<number>()
   for (const post of posts ?? []) {
     const d = new Date(post.created_at)
-    d.setHours(0, 0, 0, 0)
-    const diff = Math.round((d.getTime() - weekAgo.getTime()) / (1000 * 60 * 60 * 24))
+    const localParts = d.toLocaleDateString('en-US', { timeZone: tz }).split('/')
+    const localDate = new Date(Number(localParts[2]), Number(localParts[0]) - 1, Number(localParts[1]))
+    const diff = Math.round((localDate.getTime() - weekAgo.getTime()) / (1000 * 60 * 60 * 24))
     if (diff >= 0 && diff < 7) {
       postingDays.add(diff)
     }

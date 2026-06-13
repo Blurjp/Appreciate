@@ -14,14 +14,22 @@ const PRO_FEATURES = [
 
 export default function UpgradeModal({ onClose }: Props) {
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleUpgrade = async () => {
     setIsLoading(true)
+    setError('')
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to start checkout')
       const { url } = await res.json()
-      if (url) window.location.href = url
+      if (url) {
+        window.location.href = url
+      } else {
+        throw new Error('No checkout URL returned')
+      }
     } catch {
+      setError('Could not start checkout — please try again.')
       setIsLoading(false)
     }
   }
@@ -68,6 +76,9 @@ export default function UpgradeModal({ onClose }: Props) {
         >
           Maybe later
         </button>
+        {error && (
+          <p className="mt-3 text-center text-xs text-red-500">{error}</p>
+        )}
       </div>
     </div>
   )

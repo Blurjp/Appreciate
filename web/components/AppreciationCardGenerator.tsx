@@ -221,17 +221,34 @@ export default function AppreciationCardGenerator({
     : CARD_TEMPLATES[0]
 
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate>(initialTemplate)
+  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(photoPreview ?? null)
   const [backgroundSource, setBackgroundSource] = useState<CardBackgroundSource | null>(
-    getInitialSource(initialCardTemplateId, Boolean(photoPreview))
+    getInitialSource(initialCardTemplateId, Boolean(uploadedPhotoUrl))
   )
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(initialAiUrl)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  const hasPhotoPreview = Boolean(photoPreview)
+  const FREE_EXPORT_LIMIT = 3
+  const getExportKey = () => {
+    const now = new Date()
+    return `card-exports-${now.getFullYear()}-${now.getMonth()}`
+  }
+  const getExportCount = () => {
+    if (typeof window === 'undefined') return 0
+    return Number(localStorage.getItem(getExportKey()) || 0)
+  }
+  const [exportCount, setExportCount] = useState(getExportCount())
+  const exportsRemaining = Math.max(0, FREE_EXPORT_LIMIT - exportCount)
+  const canExport = isPro || exportsRemaining > 0
+
+  const hasPhotoPreview = Boolean(uploadedPhotoUrl)
   const resolvedCardTemplateId = useMemo(() => {
     if (backgroundSource === 'photo' && hasPhotoPreview) return PHOTO_CARD_TEMPLATE_ID
     if (backgroundSource === 'ai' && aiImageUrl) return `ai:${aiImageUrl}`
@@ -252,9 +269,9 @@ export default function AppreciationCardGenerator({
           : backgroundSource === 'template'
             ? selectedTemplate.id
             : initialCardTemplateId || selectedTemplate.id,
-      photoPreview
+      uploadedPhotoUrl
     ),
-    [aiImageUrl, backgroundSource, hasPhotoPreview, initialCardTemplateId, photoPreview, selectedTemplate.id]
+    [aiImageUrl, backgroundSource, hasPhotoPreview, initialCardTemplateId, uploadedPhotoUrl, selectedTemplate.id]
   )
   const hasChosenSource = backgroundSource !== null
 
@@ -273,14 +290,14 @@ export default function AppreciationCardGenerator({
 
     setIsGeneratingAI(true)
     try {
-      const photoPaletteHint = photoPreview ? await extractPhotoPaletteHint(photoPreview) : undefined
+      const photoPaletteHint = uploadedPhotoUrl ? await extractPhotoPaletteHint(uploadedPhotoUrl) : undefined
       const response = await fetch('/api/ai/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
           photoPaletteHint,
-          hasPhotoReference: Boolean(photoPreview),
+          hasPhotoReference: Boolean(uploadedPhotoUrl),
         }),
         signal: controller.signal,
       })
@@ -308,8 +325,37 @@ export default function AppreciationCardGenerator({
     }
   }
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    setUploadError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/uploads/post-image', { method: 'POST', body: formData })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Upload failed')
+      }
+      const { url } = await res.json()
+      setUploadedPhotoUrl(url)
+      setBackgroundSource('photo')
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   const handleExport = async () => {
     if (!cardRef.current || isExporting) return
+    if (!canExport) {
+      setShowUpgrade(true)
+      return
+    }
 
     setIsExporting(true)
     try {
@@ -323,6 +369,12 @@ export default function AppreciationCardGenerator({
       link.download = `appreciation-card-${Date.now()}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
+      if (!isPro) {
+        const key = getExportKey()
+        const next = Number(localStorage.getItem(key) || 0) + 1
+        localStorage.setItem(key, String(next))
+        setExportCount(next)
+      }
     } catch (error) {
       console.error('Failed to export card:', error)
     } finally {
@@ -332,6 +384,10 @@ export default function AppreciationCardGenerator({
 
   const handleShare = async () => {
     if (!cardRef.current || isExporting) return
+    if (!canExport) {
+      setShowUpgrade(true)
+      return
+    }
 
     setIsExporting(true)
     try {
@@ -350,6 +406,12 @@ export default function AppreciationCardGenerator({
               title: 'My Appreciation',
               text: content,
             })
+            if (!isPro) {
+              const key = getExportKey()
+              const next = Number(localStorage.getItem(key) || 0) + 1
+              localStorage.setItem(key, String(next))
+              setExportCount(next)
+            }
           } catch (error) {
             console.error('Failed to share:', error)
           }
@@ -374,8 +436,7 @@ export default function AppreciationCardGenerator({
       title: 'Use Uploaded Photo',
       description: hasPhotoPreview
         ? 'Turn the uploaded moment into a full-bleed background.'
-        : 'Add a photo first to unlock this background option.',
-      disabled: !hasPhotoPreview,
+        : 'Upload a photo to use as a full-bleed background.',
     },
     {
       id: 'template',
@@ -601,26 +662,54 @@ export default function AppreciationCardGenerator({
                     <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-brand-text-muted">
                       Your Photo
                     </p>
-                    {photoPreview ? (
+                    {uploadedPhotoUrl ? (
                       <>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
                           Your uploaded photo becomes the full card background with a readability overlay applied automatically.
                         </p>
                         <div className="mt-4 overflow-hidden rounded-3xl border border-brand-border">
-                          <img src={photoPreview} alt="Preview" className="h-44 w-full object-cover" />
+                          <img src={uploadedPhotoUrl} alt="Preview" className="h-44 w-full object-cover" />
                         </div>
-                        <button
-                          onClick={() => setBackgroundSource('photo')}
-                          className="mt-4 w-full rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-all hover:opacity-90"
-                        >
-                          Use Photo Background
-                        </button>
+                        <div className="mt-4 flex gap-3">
+                          <button
+                            onClick={() => setBackgroundSource('photo')}
+                            className="flex-1 rounded-2xl bg-brand-primary py-4 text-sm font-semibold text-white transition-all hover:opacity-90"
+                          >
+                            Use Photo Background
+                          </button>
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="rounded-2xl border border-brand-border px-4 py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
+                          >
+                            {isUploading ? 'Uploading...' : 'Replace'}
+                          </button>
+                        </div>
                       </>
                     ) : (
-                      <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
-                        Add a photo in step 2 to use it as the background.
-                      </p>
+                      <>
+                        <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
+                          Upload a photo to use as a full-bleed card background.
+                        </p>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="mt-4 w-full rounded-2xl border-2 border-dashed border-brand-border py-8 text-sm font-semibold text-brand-text-secondary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
+                        >
+                          {isUploading ? 'Uploading...' : 'Click to upload photo'}
+                        </button>
+                      </>
                     )}
+                    {uploadError && (
+                      <p className="mt-3 text-xs text-red-500">{uploadError}</p>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
                   </div>
                 )}
 
@@ -671,7 +760,7 @@ export default function AppreciationCardGenerator({
                         </p>
                         <p className="mt-2 text-sm leading-6 text-brand-text-secondary">
                           Generate a fresh background from your words.
-                          {photoPreview ? ' Your photo also contributes color direction.' : ''}
+                          {uploadedPhotoUrl ? ' Your photo also contributes color direction.' : ''}
                         </p>
                       </div>
                       {!isPro && (
@@ -680,7 +769,7 @@ export default function AppreciationCardGenerator({
                         </span>
                       )}
                     </div>
-                    {photoPreview && (
+                    {uploadedPhotoUrl && (
                       <div className="mt-4 rounded-2xl border border-brand-border bg-brand-surface/60 px-4 py-3 text-xs leading-5 text-brand-text-secondary">
                         AI uses your words plus the uploaded photo&apos;s palette hint. It is not copying the image directly.
                       </div>
@@ -727,6 +816,9 @@ export default function AppreciationCardGenerator({
                     className="flex-1 rounded-2xl border border-brand-border py-4 text-sm font-semibold text-brand-text-primary transition-colors hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                   >
                     {isExporting ? 'Exporting...' : 'Download PNG'}
+                    {!isPro && exportsRemaining > 0 && (
+                      <span className="ml-1 text-[10px] opacity-70">({exportsRemaining} left)</span>
+                    )}
                   </button>
 
                   {typeof navigator !== 'undefined' && 'share' in navigator && (
@@ -737,6 +829,16 @@ export default function AppreciationCardGenerator({
                     >
                       Share
                     </button>
+                  )}
+
+                  {!isPro && exportsRemaining === 0 && (
+                    <p className="w-full text-center text-xs text-brand-text-muted">
+                      Free export limit reached.{' '}
+                      <button onClick={() => setShowUpgrade(true)} className="text-brand-primary underline">
+                        Upgrade to Pro
+                      </button>{' '}
+                      for unlimited exports.
+                    </p>
                   )}
                 </div>
               </div>

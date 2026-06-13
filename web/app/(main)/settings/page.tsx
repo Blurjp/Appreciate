@@ -65,6 +65,7 @@ export default function SettingsPage() {
     setIsUpgrading(true)
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to start checkout')
       const { url } = await res.json()
       if (url) {
         window.location.href = url
@@ -80,6 +81,7 @@ export default function SettingsPage() {
     setIsManaging(true)
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to open portal')
       const { url } = await res.json()
       if (url) {
         window.location.href = url
@@ -134,13 +136,13 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
-                  {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', glass: '📝', 'sticky-notes': '📝' }[user.wallTheme || 'starry'] || '✨'}
+                  <div className="w-10 h-10 rounded-xl bg-warm-cream-200 flex items-center justify-center text-lg">
+                  {{ starry: '✨', tree: '🌳', zen: '🪨', polaroid: '📸', 'sticky-notes': '📝' }[user.wallTheme || 'starry'] || '✨'}
                 </div>
                 <div>
                   <p className="text-headline text-brand-text-primary">Wall Theme</p>
                   <p className="text-caption text-brand-text-secondary">
-                    {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', glass: 'Sticky Notes', 'sticky-notes': 'Sticky Notes' }[user.wallTheme || 'starry'] || 'Starry Night'}
+                    {{ starry: 'Starry Night', tree: 'Gratitude Tree', zen: 'Zen Garden', polaroid: 'Polaroid Gallery', 'sticky-notes': 'Sticky Notes' }[user.wallTheme || 'starry'] || 'Starry Night'}
                 </p>
               </div>
             </div>
@@ -280,7 +282,7 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => updateNameMutation.mutate(newName)}
-                disabled={!newName.trim()}
+                disabled={newName === displayName}
                 className="flex-1 py-3 rounded-xl bg-brand-primary text-white text-subheadline disabled:opacity-40 transition-all active:scale-[0.98]"
               >
                 Save

@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchStreak } from '@/lib/db/streak'
 
-// GET /api/streak — Fetch streak data for the authenticated user
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -11,8 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const tz = req.nextUrl.searchParams.get('tz') || undefined
+
   try {
-    const streak = await fetchStreak(supabase, user.id)
+    const streak = await fetchStreak(supabase, user.id, tz)
     return NextResponse.json(streak)
   } catch (error) {
     return NextResponse.json(

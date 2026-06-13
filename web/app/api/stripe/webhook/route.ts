@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
 
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
-      const customer = await stripe.customers.retrieve(sub.customer as string) as Stripe.Customer
-      const userId = customer.metadata?.supabase_user_id
+      const customer = await stripe.customers.retrieve(sub.customer as string)
+      if (customer.deleted) break
+      const userId = (customer as Stripe.Customer).metadata?.supabase_user_id
       if (userId) {
         const isPro = sub.status === 'active' || sub.status === 'trialing'
         await supabase.from('profiles').update({
@@ -48,8 +49,9 @@ export async function POST(req: NextRequest) {
 
     case 'customer.subscription.deleted': {
       const sub = event.data.object as Stripe.Subscription
-      const customer = await stripe.customers.retrieve(sub.customer as string) as Stripe.Customer
-      const userId = customer.metadata?.supabase_user_id
+      const customer = await stripe.customers.retrieve(sub.customer as string)
+      if (customer.deleted) break
+      const userId = (customer as Stripe.Customer).metadata?.supabase_user_id
       if (userId) {
         await supabase.from('profiles').update({
           is_pro: false,
