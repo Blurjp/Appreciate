@@ -20,7 +20,7 @@ export function getSharePageUrl(postId: string) {
 
 export function getPostShareMeta(post: GratitudePost) {
   const category = CATEGORIES.find((entry) => entry.value === post.category) ?? CATEGORIES[5]
-  const authorName = post.visibility === 'ANONYMOUS' ? 'Someone' : post.author.name
+  const authorName = post.visibility === 'ANONYMOUS' ? 'Anonymous' : post.author.name
   const previewText = post.content.slice(0, 160)
   const previewTitle = post.content.length > 90 ? `${post.content.slice(0, 87)}...` : post.content
   const shareImageUrl = getShareImageUrl(post.id)

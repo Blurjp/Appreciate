@@ -108,11 +108,11 @@ export default async function VisualizationPage({ params }: Props) {
     .in('visibility', ['PUBLIC', 'ANONYMOUS'])
     .order('created_at', { ascending: true })
 
-  const { data: streak } = await supabase
-    .from('streak_data')
-    .select('current_streak, longest_streak, total_posts')
-    .eq('user_id', userId)
-    .single()
+  // Use SECURITY DEFINER RPC so streak data is readable by non-owners
+  // (streak_data RLS is auth.uid() = user_id, so direct SELECT returns 0 for visitors).
+  const { data: streakData } = await supabase
+    .rpc('public_streak_stats', { p_user_id: userId })
+  const streak = Array.isArray(streakData) ? streakData[0] : null
 
   const totalHearts = (posts || []).reduce((sum: number, p: { heart_count?: number | null }) => sum + (p.heart_count || 0), 0)
   const theme = profile.wall_theme || 'starry'

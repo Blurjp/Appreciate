@@ -90,7 +90,7 @@ web/
 │   │   └── settings/      # User settings
 │   └── api/               # API routes (thin wrappers around Supabase)
 ├── components/            # Reusable UI components
-├── hooks/                 # React Query hooks (usePosts, useMyWall, useStreak)
+├── hooks/                 # React Query hooks (useStreak, usePullToRefresh)
 ├── lib/
 │   ├── supabase/          # Supabase clients (client.ts, server.ts, middleware.ts)
 │   ├── db/                # Database layer (posts.ts, streak.ts)

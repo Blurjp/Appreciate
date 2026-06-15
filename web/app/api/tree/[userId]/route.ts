@@ -39,12 +39,10 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 })
   }
 
-  // Fetch streak data
-  const { data: streak } = await supabase
-    .from('streak_data')
-    .select('current_streak, longest_streak, total_posts')
-    .eq('user_id', userId)
-    .single()
+  // Fetch streak data via SECURITY DEFINER RPC (RLS blocks non-owner reads)
+  const { data: streakData } = await supabase
+    .rpc('public_streak_stats', { p_user_id: userId })
+  const streak = Array.isArray(streakData) ? streakData[0] : null
 
   // Count hearts received
   const totalHearts = (posts || []).reduce((sum: number, p: any) => sum + (p.heart_count || 0), 0)

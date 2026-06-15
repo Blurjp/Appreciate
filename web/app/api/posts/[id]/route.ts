@@ -31,6 +31,7 @@ export async function GET(
 ) {
   const { id } = await params
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: post, error } = await supabase
     .from('gratitude_posts')
@@ -39,6 +40,14 @@ export async function GET(
     .single()
 
   if (error || !post) {
+    return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+  }
+
+  // Defense-in-depth: RLS already filters by ownership/visibility, but
+  // add an explicit check so a future RLS regression doesn't expose private posts.
+  const isOwner = user?.id === (post as Record<string, unknown>).author_id
+  const visibility = (post as Record<string, unknown>).visibility as string
+  if (!isOwner && !['PUBLIC', 'ANONYMOUS'].includes(visibility)) {
     return NextResponse.json({ error: 'Post not found' }, { status: 404 })
   }
 

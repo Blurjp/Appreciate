@@ -265,6 +265,31 @@ CREATE TRIGGER set_posts_updated_at
   BEFORE UPDATE ON public.gratitude_posts
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+-- Public streak stats (SECURITY DEFINER): lets non-owners read streak data
+-- for public walls, bypassing the streak_data RLS (auth.uid() = user_id).
+CREATE OR REPLACE FUNCTION public.public_streak_stats(p_user_id UUID)
+RETURNS TABLE(current_streak INTEGER, longest_streak INTEGER, total_posts INTEGER)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    COALESCE(s.current_streak, 0),
+    COALESCE(s.longest_streak, 0),
+    COALESCE(s.total_posts, 0)
+  FROM public.streak_data s
+  WHERE s.user_id = p_user_id;
+
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT 0, 0, 0;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.public_streak_stats(UUID) TO anon, authenticated;
+
 -- ============================================
 -- 7. Storage Bucket for Photos
 -- ============================================
