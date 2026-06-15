@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
 import {
   GratitudeCategory,
@@ -42,6 +43,7 @@ interface Props {
 }
 
 export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Props) {
+  const queryClient = useQueryClient()
   const [content, setContent] = useState('')
   const [category, setCategory] = useState<GratitudeCategory>('SMALL_JOYS')
   const [visibility, setVisibility] = useState<PostVisibility>('PRIVATE')
@@ -52,6 +54,7 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [showCardDesigner, setShowCardDesigner] = useState(false)
   const [createdPostContent, setCreatedPostContent] = useState('')
+  const [createdPostId, setCreatedPostId] = useState<string | null>(null)
 
   const canSubmit = content.trim().length > 0
 
@@ -63,6 +66,7 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
       const cardTemplateId = CATEGORY_TEMPLATE_MAP[category]
       const createdPost = await onSubmit({ content, category, visibility, cardTemplateId })
       setCreatedPostContent(content)
+      setCreatedPostId(createdPost.id)
       const nextMessage = randomFrom(CONFIRMATIONS)
       setConfirmationMessage(nextMessage)
       if (visibility === 'PRIVATE') {
@@ -84,10 +88,30 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
   const handleConfirmationDismiss = () => {
     setShowConfirmation(false)
     setSharePromptPostId(null)
+    setCreatedPostId(null)
     setContent('')
     setCategory('SMALL_JOYS')
     setVisibility('PRIVATE')
     onClose?.()
+  }
+
+  const handleApplyCard = async ({ cardTemplateId }: { content: string; feeling: string; cardTemplateId: string }) => {
+    if (!createdPostId) return
+    try {
+      const res = await fetch(`/api/posts/${createdPostId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardTemplateId }),
+      })
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['feed'] })
+        queryClient.invalidateQueries({ queryKey: ['my-wall'] })
+        queryClient.invalidateQueries({ queryKey: ['my-wall-all'] })
+      }
+    } catch {
+      // best-effort; share/download still work
+    }
+    setShowCardDesigner(false)
   }
 
   const selectedCategory = getCategoryMeta(category)
@@ -245,6 +269,8 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
         <AppreciationCardGenerator
           content={createdPostContent}
           isPro={isPro}
+          initialCardTemplateId={CATEGORY_TEMPLATE_MAP[category]}
+          onApply={handleApplyCard}
           onClose={() => setShowCardDesigner(false)}
         />
       )}
