@@ -3,6 +3,7 @@ import { fetchSharedPost } from '@/lib/posts'
 import { getPostShareMeta } from '@/lib/share'
 
 export const runtime = 'edge'
+export const revalidate = 3600
 export const size = {
   width: 1200,
   height: 630,

@@ -69,10 +69,10 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
       setCreatedPostId(createdPost.id)
       const nextMessage = randomFrom(CONFIRMATIONS)
       setConfirmationMessage(nextMessage)
-      if (visibility === 'PRIVATE') {
-        setShowConfirmation(true)
-      } else {
+      if (visibility !== 'PRIVATE' && createdPost.id) {
         setSharePromptPostId(createdPost.id)
+      } else {
+        setShowConfirmation(true)
       }
     } catch (error) {
       setSubmitError(
@@ -126,9 +126,12 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
         {onClose && (
           <button
             onClick={onClose}
-            className="glass-chip flex h-8 w-8 items-center justify-center rounded-full text-brand-text-muted transition-all hover:text-brand-primary"
+            aria-label="Close"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-border bg-white text-brand-text-secondary transition-all hover:border-brand-primary hover:text-brand-primary shadow-sm"
           >
-            ✕
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         )}
       </div>
