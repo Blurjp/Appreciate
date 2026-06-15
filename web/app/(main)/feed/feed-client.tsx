@@ -8,6 +8,7 @@ import GratitudePostCard from '@/components/GratitudePostCard'
 
 interface FeedClientProps {
   initialPosts: GratitudePost[]
+  excludeId?: string
 }
 
 function useTodayCount(posts: GratitudePost[]) {
@@ -45,7 +46,7 @@ export function FeedHeader({ initialPosts }: { initialPosts: GratitudePost[] }) 
   )
 }
 
-export function FeedClient({ initialPosts }: FeedClientProps) {
+export function FeedClient({ initialPosts, excludeId }: FeedClientProps) {
   const queryClient = useQueryClient()
 
   const { data: posts = [], isLoading, refetch } = useQuery<GratitudePost[]>({
@@ -105,6 +106,8 @@ export function FeedClient({ initialPosts }: FeedClientProps) {
     return null
   }
 
+  const visiblePosts = excludeId ? posts.filter((p) => p.id !== excludeId) : posts
+
   return (
     <>
       {(pullDistance > 0 || isRefreshing) && (
@@ -123,7 +126,7 @@ export function FeedClient({ initialPosts }: FeedClientProps) {
           </svg>
         </div>
       )}
-      {posts.length === 0 ? (
+      {visiblePosts.length === 0 ? (
         <div className="concept-panel px-6 py-16 text-center" style={{ background: 'var(--theme-page-bg)' }}>
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-brand-border bg-brand-surface shadow-warm">
             <svg className="w-9 h-9 text-brand-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2}>
@@ -143,7 +146,7 @@ export function FeedClient({ initialPosts }: FeedClientProps) {
         </div>
       ) : (
         <div className="space-y-4 pb-4">
-          {posts.map((post) => (
+          {visiblePosts.map((post) => (
             <GratitudePostCard
               key={post.id}
               post={post}

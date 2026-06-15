@@ -8,15 +8,23 @@ export async function GET(
   const { userId } = await params
   const supabase = await createClient()
 
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+
   // Fetch user profile
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, name, avatar_url, created_at, wall_theme')
+    .select('id, name, avatar_url, created_at, wall_theme, wall_hidden')
     .eq('id', userId)
     .single()
 
   if (profileError || !profile) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  // Wall-level privacy: only the owner can view a hidden wall
+  const isOwner = authUser?.id === userId
+  if (profile.wall_hidden && !isOwner) {
+    return NextResponse.json({ error: 'Wall is private' }, { status: 404 })
   }
 
   // Fetch public + anonymous posts (not private)

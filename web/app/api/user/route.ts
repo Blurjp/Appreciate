@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id, wall_theme')
+    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id, wall_theme, wall_hidden')
     .eq('id', user.id)
     .single()
 
@@ -32,6 +32,7 @@ export async function GET() {
     isPro: profile.is_pro ?? false,
     hasStripeCustomer: !!profile.stripe_customer_id,
     wallTheme: profile.wall_theme || 'starry',
+    wallHidden: profile.wall_hidden ?? false,
   })
 }
 
@@ -48,12 +49,13 @@ export async function PATCH(req: NextRequest) {
   const updateData: Record<string, unknown> = {}
   if ('name' in body) updateData.name = body.name
   if (body.wallTheme) updateData.wall_theme = body.wallTheme
+  if ('wallHidden' in body) updateData.wall_hidden = !!body.wallHidden
 
   const { data: profile, error } = await supabase
     .from('profiles')
     .update(updateData)
     .eq('id', user.id)
-    .select('id, name, email, avatar_url, created_at, is_pro, wall_theme')
+    .select('id, name, email, avatar_url, created_at, is_pro, wall_theme, wall_hidden')
     .single()
 
   if (error) {
@@ -71,5 +73,6 @@ export async function PATCH(req: NextRequest) {
     createdAt: profile.created_at,
     isPro: profile.is_pro ?? false,
     wallTheme: profile.wall_theme || 'starry',
+    wallHidden: profile.wall_hidden ?? false,
   })
 }

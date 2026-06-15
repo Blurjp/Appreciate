@@ -9,6 +9,7 @@ interface Post {
   category: string
   createdAt: string
   heartCount: number
+  photoUrl?: string | null
 }
 
 interface User {
@@ -48,12 +49,13 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
 
   const { postObjects, decorativeObjects } = useMemo(() => {
     const rand = seeded(42)
+    const single = posts.length === 1
     const postObjects = Array.from({ length: posts.length }, (_, i) => ({
-      x: 43 + rand() * 50,
-      y: 20 + rand() * 58,
+      x: single ? 50 : 43 + rand() * 50,
+      y: single ? 52 : 20 + rand() * 58,
       kind: i % 3,
       postIndex: i,
-      rotate: -14 + rand() * 28,
+      rotate: single ? 0 : -14 + rand() * 28,
     }))
     const decorativeObjects = Array.from({ length: Math.max(7, Math.min(18, posts.length + 7)) }, (_, i) => ({
       x: 43 + rand() * 50,
@@ -64,8 +66,10 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
     return { postObjects, decorativeObjects }
   }, [posts])
 
+  const canvasHeight = posts.length === 1 ? 'h-[48vh] min-h-[400px]' : 'h-[70vh] min-h-[520px]'
+
   const visualization = (
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#EFE2CC] shadow-[0_24px_70px_rgba(78,63,42,0.20)]">
+        <div className={`relative ${canvasHeight} overflow-hidden rounded-2xl bg-[#EFE2CC] shadow-[0_24px_70px_rgba(78,63,42,0.20)]`}>
           <div className="absolute inset-y-0 left-0 w-[38%] bg-[#D8E6D2]" />
 
           <div className="absolute left-[10%] top-[25%] h-44 w-44 rounded-full bg-white/24">
@@ -82,7 +86,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
             <div className="absolute left-1/2 top-1/2 h-8 w-12 -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[#8F927C] shadow-lg" />
           </div>
 
-          <svg className="absolute inset-y-0 right-0 h-full w-[65%]" viewBox="0 0 650 520" preserveAspectRatio="none">
+          <svg className="absolute inset-y-0 right-0 h-full w-[65%]" viewBox="0 0 650 520" preserveAspectRatio="xMidYMid slice">
             {Array.from({ length: 13 }).map((_, i) => (
               <path
                 key={i}
@@ -134,7 +138,7 @@ export default function ZenClient({ posts, isOwner, currentTheme, embedded, onTh
           })}
 
           {active && (
-            <div className="pointer-events-none absolute right-[10%] top-[34%] z-20 max-w-[300px] rounded-2xl border border-white/65 bg-white/72 px-5 py-4 text-[#30302A] shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute right-[10%] top-[34%] z-40 max-w-[300px] rounded-2xl border border-white/65 bg-white/72 px-5 py-4 text-[#30302A] shadow-xl backdrop-blur-xl">
               <p className="text-lg font-semibold leading-snug">{active.content}</p>
               <div className="absolute -bottom-3 left-12 h-6 w-6 rotate-45 border-b border-r border-white/65 bg-white/72" />
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import type { VisualizationProps } from './ZenClient'
 
 const HAND = '"Comic Sans MS", "Bradley Hand", "Segoe Print", cursive'
@@ -10,6 +11,15 @@ const GRADIENTS = [
   'from-[#E8B7B0] via-[#F3D4B7] to-[#C7B7D8]',
   'from-[#C9D8A8] via-[#EFE1C7] to-[#D7B85C]',
 ]
+
+const EMOJI_BY_CATEGORY: Record<string, string> = {
+  FAMILY: '❤️',
+  WORK: '💼',
+  SMALL_JOYS: '✨',
+  NATURE: '🌿',
+  HEALTH: '💪',
+  OTHER: '☕',
+}
 
 function seeded(seed: number) {
   let s = seed
@@ -35,14 +45,18 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme, emb
 
   const cards = useMemo(() => {
     const rand = seeded(12)
+    const single = posts.length === 1
     const count = Math.max(8, Math.min(22, posts.length + 8))
-    return Array.from({ length: count }, (_, i) => ({
-      x: 7 + rand() * 82,
-      y: 11 + rand() * 70,
-      rotate: -9 + rand() * 18,
-      scale: 0.82 + rand() * 0.28,
-      postIndex: i < posts.length ? i : -1,
-    }))
+    return Array.from({ length: count }, (_, i) => {
+      const isCentered = single && i === 0
+      return {
+        x: isCentered ? 50 : 7 + rand() * 82,
+        y: isCentered ? 50 : 11 + rand() * 70,
+        rotate: isCentered ? 0 : -9 + rand() * 18,
+        scale: isCentered ? 1 : 0.82 + rand() * 0.28,
+        postIndex: i < posts.length ? i : -1,
+      }
+    })
   }, [posts])
 
   const startDrag = (
@@ -89,8 +103,10 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme, emb
     }
   }
 
+  const canvasHeight = posts.length === 1 ? 'h-[48vh] min-h-[400px]' : 'h-[70vh] min-h-[520px]'
+
   const visualization = (
-        <div ref={boardRef} className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#FBF4E7] shadow-[0_24px_70px_rgba(80,62,40,0.18)]">
+        <div ref={boardRef} className={`relative ${canvasHeight} overflow-hidden rounded-2xl bg-[#FBF4E7] shadow-[0_24px_70px_rgba(80,62,40,0.18)]`}>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(128,105,74,0.04)_1px,transparent_1px),radial-gradient(circle,rgba(91,72,48,0.055)_1px,transparent_1px)] bg-[size:92px_92px,18px_18px]" />
 
           {cards.map((card, i) => {
@@ -124,8 +140,12 @@ export default function PolaroidClient({ user, posts, isOwner, currentTheme, emb
                 aria-label={`Open memory ${card.postIndex + 1}`}
               >
                 <span className="absolute -right-2 -top-2 h-5 w-5 rounded-full border border-white bg-[#B98154] shadow" />
-                <div className={`h-24 bg-gradient-to-br ${GRADIENTS[i % GRADIENTS.length]} flex items-center justify-center`}>
-                  <span className="text-4xl opacity-70">{i % 4 === 0 ? '☕' : i % 4 === 1 ? '☀️' : i % 4 === 2 ? '🌧️' : '✨'}</span>
+                <div className={`relative h-24 overflow-hidden bg-gradient-to-br ${GRADIENTS[i % GRADIENTS.length]} flex items-center justify-center`}>
+                  {post.photoUrl ? (
+                    <Image src={post.photoUrl} alt="" fill className="object-cover" sizes="140px" />
+                  ) : (
+                    <span className="text-4xl opacity-70">{EMOJI_BY_CATEGORY[post.category] ?? '☕'}</span>
+                  )}
                 </div>
                 <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-[#2F281F]" style={{ fontFamily: HAND }}>
                   {post.content}

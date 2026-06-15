@@ -46,6 +46,7 @@ export interface UserProfile {
   avatarUrl: string | null
   createdAt: string
   wallTheme?: string
+  wallHidden?: boolean
 }
 
 export const CATEGORIES: {

@@ -44,13 +44,14 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
 
   const { postLeaves, backgroundLeaves } = useMemo(() => {
     const rand = seeded(24)
+    const single = posts.length === 1
     const postLeaves = Array.from({ length: posts.length }, (_, i) => {
       const angle = rand() * Math.PI * 2
       const radius = Math.sqrt(rand()) * 34
       return {
-        x: 50 + Math.cos(angle) * radius,
-        y: 36 + Math.sin(angle) * radius * 0.62,
-        rotate: rand() * 360,
+        x: single ? 50 : 50 + Math.cos(angle) * radius,
+        y: single ? 30 : 36 + Math.sin(angle) * radius * 0.62,
+        rotate: single ? 0 : rand() * 360,
         postIndex: i,
         color: LEAF_COLORS[posts[i]?.category || 'OTHER'] || LEAF_COLORS.OTHER,
       }
@@ -68,11 +69,13 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
     return { postLeaves, backgroundLeaves }
   }, [posts])
 
+  const canvasHeight = posts.length === 1 ? 'h-[48vh] min-h-[400px]' : 'h-[70vh] min-h-[520px]'
+
   const visualization = (
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#F0E7D4] shadow-[0_24px_70px_rgba(80,62,40,0.18)]">
+        <div className={`relative ${canvasHeight} overflow-hidden rounded-2xl bg-[#F0E7D4] shadow-[0_24px_70px_rgba(80,62,40,0.18)]`}>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(194,214,172,0.55),transparent_34%),linear-gradient(180deg,#F7F0E2_0%,#E7D8BD_100%)]" />
 
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
             <path d="M49 94 C48 77 48 64 50 48" stroke="#8B5E3C" strokeWidth="4" strokeLinecap="round" fill="none" />
             <path d="M50 55 C37 45 29 40 22 29" stroke="#8B5E3C" strokeWidth="1.6" strokeLinecap="round" fill="none" />
             <path d="M50 51 C63 41 72 34 82 22" stroke="#8B5E3C" strokeWidth="1.8" strokeLinecap="round" fill="none" />
@@ -121,7 +124,7 @@ export default function TreeClient({ user, posts, isOwner, currentTheme, embedde
           })}
 
           {active && (
-            <div className="pointer-events-none absolute bottom-6 left-6 right-6 z-20 max-w-[320px] rounded-2xl border border-white/60 bg-white/80 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute bottom-6 left-6 right-6 z-40 max-w-[320px] rounded-2xl border border-white/60 bg-white/80 px-5 py-4 text-[#3D2E26] shadow-xl backdrop-blur-xl">
               <p className="text-lg leading-snug">{active.content}</p>
             </div>
           )}

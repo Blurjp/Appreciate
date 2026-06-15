@@ -30,8 +30,10 @@ export default function StickyNotesClient({ user, posts, isOwner, currentTheme, 
     }))
   }, [posts])
 
+  const canvasHeight = posts.length === 1 ? 'h-[48vh] min-h-[400px]' : 'h-[70vh] min-h-[520px]'
+
   const visualization = (
-    <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#F5F0E8] shadow-[0_24px_70px_rgba(80,62,40,0.15)]">
+    <div className={`relative ${canvasHeight} overflow-hidden rounded-2xl bg-[#F5F0E8] shadow-[0_24px_70px_rgba(80,62,40,0.15)]`}>
       <div className="absolute inset-0 bg-[linear-gradient(180deg,#F7F2EA_0%,#EDE5D8_100%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(200,190,170,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(200,190,170,0.15)_1px,transparent_1px)] bg-[size:40px_40px]" />
 

@@ -52,6 +52,21 @@ export default function SettingsPage() {
     },
   })
 
+  const wallPrivacyMutation = useMutation({
+    mutationFn: async (wallHidden: boolean) => {
+      const res = await fetch('/api/user', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallHidden }),
+      })
+      if (!res.ok) throw new Error('Failed to update privacy')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+    },
+  })
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.replace('/welcome')
@@ -149,6 +164,30 @@ export default function SettingsPage() {
             <span className="text-brand-text-muted group-hover:text-brand-primary transition-colors text-lg">›</span>
           </div>
         </button>
+      )}
+
+      {/* Wall Privacy Card */}
+      {!isLoading && user && (
+        <div className="rounded-2xl p-5 mb-4 border border-brand-border">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-headline text-brand-text-primary">Private Wall</p>
+              <p className="text-caption text-brand-text-secondary mt-0.5">
+                Only you can view your wall. Public posts in the community feed are unaffected.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={user.wallHidden ?? false}
+              onClick={() => wallPrivacyMutation.mutate(!(user.wallHidden ?? false))}
+              disabled={wallPrivacyMutation.isPending}
+              className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors disabled:opacity-50 ${(user.wallHidden ?? false) ? 'bg-brand-primary' : 'bg-brand-border'}`}
+            >
+              <span className={`absolute left-0 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${(user.wallHidden ?? false) ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Subscription Card */}

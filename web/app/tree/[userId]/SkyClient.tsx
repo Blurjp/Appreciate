@@ -45,9 +45,10 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
   const { postStars, backgroundStars } = useMemo(() => {
     const rand = seeded(91)
     const postCount = posts.length
+    const single = postCount === 1
     const postStars = Array.from({ length: postCount }, (_, i) => ({
-      x: 5 + rand() * 90,
-      y: 10 + rand() * 74,
+      x: single ? 50 : 5 + rand() * 90,
+      y: single ? 42 : 10 + rand() * 74,
       size: 24 + rand() * 12,
       postIndex: i,
       color: COLORS[posts[i]?.category || 'OTHER'] || COLORS.OTHER,
@@ -63,11 +64,13 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
     return { postStars, backgroundStars }
   }, [posts])
 
+  const canvasHeight = posts.length === 1 ? 'h-[48vh] min-h-[400px]' : 'h-[70vh] min-h-[520px]'
+
   const visualization = (
-        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl bg-[#071225] shadow-[0_24px_70px_rgba(5,14,31,0.34)]">
+        <div className={`relative ${canvasHeight} overflow-hidden rounded-2xl bg-[#071225] shadow-[0_24px_70px_rgba(5,14,31,0.34)]`}>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_82%,rgba(107,83,177,0.35),transparent_32%),radial-gradient(circle_at_72%_22%,rgba(62,145,180,0.24),transparent_28%),radial-gradient(circle_at_52%_62%,rgba(255,214,186,0.12),transparent_24%),linear-gradient(180deg,#06101F_0%,#0B1733_50%,#18204E_100%)]" />
 
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
             {postStars.slice(0, 14).map((s, i, arr) => {
               const next = arr[(i + 3) % arr.length]
               if (!next) return null
@@ -126,7 +129,7 @@ export default function SkyClient({ user, posts, isOwner, currentTheme, embedded
           })}
 
           {active && (
-            <div className="pointer-events-none absolute left-[58%] top-[32%] z-20 max-w-[270px] rounded-lg border border-white/20 bg-black/40 p-4 shadow-2xl backdrop-blur-xl">
+            <div className="pointer-events-none absolute left-[58%] top-[32%] z-40 max-w-[270px] rounded-lg border border-white/20 bg-black/40 p-4 shadow-2xl backdrop-blur-xl">
               <p className="text-sm font-medium text-white/90">
                 {new Date(active.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
               </p>

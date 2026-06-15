@@ -6,7 +6,10 @@ import dynamic from 'next/dynamic'
 import { GratitudePost, PostVisibility } from '@/types'
 import { cn } from '@/lib/utils'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { useStreak } from '@/hooks/useStreak'
 import GratitudePostCard from '@/components/GratitudePostCard'
+import WallStats from '@/components/WallStats'
+import WallEmptyState from '@/components/WallEmptyState'
 import Toast from '@/components/Toast'
 import { GratitudeCategory } from '@/types'
 import SkyClient from '../../tree/[userId]/SkyClient'
@@ -63,6 +66,8 @@ export default function MyWallPage() {
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   })
+
+  const { data: streak } = useStreak()
 
   const { data: userProfile } = useQuery<{
     isPro: boolean
@@ -247,12 +252,13 @@ export default function MyWallPage() {
                   category: post.category,
                   createdAt: post.createdAt,
                   heartCount: post.heartCount,
+                  photoUrl: post.photoUrl ?? null,
                 })),
                 stats: {
                   totalPosts: allWallPosts.length,
                   totalHearts: allWallPosts.reduce((sum, post) => sum + (post.heartCount || 0), 0),
-                  currentStreak: 0,
-                  longestStreak: 0,
+                  currentStreak: streak?.currentStreak ?? 0,
+                  longestStreak: streak?.longestStreak ?? 0,
                 },
               }}
               onThemeSaved={handleWallThemeSaved}
@@ -260,6 +266,8 @@ export default function MyWallPage() {
           )}
         </div>
       )}
+
+      <WallStats streak={streak} posts={allWallPosts} />
 
       {/* Filter pills */}
       <div className="flex gap-2 mb-5">
@@ -395,6 +403,10 @@ function ExactWallEmbed({
   data: TreeApiResponse
   onThemeSaved: (themeId: string) => void
 }) {
+  if (data.posts.length === 0) {
+    return <WallEmptyState isOwner embedded />
+  }
+
   const props: VisualizationProps = {
     user: data.user,
     posts: data.posts,

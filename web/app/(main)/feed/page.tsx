@@ -17,7 +17,7 @@ export default async function FeedPage() {
       <GratitudeSkyPanel posts={initialPosts} />
 
       <Suspense fallback={<FeedSkeleton />}>
-        <FeedClient initialPosts={initialPosts} />
+        <FeedClient initialPosts={initialPosts} excludeId={initialPosts.length > 1 ? initialPosts[0]?.id : undefined} />
       </Suspense>
     </div>
   )
@@ -53,7 +53,7 @@ function GratitudeSkyPanel({
           {featured?.content || 'Share one thing you noticed today.'}
         </p>
       </div>
-      <div className="absolute bottom-5 left-6 z-10 flex items-center gap-3">
+      <div className="absolute bottom-5 left-6 z-10 hidden items-center gap-3 sm:flex">
         <span className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-border bg-brand-surface text-2xl shadow-warm backdrop-blur-xl text-brand-primary">
           +
         </span>

@@ -5,6 +5,7 @@ import TreeClient from './TreeClient'
 import ZenClient from './ZenClient'
 import PolaroidClient from './PolaroidClient'
 import StickyNotesClient from './StickyNotesClient'
+import WallEmptyState from '@/components/WallEmptyState'
 
 interface Props {
   params: Promise<{ userId: string }>
@@ -57,11 +58,13 @@ export default async function VisualizationPage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, name, avatar_url, created_at, wall_theme')
+    .select('id, name, avatar_url, created_at, wall_theme, wall_hidden')
     .eq('id', userId)
     .single()
 
-  if (!profile) {
+  const isOwner = authUser?.id === userId
+
+  if (!profile || (profile.wall_hidden && !isOwner)) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FAF6EE 0%, #F5EFE3 100%)' }}>
         <div className="text-center p-8">
@@ -91,16 +94,16 @@ export default async function VisualizationPage({ params }: Props) {
     .single()
 
   const totalHearts = (posts || []).reduce((sum: number, p: { heart_count?: number | null }) => sum + (p.heart_count || 0), 0)
-  const isOwner = authUser?.id === userId
   const theme = profile.wall_theme || 'starry'
 
-  const mappedPosts = (posts || []).map((p: { id: string; content: string; feeling?: string | null; category: string; created_at: string; heart_count?: number | null }) => ({
+  const mappedPosts = (posts || []).map((p: { id: string; content: string; feeling?: string | null; category: string; created_at: string; heart_count?: number | null; photo_url?: string | null }) => ({
     id: p.id,
     content: p.content,
     feeling: p.feeling ?? null,
     category: p.category,
     createdAt: p.created_at,
     heartCount: p.heart_count || 0,
+    photoUrl: p.photo_url ?? null,
   }))
 
   const commonProps = {
@@ -121,6 +124,9 @@ export default async function VisualizationPage({ params }: Props) {
   }
 
   const client = (() => {
+    if (mappedPosts.length === 0) {
+      return <WallEmptyState isOwner={isOwner} />
+    }
     switch (theme) {
       case 'tree':
         return <TreeClient {...commonProps} />
