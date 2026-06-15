@@ -46,6 +46,11 @@ function GratitudePostCard({
   const initial = useMemo(() => isAnonymous ? '?' : authorName[0]?.toUpperCase() || '?', [isAnonymous, authorName])
   const accentColor = CATEGORY_ACCENT_COLORS[post.category] ?? '#655446'
 
+  const cardStyle = useMemo(() => {
+    if (!post.cardTemplateId || post.cardTemplateId === 'minimal') return null
+    return resolveCardPresentation(post.cardTemplateId, post.photoUrl)
+  }, [post.cardTemplateId, post.photoUrl])
+
   const shareUrl = useMemo(
     () => typeof window === 'undefined' ? `/share/${post.id}` : `${window.location.origin}/share/${post.id}`,
     [post.id]
@@ -111,17 +116,19 @@ function GratitudePostCard({
           <VisibilityBadge visibility={post.visibility} />
         </div>
 
-        <div className="relative mb-4 rounded-2xl border border-brand-border bg-white/82 p-4 backdrop-blur-xl">
-          <span
-            className="absolute left-3 top-2 text-2xl text-brand-text-muted opacity-40"
-            style={{ fontFamily: 'var(--font-serif), Georgia, serif', lineHeight: 1 }}
-          >
-            &ldquo;
-          </span>
-          <p className="whitespace-pre-wrap pl-4 pr-2 text-[15px] leading-relaxed text-brand-text-primary">
-            {post.content}
-          </p>
-        </div>
+        {!cardStyle && (
+          <div className="relative mb-4 rounded-2xl border border-brand-border bg-white/82 p-4 backdrop-blur-xl">
+            <span
+              className="absolute left-3 top-2 text-2xl text-brand-text-muted opacity-40"
+              style={{ fontFamily: 'var(--font-serif), Georgia, serif', lineHeight: 1 }}
+            >
+              &ldquo;
+            </span>
+            <p className="whitespace-pre-wrap pl-4 pr-2 text-[15px] leading-relaxed text-brand-text-primary">
+              {post.content}
+            </p>
+          </div>
+        )}
 
         {post.feeling && (
           <div className="mb-4 pl-4">
@@ -131,7 +138,7 @@ function GratitudePostCard({
           </div>
         )}
 
-        <CardBackground post={post} />
+        <CardBackground post={post} cardStyle={cardStyle} />
 
         {post.photoUrl && post.cardTemplateId !== PHOTO_CARD_TEMPLATE_ID && (
           <div className="relative mb-4 h-52 overflow-hidden rounded-2xl border border-white/55">
@@ -239,12 +246,7 @@ function GratitudePostCard({
   )
 }
 
-const CardBackground = ({ post }: { post: GratitudePost }) => {
-  const cardStyle = useMemo(() => {
-    if (!post.cardTemplateId || post.cardTemplateId === 'minimal') return null
-    return resolveCardPresentation(post.cardTemplateId, post.photoUrl)
-  }, [post.cardTemplateId, post.photoUrl])
-
+const CardBackground = ({ post, cardStyle }: { post: GratitudePost; cardStyle: ReturnType<typeof resolveCardPresentation> | null }) => {
   if (!cardStyle) return null
 
   return (
