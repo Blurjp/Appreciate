@@ -16,21 +16,42 @@ const THEME_NAMES: Record<string, string> = {
   tree: 'Gratitude Tree',
   zen: 'Zen Garden',
   polaroid: 'Polaroid Gallery',
-  glass: 'Sticky Notes',
   'sticky-notes': 'Sticky Notes',
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { userId } = await params
   const supabase = await createClient()
+  const { data: { user: authUser } } = await supabase.auth.getUser()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, wall_theme')
+    .select('name, wall_theme, wall_hidden')
     .eq('id', userId)
     .single()
 
-  const name = profile?.name || 'Someone'
-  const theme = profile?.wall_theme || 'starry'
+  const isOwner = authUser?.id === userId
+
+  // Hidden wall: don't leak the owner's name/title to non-owners
+  if (!profile || (profile.wall_hidden && !isOwner)) {
+    return {
+      title: 'Gratitude Wall — Appreciate',
+      description: 'A living collection of gratitude — beautifully visualized.',
+      openGraph: {
+        title: 'Gratitude Wall',
+        description: 'A living collection of gratitude — beautifully visualized.',
+        siteName: 'Appreciate',
+        type: 'profile',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Gratitude Wall',
+        description: 'A living collection of gratitude — beautifully visualized.',
+      },
+    }
+  }
+
+  const name = profile.name || 'Someone'
+  const theme = profile.wall_theme || 'starry'
   const themeName = THEME_NAMES[theme] || 'Gratitude Wall'
   return {
     title: `${name}'s ${themeName} — Appreciate`,
