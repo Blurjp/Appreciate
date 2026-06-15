@@ -25,7 +25,16 @@ export default function PostSharePrompt({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-[30px] border border-brand-border bg-white p-6 shadow-[0_30px_80px_rgba(17,17,17,0.16)]">
+      <div className="relative w-full max-w-xl rounded-[30px] border border-brand-border bg-white p-6 shadow-[0_30px_80px_rgba(17,17,17,0.16)]">
+        <button
+          onClick={onDismiss}
+          aria-label="Close"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-brand-text-muted transition-colors hover:bg-brand-surface hover:text-brand-text-primary"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <div className="mb-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-brand-text-muted">
             Post Published
