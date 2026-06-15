@@ -10,17 +10,18 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, name, email, avatar_url, created_at, is_pro, stripe_customer_id, wall_theme, wall_hidden')
-    .eq('id', user.id)
-    .single()
+  const { data: result, error } = await supabase.rpc('self_profile')
+  const profile = Array.isArray(result) ? result[0] : null
 
   if (error) {
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
     )
+  }
+
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
   return NextResponse.json({
@@ -51,18 +52,24 @@ export async function PATCH(req: NextRequest) {
   if (body.wallTheme) updateData.wall_theme = body.wallTheme
   if ('wallHidden' in body) updateData.wall_hidden = !!body.wallHidden
 
-  const { data: profile, error } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .update(updateData)
     .eq('id', user.id)
-    .select('id, name, email, avatar_url, created_at, is_pro, wall_theme, wall_hidden')
-    .single()
 
   if (error) {
     return NextResponse.json(
       { error: error.message },
       { status: 500 }
     )
+  }
+
+  // Re-read via SECURITY DEFINER RPC (email/stripe columns are column-restricted)
+  const { data: result } = await supabase.rpc('self_profile')
+  const profile = Array.isArray(result) ? result[0] : null
+
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
   return NextResponse.json({

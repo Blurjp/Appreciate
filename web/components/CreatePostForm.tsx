@@ -91,7 +91,7 @@ export default function CreatePostForm({ onSubmit, onClose, isPro = false }: Pro
     setCreatedPostId(null)
     setContent('')
     setCategory('SMALL_JOYS')
-    setVisibility('PRIVATE')
+    setVisibility('PUBLIC')
     onClose?.()
   }
 

@@ -99,6 +99,12 @@ CREATE POLICY "Public profiles are viewable by everyone"
   ON public.profiles FOR SELECT
   USING (true);
 
+-- Expose only safe columns publicly; protect email, OAuth IDs, Stripe IDs, etc.
+-- (table-level SELECT revoked from anon/authenticated; column-level grant only)
+REVOKE SELECT ON public.profiles FROM anon, authenticated;
+GRANT SELECT (id, name, avatar_url, created_at, is_pro, wall_theme, wall_hidden)
+  ON public.profiles TO anon, authenticated;
+
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
@@ -264,6 +270,27 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER set_posts_updated_at
   BEFORE UPDATE ON public.gratitude_posts
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Self profile read (SECURITY DEFINER): lets a user read their OWN full profile
+-- (incl. email/stripe) even though those columns are column-restricted for public reads.
+CREATE OR REPLACE FUNCTION public.self_profile()
+RETURNS TABLE(
+  id uuid,
+  email text,
+  name text,
+  avatar_url text,
+  created_at timestamptz,
+  is_pro boolean,
+  stripe_customer_id text,
+  wall_theme character varying,
+  wall_hidden boolean
+) AS $$
+SELECT id, email, name, avatar_url, created_at, is_pro, stripe_customer_id, wall_theme, wall_hidden
+FROM public.profiles
+WHERE id = auth.uid();
+$$ LANGUAGE sql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.self_profile() TO anon, authenticated;
 
 -- Public streak stats (SECURITY DEFINER): lets non-owners read streak data
 -- for public walls, bypassing the streak_data RLS (auth.uid() = user_id).
