@@ -9,6 +9,7 @@ import ThemePicker from '@/components/ThemePicker'
 
 export default function SettingsPage() {
   const [showNameEdit, setShowNameEdit] = useState(false)
+  const [nameError, setNameError] = useState('')
   const [isUpgrading, setIsUpgrading] = useState(false)
   const [isManaging, setIsManaging] = useState(false)
   const [newName, setNewName] = useState('')
@@ -44,11 +45,16 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       })
+      if (!res.ok) throw new Error('Failed to update name')
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] })
+      setNameError('')
       setShowNameEdit(false)
+    },
+    onError: () => {
+      setNameError('Could not save your name. Please try again.')
     },
   })
 
@@ -132,7 +138,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <p className="text-headline text-brand-text-primary truncate">{displayName}</p>
               <button
-                onClick={() => { setNewName(displayName); setShowNameEdit(true) }}
+                onClick={() => { setNewName(displayName); setNameError(''); setShowNameEdit(true) }}
                 className="text-[9px] tracking-widest uppercase text-brand-text-muted hover:text-brand-primary transition-colors border border-brand-border rounded-full px-2 py-0.5"
               >
                 Edit
@@ -312,6 +318,9 @@ export default function SettingsPage() {
               placeholder="Your name"
               autoFocus
             />
+            {nameError && (
+              <p className="-mt-2 mb-4 text-xs text-red-500">{nameError}</p>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => setShowNameEdit(false)}

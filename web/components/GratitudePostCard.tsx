@@ -331,6 +331,9 @@ export default memo(GratitudePostCard, (prevProps, nextProps) => {
     prevProps.post.isHeartedByMe === nextProps.post.isHeartedByMe &&
     prevProps.post.updatedAt === nextProps.post.updatedAt &&
     prevProps.post.visibility === nextProps.post.visibility &&
-    prevProps.post.category === nextProps.post.category
+    prevProps.post.category === nextProps.post.category &&
+    prevProps.post.cardTemplateId === nextProps.post.cardTemplateId &&
+    prevProps.post.photoUrl === nextProps.post.photoUrl &&
+    prevProps.post.feeling === nextProps.post.feeling
   )
 })

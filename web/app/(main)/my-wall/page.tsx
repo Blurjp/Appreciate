@@ -122,7 +122,7 @@ export default function MyWallPage() {
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(10)
       await queryClient.cancelQueries({ queryKey: ['my-wall'] })
       await queryClient.cancelQueries({ queryKey: ['my-wall-all'] })
-      const prevWall = queryClient.getQueryData<GratitudePost[]>(['my-wall'])
+      const prevWall = queryClient.getQueriesData<GratitudePost[]>({ queryKey: ['my-wall'] })
       const prevAll = queryClient.getQueryData<GratitudePost[]>(['my-wall-all'])
       const toggle = (old: GratitudePost[] | undefined) =>
         (old ?? []).map((p) => {
@@ -134,12 +134,12 @@ export default function MyWallPage() {
             heartCount: Math.max(0, p.heartCount + (wasHearted ? -1 : 1)),
           }
         })
-      queryClient.setQueryData<GratitudePost[]>(['my-wall'], toggle)
+      queryClient.setQueriesData<GratitudePost[]>({ queryKey: ['my-wall'] }, toggle)
       queryClient.setQueryData<GratitudePost[]>(['my-wall-all'], toggle)
       return { prevWall, prevAll }
     },
     onError: (_err, _postId, ctx) => {
-      if (ctx?.prevWall) queryClient.setQueryData(['my-wall'], ctx.prevWall)
+      ctx?.prevWall?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       if (ctx?.prevAll) queryClient.setQueryData(['my-wall-all'], ctx.prevAll)
     },
     onSettled: () => {

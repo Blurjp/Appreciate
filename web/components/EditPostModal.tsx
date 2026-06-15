@@ -36,6 +36,7 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
   const [cardTemplateId, setCardTemplateId] = useState(post.cardTemplateId ?? 'minimal')
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(existingAiUrl)
+  const [aiError, setAiError] = useState('')
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   if (!isOpen) return null
@@ -47,6 +48,7 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
 
   const handleGenerateAI = async () => {
     setIsGeneratingAI(true)
+    setAiError('')
     try {
       const res = await fetch('/api/ai/generate-image', {
         method: 'POST',
@@ -54,12 +56,13 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
         body: JSON.stringify({ content, feeling }),
       })
       const result = await res.json()
-      if (result.data?.imageURL) {
-        setAiImageUrl(result.data.imageURL)
-        setCardTemplateId('ai:' + result.data.imageURL)
+      if (!res.ok || !result.data?.imageURL) {
+        throw new Error(result.error || 'Failed to generate image. Please try again.')
       }
-    } catch {
-      // silent
+      setAiImageUrl(result.data.imageURL)
+      setCardTemplateId('ai:' + result.data.imageURL)
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Failed to generate image.')
     } finally {
       setIsGeneratingAI(false)
     }
@@ -171,6 +174,9 @@ export default function EditPostModal({ post, isOpen, isPro = false, onClose, on
                       ? 'Generate AI Background'
                       : 'Generate AI Background ✦ Pro'}
               </button>
+              {aiError && (
+                <p className="-mt-1 text-xs text-red-500">{aiError}</p>
+              )}
             </div>
 
             {/* Category */}
